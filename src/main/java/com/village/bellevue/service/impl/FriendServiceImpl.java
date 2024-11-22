@@ -1,0 +1,265 @@
+package com.village.bellevue.service.impl;
+
+import static com.village.bellevue.config.CacheConfig.FRIENDSHIP_STATUS_CACHE_NAME;
+import static com.village.bellevue.config.CacheConfig.RECIPE_SECURITY_CACHE_NAME;
+import static com.village.bellevue.config.CacheConfig.REVIEW_SECURITY_CACHE_NAME;
+import static com.village.bellevue.config.CacheConfig.evictKeysByPattern;
+import static com.village.bellevue.config.CacheConfig.getCacheKey;
+import static com.village.bellevue.config.CacheConfig.getUserCacheKeyPattern;
+import static com.village.bellevue.config.security.SecurityConfig.getAuthenticatedUserId;
+
+import com.village.bellevue.entity.FriendEntity;
+import com.village.bellevue.entity.FriendEntity.FriendshipStatus;
+import com.village.bellevue.entity.ScrubbedUserEntity;
+import com.village.bellevue.entity.id.FriendId;
+import com.village.bellevue.error.FriendshipException;
+import com.village.bellevue.repository.FriendRepository;
+import com.village.bellevue.repository.UserRepository;
+import com.village.bellevue.service.FriendService;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.Optional;
+import javax.sql.DataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+public class FriendServiceImpl implements FriendService {
+
+  public static final String STATUS_CACHE_KEY = "status";
+  public static final String IS_FRIEND_CACHE_KEY = "isFriend";
+  public static final String IS_BLOCKING_CACHE_KEY = "isBlocking";
+
+  private static final Logger logger = LoggerFactory.getLogger(FriendServiceImpl.class);
+  private final FriendRepository friendRepository;
+  private final UserRepository userRepository;
+  private final DataSource dataSource;
+  private final CacheManager cacheManager;
+  private final RedisTemplate<String, Object> redisTemplate;
+
+  @PersistenceContext private EntityManager entityManager;
+
+  public FriendServiceImpl(
+      FriendRepository friendRepository,
+      UserRepository userRepository,
+      DataSource dataSource,
+      CacheManager cacheManager,
+      RedisTemplate<String, Object> redisTemplate) {
+    this.friendRepository = friendRepository;
+    this.userRepository = userRepository;
+    this.dataSource = dataSource;
+    this.cacheManager = cacheManager;
+    this.redisTemplate = redisTemplate;
+  }
+
+  @Override
+  @Transactional
+  public void request(Long user) throws FriendshipException {
+    if (isBlockedBy(user)) {
+      return;
+    }
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement stmt = connection.prepareCall("{call request_friend(?, ?)}")) {
+      stmt.setLong(1, getAuthenticatedUserId());
+      stmt.setLong(2, user);
+      stmt.executeUpdate();
+    } catch (SQLException e) {
+      logger.error("Error requesting friend: {}", e.getMessage(), e);
+      throw new FriendshipException(
+          "Failed to request friendship. SQL command error: " + e.getMessage(), e);
+    } finally {
+      entityManager.flush();
+      entityManager.clear(); // ensure the database is updated
+    }
+  }
+
+  @Override
+  public Optional<ScrubbedUserEntity> read(Long user) throws FriendshipException {
+    if (getAuthenticatedUserId().equals(user)) {
+      return Optional.of(
+          userRepository
+              .findById(user)
+              .map(ScrubbedUserEntity::new)
+              .orElseThrow(() -> new FriendshipException("User not found with id: " + user)));
+    }
+    if (isBlockedBy(user)) {
+      return Optional.empty();
+    }
+    Optional<FriendEntity> friend =
+        friendRepository.findById(new FriendId(getAuthenticatedUserId(), user));
+    if (friend.isPresent()) {
+      return Optional.of(friend.get().getFriend());
+    }
+    return Optional.empty();
+  }
+
+  @Cacheable(
+      value = FRIENDSHIP_STATUS_CACHE_NAME,
+      key =
+          "T(com.village.bellevue.config.CacheConfig).getCacheKey(T(com.village.bellevue.service.impl.FriendServiceImpl).STATUS_CACHE_KEY, T(com.village.bellevue.config.security.SecurityConfig).getAuthenticatedUserId(), #user)")
+  @Override
+  public Optional<FriendshipStatus> getStatus(Long user) throws FriendshipException {
+    Long currentUser = getAuthenticatedUserId();
+    if (currentUser.equals(user)) {
+      return Optional.empty();
+    }
+    Optional<FriendEntity> friendship = friendRepository.findById(new FriendId(currentUser, user));
+    if (friendship.isPresent()) {
+      return Optional.of(friendship.get().getStatus());
+    }
+    return Optional.empty();
+  }
+
+  @Cacheable(
+      value = FRIENDSHIP_STATUS_CACHE_NAME,
+      key =
+          "T(com.village.bellevue.config.CacheConfig).getCacheKey(T(com.village.bellevue.service.impl.FriendServiceImpl).IS_FRIEND_CACHE_KEY, T(com.village.bellevue.config.security.SecurityConfig).getAuthenticatedUserId(), #user)")
+  @Override
+  public boolean isFriend(Long user) throws FriendshipException {
+    if (getAuthenticatedUserId().equals(user)) {
+      return false;
+    }
+    Optional<FriendshipStatus> status = getStatus(user);
+    if (status.isEmpty()) {
+      return false;
+    }
+    return FriendEntity.FriendshipStatus.ACCEPTED.equals(status.get());
+  }
+
+  @Cacheable(
+      value = FRIENDSHIP_STATUS_CACHE_NAME,
+      key =
+          "T(com.village.bellevue.config.CacheConfig).getCacheKey(T(com.village.bellevue.service.impl.FriendServiceImpl).IS_BLOCKING_CACHE_KEY, T(com.village.bellevue.config.security.SecurityConfig).getAuthenticatedUserId(), user)")
+  @Override
+  public boolean isBlockedBy(Long user) throws FriendshipException {
+    if (getAuthenticatedUserId().equals(user)) {
+      return false;
+    }
+    Optional<FriendshipStatus> status = getStatus(user);
+    if (status.isEmpty()) {
+      return false;
+    }
+    return FriendEntity.FriendshipStatus.BLOCKED_YOU.equals(status.get());
+  }
+
+  @Override
+  public Page<FriendEntity> readAll(Long user, int page, int size) throws FriendshipException {
+    return friendRepository.findFriendsExcludingBlocked(
+        user, getAuthenticatedUserId(), PageRequest.of(page, size));
+  }
+
+  @Override
+  @Transactional
+  public void accept(Long user) throws FriendshipException {
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement stmt = connection.prepareCall("{call accept_friend(?, ?)}")) {
+      stmt.setLong(1, getAuthenticatedUserId());
+      stmt.setLong(2, user);
+      stmt.executeUpdate();
+    } catch (SQLException e) {
+      logger.error("Error accepting friend: {}", e.getMessage(), e);
+      throw new FriendshipException(
+          "Failed to accept friendship. SQL command error: " + e.getMessage(), e);
+    } finally {
+      evictCaches(user);
+    }
+  }
+
+  @Override
+  @Transactional
+  public void block(Long user) throws FriendshipException {
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement stmt = connection.prepareCall("{call block_friend(?, ?)}")) {
+      stmt.setLong(1, getAuthenticatedUserId());
+      stmt.setLong(2, user);
+      stmt.executeUpdate();
+    } catch (SQLException e) {
+      logger.error("Error blocking user: {}", e.getMessage(), e);
+      throw new FriendshipException(
+          "Failed to block user. SQL command error: " + e.getMessage(), e);
+    } finally {
+      entityManager.flush();
+      entityManager.clear(); // ensure the database is updated
+      evictCaches(user);
+    }
+  }
+
+  @Override
+  @Transactional
+  public void remove(Long user) throws FriendshipException {
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement stmt = connection.prepareCall("{call remove_friend(?, ?)}")) {
+      stmt.setLong(1, getAuthenticatedUserId());
+      stmt.setLong(2, user);
+      stmt.executeUpdate();
+    } catch (SQLException e) {
+      logger.error("Error removing friend: {}", e.getMessage(), e);
+      throw new FriendshipException(
+          "Failed to remove friend. SQL command error: " + e.getMessage(), e);
+    } finally {
+      entityManager.flush();
+      entityManager.clear(); // ensure the database is updated
+      evictCaches(user);
+    }
+  }
+
+  private void evictCaches(Long user) {
+    Long currentUser = getAuthenticatedUserId();
+
+    Cache cache = cacheManager.getCache(FRIENDSHIP_STATUS_CACHE_NAME);
+    if (cache != null) {
+      cache.evict(getCacheKey(STATUS_CACHE_KEY, currentUser, user));
+      cache.evict(getCacheKey(IS_FRIEND_CACHE_KEY, currentUser, user));
+      cache.evict(getCacheKey(IS_BLOCKING_CACHE_KEY, currentUser, user));
+
+      cache.evict(getCacheKey(STATUS_CACHE_KEY, user, currentUser));
+      cache.evict(getCacheKey(IS_FRIEND_CACHE_KEY, user, currentUser));
+      cache.evict(getCacheKey(IS_BLOCKING_CACHE_KEY, user, currentUser));
+    }
+
+    evictKeysByPattern(
+        redisTemplate,
+        RECIPE_SECURITY_CACHE_NAME,
+        getUserCacheKeyPattern(RecipeServiceImpl.CAN_READ_CACHE_KEY, currentUser));
+    evictKeysByPattern(
+        redisTemplate,
+        RECIPE_SECURITY_CACHE_NAME,
+        getUserCacheKeyPattern(RecipeServiceImpl.CAN_READ_CACHE_KEY, user));
+    evictKeysByPattern(
+        redisTemplate,
+        RECIPE_SECURITY_CACHE_NAME,
+        getUserCacheKeyPattern(RecipeServiceImpl.CAN_UPDATE_CACHE_KEY, currentUser));
+    evictKeysByPattern(
+        redisTemplate,
+        RECIPE_SECURITY_CACHE_NAME,
+        getUserCacheKeyPattern(RecipeServiceImpl.CAN_UPDATE_CACHE_KEY, user));
+
+    evictKeysByPattern(
+        redisTemplate,
+        REVIEW_SECURITY_CACHE_NAME,
+        getUserCacheKeyPattern(ReviewServiceImpl.CAN_READ_CACHE_KEY, currentUser));
+    evictKeysByPattern(
+        redisTemplate,
+        REVIEW_SECURITY_CACHE_NAME,
+        getUserCacheKeyPattern(ReviewServiceImpl.CAN_READ_CACHE_KEY, user));
+    evictKeysByPattern(
+        redisTemplate,
+        REVIEW_SECURITY_CACHE_NAME,
+        getUserCacheKeyPattern(ReviewServiceImpl.CAN_UPDATE_CACHE_KEY, currentUser));
+    evictKeysByPattern(
+        redisTemplate,
+        REVIEW_SECURITY_CACHE_NAME,
+        getUserCacheKeyPattern(ReviewServiceImpl.CAN_UPDATE_CACHE_KEY, user));
+  }
+}

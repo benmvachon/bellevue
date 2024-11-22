@@ -1,0 +1,12 @@
+{
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[java]": {
+    "editor.defaultFormatter": null // Prettier does not support Java
+  },
+  "prettier.prettierPath": "./src/main/react/bellevue/node_modules/prettier"
+}

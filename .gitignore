@@ -1,0 +1,37 @@
+# Java build artifacts
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# React dependencies and artifacts
+src/main/react/bellevue/node_modules
+src/main/react/bellevue/.pnp
+src/main/react/bellevue/.pnp.js
+
+# React testing
+src/main/react/bellevue/coverage
+
+# React production build
+src/main/react/bellevue/build
+
+# Miscellaneous
+src/main/react/bellevue/.DS_Store
+src/main/react/bellevue/.env.local
+src/main/react/bellevue/.env.development.local
+src/main/react/bellevue/.env.test.local
+src/main/react/bellevue/.env.production.local
+
+# Debug logs
+src/main/react/bellevue/npm-debug.log*
+src/main/react/bellevue/yarn-debug.log*
+src/main/react/bellevue/yarn-error.log*
