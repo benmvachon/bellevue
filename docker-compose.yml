@@ -1,0 +1,37 @@
+services:
+  mysql:
+    image: mysql:8
+    container_name: mysql_db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: bellevue_dev
+    volumes:
+      - ./src/main/sql:/docker-entrypoint-initdb.d
+    ports:
+      - "3306:3306"
+    networks:
+      - bellevue_net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-proot"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+  redis:
+    image: redis:6
+    container_name: redis_cache
+    ports:
+      - "6379:6379"
+    networks:
+      - bellevue_net
+  solr:
+    image: solr:9
+    container_name: solr_index
+    ports:
+      - "8983:8983"
+    networks:
+      - bellevue_net
+
+
+networks:
+  bellevue_net:
+    driver: bridge
