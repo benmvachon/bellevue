@@ -33,7 +33,7 @@ Bellevue is a recipe sharing platform inspired by games like Animal Crossing and
                    `----`
 ```
 
-### Developer Requirements
+## Developer Requirements
 
 To run or contribute to the Bellevue platform, your development environment must include the following dependencies:
 
@@ -167,7 +167,7 @@ NPM is the package manager for Node.js, used to install frontend dependencies.
 
 ---
 
-### Setting Up the Development Environment
+## Running the Development Environment from the Terminal
 
 Once the dependencies are installed, follow the steps below to set up and run the Bellevue platform locally.
 
@@ -178,35 +178,35 @@ Once the dependencies are installed, follow the steps below to set up and run th
    cd bellevue
    ```
 
-2. **Build and Run Backend**:
-   The backend is a Spring Boot application, and you can run it using Maven:
+2. **Start Docker**
+   The MYSQL database and Redis caching layer for the development environment are served using Docker. Start the images described in the docker-compose.yml file using Docker Compose.
+
+   ```bash
+   docker-compose up -d
+   ```
+
+3. **Build the Frontend**:
+   The frontend is built with React. Navigate to the `src/main/react/bellevue` directory and install the necessary dependencies:
+
+   ```bash
+   cd src/main/react/bellevue
+   npm install
+   npm run build
+   ```
+
+   This will output the production build of the React frontend into the `src/main/resources/target/` directory, where the Spring application will serve it at index.html.
+
+4. **Build and Run Webapp**:
+   The backend is a Spring Boot application, and you can run it from the base directory using Maven:
 
    ```bash
    mvn clean install
    mvn spring-boot:run
    ```
 
-3. **Run the Frontend**:
-   The frontend is built with React. Navigate to the `src/main/react/bellevue` directory and install the necessary dependencies:
-
-   ```bash
-   cd src/main/react/bellevue
-   npm install
-   npm start
-   ```
-
-   This will start the React development server at [http://localhost:3000](http://localhost:3000).
-
-4. **Access the Application**:
-   Open your browser and navigate to [http://localhost:3000](http://localhost:3000) to see the Bellevue platform running locally.
+5. **Access the Application**:
+   Open your browser and navigate to [http://localhost:8080](http://localhost:8080) to see the Bellevue platform running locally.
 
 ---
 
-### Additional Tips
-
-- **IDE Configuration**: Make sure your IDE (VSCode) is set up to use the correct Java version (JDK 23) and that it has the necessary extensions installed for linting, formatting, and building the project.
-- **Docker**: You can also use Docker to run the Bellevue platform in containers. For more details, refer to the `docker-compose.yml` file in the project.
-- **Run Tests**: After making changes, ensure that all tests pass by running:
-  ```bash
-  mvn test
-  ```
+# Happy Coding!
