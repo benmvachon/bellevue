@@ -25,11 +25,13 @@ import com.village.bellevue.entity.UserEntity.UserStatus;
 import com.village.bellevue.error.FriendshipException;
 import com.village.bellevue.model.IngredientModel;
 import com.village.bellevue.model.RecipeModel;
+
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -50,6 +52,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+
+import com.village.bellevue.entity.FriendEntity.FriendshipStatus;
 
 @TestMethodOrder(OrderAnnotation.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -129,10 +133,10 @@ public class IntegrationTest extends IntegrationTestWrapper {
         newUser.getId(),
         false); // id 9 was not requested, he should not be able to accept
     login("liam_wil");
-    ResponseEntity<ScrubbedUserEntity> response =
+    ResponseEntity<FriendshipStatus> response =
         restTemplate.getForEntity(
-            "http://localhost:" + port + "/api/friend/" + newUser.getId(),
-            ScrubbedUserEntity.class);
+            "http://localhost:" + port + "/api/friend/" + newUser.getId() + "/status",
+            FriendshipStatus.class);
     assertThat(response.getStatusCode())
         .isEqualTo(
             HttpStatus
@@ -146,8 +150,8 @@ public class IntegrationTest extends IntegrationTestWrapper {
     login("liv_w");
     response =
         restTemplate.getForEntity(
-            "http://localhost:" + port + "/api/friend/" + newUser.getId(),
-            ScrubbedUserEntity.class);
+            "http://localhost:" + port + "/api/friend/" + newUser.getId() + "/status",
+            FriendshipStatus.class);
     assertThat(response.getStatusCode())
         .isEqualTo(
             HttpStatus
@@ -663,7 +667,7 @@ public class IntegrationTest extends IntegrationTestWrapper {
   private void request(Long friend, boolean expectFailure) {
     ResponseEntity<Void> response =
         restTemplate.postForEntity(
-            "http://localhost:" + port + "/api/friend/request/" + friend, null, Void.class);
+            "http://localhost:" + port + "/api/friend/" + friend + "/request", null, Void.class);
     if (expectFailure) {
       assertThat(response.getStatusCode()).isNotEqualTo(HttpStatus.CREATED);
     } else {
@@ -680,7 +684,7 @@ public class IntegrationTest extends IntegrationTestWrapper {
   private void block(Long user, boolean expectFailure) {
     ResponseEntity<Void> response =
         restTemplate.postForEntity(
-            "http://localhost:" + port + "/api/friend/block/" + user, null, Void.class);
+            "http://localhost:" + port + "/api/friend/" + user + "/block", null, Void.class);
     if (expectFailure) {
       assertThat(response.getStatusCode()).isNotEqualTo(HttpStatus.OK);
     } else {
@@ -697,7 +701,7 @@ public class IntegrationTest extends IntegrationTestWrapper {
   private void accept(Long friend, boolean expectFailure) {
     ResponseEntity<Void> response =
         restTemplate.postForEntity(
-            "http://localhost:" + port + "/api/friend/accept/" + friend, null, Void.class);
+            "http://localhost:" + port + "/api/friend/" + friend + "/accept", null, Void.class);
     if (expectFailure) {
       assertThat(response.getStatusCode()).isNotEqualTo(HttpStatus.OK);
     } else {
@@ -800,7 +804,7 @@ public class IntegrationTest extends IntegrationTestWrapper {
   private ReviewEntity startCooking(Long recipe, boolean expectFailure) {
     ResponseEntity<ReviewEntity> response =
         restTemplate.postForEntity(
-            "http://localhost:" + port + "/api/recipe/cook/" + recipe, null, ReviewEntity.class);
+            "http://localhost:" + port + "/api/recipe/" + recipe + "/cook", null, ReviewEntity.class);
     if (expectFailure) {
       assertThat(response.getStatusCode()).isNotEqualTo(HttpStatus.OK);
       return null;

@@ -1,28 +1,12 @@
 package com.village.bellevue.service.impl;
 
-import static com.village.bellevue.config.CacheConfig.FRIENDSHIP_STATUS_CACHE_NAME;
-import static com.village.bellevue.config.CacheConfig.RECIPE_SECURITY_CACHE_NAME;
-import static com.village.bellevue.config.CacheConfig.REVIEW_SECURITY_CACHE_NAME;
-import static com.village.bellevue.config.CacheConfig.evictKeysByPattern;
-import static com.village.bellevue.config.CacheConfig.getCacheKey;
-import static com.village.bellevue.config.CacheConfig.getUserCacheKeyPattern;
-import static com.village.bellevue.config.security.SecurityConfig.getAuthenticatedUserId;
-
-import com.village.bellevue.entity.FriendEntity;
-import com.village.bellevue.entity.FriendEntity.FriendshipStatus;
-import com.village.bellevue.entity.ScrubbedUserEntity;
-import com.village.bellevue.entity.id.FriendId;
-import com.village.bellevue.error.FriendshipException;
-import com.village.bellevue.repository.FriendRepository;
-import com.village.bellevue.repository.UserRepository;
-import com.village.bellevue.service.FriendService;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Optional;
+
 import javax.sql.DataSource;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.Cache;
@@ -33,6 +17,25 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.village.bellevue.config.CacheConfig.FRIENDSHIP_STATUS_CACHE_NAME;
+import static com.village.bellevue.config.CacheConfig.RECIPE_SECURITY_CACHE_NAME;
+import static com.village.bellevue.config.CacheConfig.REVIEW_SECURITY_CACHE_NAME;
+import static com.village.bellevue.config.CacheConfig.evictKeysByPattern;
+import static com.village.bellevue.config.CacheConfig.getCacheKey;
+import static com.village.bellevue.config.CacheConfig.getUserCacheKeyPattern;
+import static com.village.bellevue.config.security.SecurityConfig.getAuthenticatedUserId;
+import com.village.bellevue.entity.FriendEntity;
+import com.village.bellevue.entity.FriendEntity.FriendshipStatus;
+import com.village.bellevue.entity.ScrubbedUserEntity;
+import com.village.bellevue.entity.id.FriendId;
+import com.village.bellevue.error.FriendshipException;
+import com.village.bellevue.repository.FriendRepository;
+import com.village.bellevue.repository.UserRepository;
+import com.village.bellevue.service.FriendService;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 @Service
 public class FriendServiceImpl implements FriendService {
@@ -86,22 +89,14 @@ public class FriendServiceImpl implements FriendService {
 
   @Override
   public Optional<ScrubbedUserEntity> read(Long user) throws FriendshipException {
-    if (getAuthenticatedUserId().equals(user)) {
-      return Optional.of(
+    if (isBlockedBy(user)) {
+      return Optional.empty();
+    }
+    return Optional.of(
           userRepository
               .findById(user)
               .map(ScrubbedUserEntity::new)
               .orElseThrow(() -> new FriendshipException("User not found with id: " + user)));
-    }
-    if (isBlockedBy(user)) {
-      return Optional.empty();
-    }
-    Optional<FriendEntity> friend =
-        friendRepository.findById(new FriendId(getAuthenticatedUserId(), user));
-    if (friend.isPresent()) {
-      return Optional.of(friend.get().getFriend());
-    }
-    return Optional.empty();
   }
 
   @Cacheable(

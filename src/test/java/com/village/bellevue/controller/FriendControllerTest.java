@@ -1,13 +1,29 @@
 package com.village.bellevue.controller;
 
+import java.sql.Timestamp;
+import java.util.List;
+import java.util.Optional;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.village.bellevue.entity.FriendEntity;
 import com.village.bellevue.entity.FriendEntity.FriendshipStatus;
@@ -16,21 +32,6 @@ import com.village.bellevue.entity.UserEntity.AvatarType;
 import com.village.bellevue.entity.UserEntity.UserStatus;
 import com.village.bellevue.error.FriendshipException;
 import com.village.bellevue.service.FriendService;
-import java.sql.Timestamp;
-import java.util.List;
-import java.util.Optional;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 public class FriendControllerTest {
 
@@ -59,7 +60,7 @@ public class FriendControllerTest {
   @Test
   public void testRequestFriendSuccess() throws Exception {
     mockMvc
-        .perform(post("/api/friend/request/1"))
+        .perform(post("/api/friend/1/request"))
         .andExpect(status().isCreated())
         .andExpect(content().string("Friend request sent."));
 
@@ -71,7 +72,7 @@ public class FriendControllerTest {
     doThrow(new FriendshipException("User not found")).when(friendService).request(1L);
 
     mockMvc
-        .perform(post("/api/friend/request/1"))
+        .perform(post("/api/friend/1/request"))
         .andExpect(status().isBadRequest())
         .andExpect(content().string("User not found"));
 
@@ -115,7 +116,7 @@ public class FriendControllerTest {
     when(friendService.readAll(1L, 0, 5)).thenReturn(friends);
 
     mockMvc
-        .perform(get("/api/friend/friends/1?p=0&n=5"))
+        .perform(get("/api/friend/1/friends?p=0&n=5"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 
@@ -126,7 +127,7 @@ public class FriendControllerTest {
   public void testReadFriendsFailure() throws Exception {
     doThrow(new FriendshipException("User not found")).when(friendService).readAll(1L, 0, 5);
 
-    mockMvc.perform(get("/api/friend/friends/1?p=0&n=5")).andExpect(status().isBadRequest());
+    mockMvc.perform(get("/api/friend/1/friends?p=0&n=5")).andExpect(status().isBadRequest());
 
     verify(friendService).readAll(1L, 0, 5);
   }
@@ -134,7 +135,7 @@ public class FriendControllerTest {
   @Test
   public void testAcceptFriendSuccess() throws Exception {
     mockMvc
-        .perform(post("/api/friend/accept/1"))
+        .perform(post("/api/friend/1/accept"))
         .andExpect(status().isOk())
         .andExpect(content().string("Friend request accepted."));
 
@@ -146,7 +147,7 @@ public class FriendControllerTest {
     doThrow(new FriendshipException("User not found")).when(friendService).accept(1L);
 
     mockMvc
-        .perform(post("/api/friend/accept/1"))
+        .perform(post("/api/friend/1/accept"))
         .andExpect(status().isBadRequest())
         .andExpect(content().string("User not found"));
 
@@ -156,7 +157,7 @@ public class FriendControllerTest {
   @Test
   public void testBlockUserSuccess() throws Exception {
     mockMvc
-        .perform(post("/api/friend/block/1"))
+        .perform(post("/api/friend/1/block"))
         .andExpect(status().isOk())
         .andExpect(content().string("User blocked."));
 
@@ -168,7 +169,7 @@ public class FriendControllerTest {
     doThrow(new FriendshipException("User not found")).when(friendService).block(1L);
 
     mockMvc
-        .perform(post("/api/friend/block/1"))
+        .perform(post("/api/friend/1/block"))
         .andExpect(status().isBadRequest())
         .andExpect(content().string("User not found"));
 
@@ -178,7 +179,7 @@ public class FriendControllerTest {
   @Test
   public void testRemoveFriendSuccess() throws Exception {
     mockMvc
-        .perform(delete("/api/friend/remove/1"))
+        .perform(delete("/api/friend/1/remove"))
         .andExpect(status().isOk())
         .andExpect(content().string("Friend removed."));
 
@@ -190,7 +191,7 @@ public class FriendControllerTest {
     doThrow(new FriendshipException("User not found")).when(friendService).remove(1L);
 
     mockMvc
-        .perform(delete("/api/friend/remove/1"))
+        .perform(delete("/api/friend/1/remove"))
         .andExpect(status().isBadRequest())
         .andExpect(content().string("User not found"));
 
