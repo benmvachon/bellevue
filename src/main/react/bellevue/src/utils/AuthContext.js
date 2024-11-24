@@ -6,39 +6,44 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const storedAuth = localStorage.getItem('isAuthenticated');
+  const storedUserId = localStorage.getItem('userId');
   const [isAuthenticated, setIsAuthenticated] = useState(storedAuth === 'true');
+  const [userId, setUserId] = useState(storedUserId);
 
   const handleLogin = (username, password, callback, error) => {
-    login(username, password)
-      .then((response) => {
+    login(
+      username,
+      password,
+      (response) => {
         console.log('Login successful:', JSON.stringify(response));
+        setUserId(response.data);
+        localStorage.setItem('userId', response.data);
         setIsAuthenticated(true);
         localStorage.setItem('isAuthenticated', 'true');
-        if (callback) callback();
-      })
-      .catch((err) => {
+        if (callback) callback(response);
+      },
+      (err) => {
         console.error('Login failed: ', JSON.stringify(err));
         setIsAuthenticated(false);
         localStorage.removeItem('isAuthenticated');
         if (error) error(err);
-      });
+      }
+    );
   };
 
   const handleLogout = (callback, error) => {
-    logout()
-      .then((response) => {
-        setIsAuthenticated(false);
-        localStorage.removeItem('isAuthenticated');
-        if (callback) callback();
-      })
-      .catch((err) => {
-        if (error) error(err);
-      });
+    logout((response) => {
+      setUserId(undefined);
+      localStorage.removeItem('userId');
+      setIsAuthenticated(false);
+      localStorage.removeItem('isAuthenticated');
+      if (callback) callback(response);
+    }, error);
   };
 
   return (
     <AuthContext.Provider
-      value={{ isAuthenticated, handleLogin, handleLogout }}
+      value={{ isAuthenticated, userId, handleLogin, handleLogout }}
     >
       {children}
     </AuthContext.Provider>

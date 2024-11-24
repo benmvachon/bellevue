@@ -1,10 +1,26 @@
 package com.village.bellevue.service.impl;
 
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+import javax.sql.DataSource;
+
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import static com.village.bellevue.config.CacheConfig.RECIPE_SECURITY_CACHE_NAME;
 import static com.village.bellevue.config.CacheConfig.evictKeysByPattern;
 import static com.village.bellevue.config.CacheConfig.getEntityCacheKeyPattern;
 import static com.village.bellevue.config.security.SecurityConfig.getAuthenticatedUserId;
-
 import com.village.bellevue.entity.AggregateRatingEntity;
 import com.village.bellevue.entity.EquipmentEntity;
 import com.village.bellevue.entity.FriendEntity.FriendshipStatus;
@@ -29,20 +45,6 @@ import com.village.bellevue.repository.RecipeRepository;
 import com.village.bellevue.repository.SkillRepository;
 import com.village.bellevue.service.FriendService;
 import com.village.bellevue.service.RecipeService;
-import java.sql.CallableStatement;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import javax.sql.DataSource;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class RecipeServiceImpl implements RecipeService {
@@ -120,10 +122,12 @@ public class RecipeServiceImpl implements RecipeService {
   public Page<SimpleRecipeEntity> readAll(Long author, int page, int size)
       throws AuthorizationException, RecipeException {
     try {
-      Optional<FriendshipStatus> status = friendService.getStatus(author);
-      if (status.isEmpty() || !FriendshipStatus.ACCEPTED.equals(status.get())) {
-        throw new AuthorizationException(
-            "Currently authenticated user is not authorized to read recipes");
+      if (!getAuthenticatedUserId().equals(author)) {
+        Optional<String> status = friendService.getStatus(author);
+        if (status.isEmpty() || !FriendshipStatus.ACCEPTED.equals(status.get())) {
+          throw new AuthorizationException(
+              "Currently authenticated user is not authorized to read recipes");
+        }
       }
       return recipeRepository.findByAuthorId(author, PageRequest.of(page, size));
     } catch (FriendshipException e) {

@@ -1,8 +1,11 @@
 package com.village.bellevue.entity;
 
+import java.sql.Timestamp;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.village.bellevue.entity.id.FriendId;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -10,7 +13,6 @@ import jakarta.persistence.IdClass;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import java.sql.Timestamp;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -51,6 +53,10 @@ public class FriendEntity {
     @JsonCreator
     public static FriendshipStatus fromString(String value) {
       return FriendshipStatus.valueOf(value.toUpperCase());
+    }
+
+    public boolean equals(String value) {
+      return this.equals(fromString(value));
     }
   }
 }

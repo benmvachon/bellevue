@@ -1,12 +1,23 @@
 package com.village.bellevue.service;
 
+import java.util.Optional;
+import java.util.stream.Stream;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import static org.mockito.ArgumentMatchers.any;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.village.bellevue.config.security.SecurityConfig;
 import com.village.bellevue.entity.FriendEntity;
@@ -17,16 +28,6 @@ import com.village.bellevue.entity.UserEntity.UserStatus;
 import com.village.bellevue.error.FriendshipException;
 import com.village.bellevue.repository.FriendRepository;
 import com.village.bellevue.service.impl.FriendServiceImpl;
-import java.util.Optional;
-import java.util.stream.Stream;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 public class FriendServiceTest {
@@ -61,9 +62,9 @@ public class FriendServiceTest {
       assertEquals(expectedIsFriend, friendService.isFriend(friend.getId()));
       assertEquals(expectedIsBlockedBy, friendService.isBlockedBy(friend.getId()));
 
-      Optional<FriendshipStatus> retrievedStatus = friendService.getStatus(friend.getId());
+      Optional<String> retrievedStatus = friendService.getStatus(friend.getId());
       assertTrue(retrievedStatus.isPresent());
-      assertEquals(friendship.getStatus(), retrievedStatus.get());
+      assertEquals(friendship.getStatus().name(), retrievedStatus.get());
 
       verify(friendRepository, atLeast(1)).findById(any());
     }

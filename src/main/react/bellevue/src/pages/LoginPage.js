@@ -20,12 +20,11 @@ function LoginPage() {
     handleLogin(
       username,
       password,
-      () => {
-        setLoading(false);
-        navigate('/profile/1');
+      (response) => {
+        navigate('/profile/' + response.data);
       },
-      () => {
-        setError('Invalid username or password');
+      (error) => {
+        setError('Invalid username or password: ' + error);
         setLoading(false);
       }
     );

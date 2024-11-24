@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import static com.village.bellevue.config.security.SecurityConfig.getAuthenticatedUserId;
 import com.village.bellevue.entity.FriendEntity;
 import com.village.bellevue.entity.FriendEntity.FriendshipStatus;
 import com.village.bellevue.entity.ScrubbedUserEntity;
@@ -49,15 +50,16 @@ public class FriendController {
   }
 
   @GetMapping("/{user}/status")
-  public ResponseEntity<FriendshipStatus> readStatus(@PathVariable Long user) {
+  public ResponseEntity<String> readStatus(@PathVariable Long user) {
+    if (getAuthenticatedUserId().equals(user)) return ResponseEntity.ok("YOU");
     try {
-      Optional<FriendshipStatus> friend = friendService.getStatus(user);
-      if (friend.isEmpty() || friend.get().equals(FriendshipStatus.BLOCKED_YOU)) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+      Optional<String> friend = friendService.getStatus(user);
+      if (friend.isEmpty() || FriendshipStatus.BLOCKED_YOU.equals(friend.get())) {
+        return ResponseEntity.ok("UNSET");
       }
       return friend
           .map(ResponseEntity::ok)
-          .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+          .orElseGet(() -> ResponseEntity.ok("UNSET"));
     } catch (FriendshipException e) {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }

@@ -1,11 +1,12 @@
 package com.village.bellevue.service;
 
+import java.util.Optional;
+
+import org.springframework.data.domain.Page;
+
 import com.village.bellevue.entity.FriendEntity;
-import com.village.bellevue.entity.FriendEntity.FriendshipStatus;
 import com.village.bellevue.entity.ScrubbedUserEntity;
 import com.village.bellevue.error.FriendshipException;
-import java.util.Optional;
-import org.springframework.data.domain.Page;
 
 public interface FriendService {
 
@@ -13,7 +14,7 @@ public interface FriendService {
 
   public Optional<ScrubbedUserEntity> read(Long user) throws FriendshipException;
 
-  public Optional<FriendshipStatus> getStatus(Long user) throws FriendshipException;
+  public Optional<String> getStatus(Long user) throws FriendshipException;
 
   public boolean isFriend(Long user) throws FriendshipException;
 

@@ -26,7 +26,6 @@ import static com.village.bellevue.config.CacheConfig.getCacheKey;
 import static com.village.bellevue.config.CacheConfig.getUserCacheKeyPattern;
 import static com.village.bellevue.config.security.SecurityConfig.getAuthenticatedUserId;
 import com.village.bellevue.entity.FriendEntity;
-import com.village.bellevue.entity.FriendEntity.FriendshipStatus;
 import com.village.bellevue.entity.ScrubbedUserEntity;
 import com.village.bellevue.entity.id.FriendId;
 import com.village.bellevue.error.FriendshipException;
@@ -104,14 +103,14 @@ public class FriendServiceImpl implements FriendService {
       key =
           "T(com.village.bellevue.config.CacheConfig).getCacheKey(T(com.village.bellevue.service.impl.FriendServiceImpl).STATUS_CACHE_KEY, T(com.village.bellevue.config.security.SecurityConfig).getAuthenticatedUserId(), #user)")
   @Override
-  public Optional<FriendshipStatus> getStatus(Long user) throws FriendshipException {
+  public Optional<String> getStatus(Long user) throws FriendshipException {
     Long currentUser = getAuthenticatedUserId();
     if (currentUser.equals(user)) {
       return Optional.empty();
     }
     Optional<FriendEntity> friendship = friendRepository.findById(new FriendId(currentUser, user));
     if (friendship.isPresent()) {
-      return Optional.of(friendship.get().getStatus());
+      return Optional.of(friendship.get().getStatus().name());
     }
     return Optional.empty();
   }
@@ -125,7 +124,7 @@ public class FriendServiceImpl implements FriendService {
     if (getAuthenticatedUserId().equals(user)) {
       return false;
     }
-    Optional<FriendshipStatus> status = getStatus(user);
+    Optional<String> status = getStatus(user);
     if (status.isEmpty()) {
       return false;
     }
@@ -141,7 +140,7 @@ public class FriendServiceImpl implements FriendService {
     if (getAuthenticatedUserId().equals(user)) {
       return false;
     }
-    Optional<FriendshipStatus> status = getStatus(user);
+    Optional<String> status = getStatus(user);
     if (status.isEmpty()) {
       return false;
     }

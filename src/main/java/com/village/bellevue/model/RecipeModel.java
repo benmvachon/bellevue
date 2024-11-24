@@ -1,5 +1,10 @@
 package com.village.bellevue.model;
 
+import java.sql.Timestamp;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
+
 import com.village.bellevue.entity.AggregateRatingEntity;
 import com.village.bellevue.entity.RecipeEntity;
 import com.village.bellevue.entity.RecipeEntity.RecipeCategory;
@@ -8,12 +13,7 @@ import com.village.bellevue.entity.RecipeIngredientEntity;
 import com.village.bellevue.entity.RecipeSkillEntity;
 import com.village.bellevue.entity.RecipeStepEntity;
 import com.village.bellevue.entity.ScrubbedUserEntity;
-import java.sql.Timestamp;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -40,10 +40,10 @@ public class RecipeModel {
   private Timestamp created;
   private Timestamp updated;
 
-  private Map<Integer, String> steps;
+  private Set<RecipeStepEntity> steps;
   private Set<IngredientModel> ingredients;
-  private Map<Long, String> skills; // skill id -> skill name
-  private Map<Long, String> equipment; // equipment id -> equipment name
+  private Set<RecipeSkillEntity> skills;
+  private Set<RecipeEquipmentEntity> equipment;
 
   public RecipeModel(RecipeEntity recipe, Optional<AggregateRatingEntity> rating) {
     this.id = recipe.getId();
@@ -61,31 +61,15 @@ public class RecipeModel {
     this.created = recipe.getCreated();
     this.updated = recipe.getUpdated();
 
-    this.steps = new HashMap<>();
-    if (recipe.getSteps() != null) {
-      for (RecipeStepEntity step : recipe.getSteps()) {
-        this.steps.put(step.getOrder(), step.getStep());
-      }
-    }
+    this.steps = recipe.getSteps();
     this.ingredients = new HashSet<>();
     if (recipe.getIngredients() != null) {
       for (RecipeIngredientEntity ingredient : recipe.getIngredients()) {
         this.ingredients.add(new IngredientModel(ingredient));
       }
     }
-    this.skills = new HashMap<>();
-    if (recipe.getSkills() != null) {
-      for (RecipeSkillEntity skill : recipe.getSkills()) {
-        this.skills.put(skill.getSkill().getId(), skill.getSkill().getName());
-      }
-    }
-    this.equipment = new HashMap<>();
-    if (recipe.getEquipment() != null) {
-      for (RecipeEquipmentEntity equipmentEntity : recipe.getEquipment()) {
-        this.equipment.put(
-            equipmentEntity.getEquipment().getId(), equipmentEntity.getEquipment().getName());
-      }
-    }
+    this.skills = recipe.getSkills();
+    this.equipment = recipe.getEquipment();
 
     if (rating.isPresent()) {
       this.rating = rating.get().getRating();

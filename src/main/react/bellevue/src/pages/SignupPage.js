@@ -20,8 +20,12 @@ function SignupPage() {
   const onSubmit = (event) => {
     setLoading(true);
     event.preventDefault();
-    signup(name, username, password, avatar)
-      .then((response) => {
+    signup(
+      name,
+      username,
+      password,
+      avatar,
+      (response) => {
         handleLogin(
           username,
           password,
@@ -34,11 +38,12 @@ function SignupPage() {
             setLoading(false);
           }
         );
-      })
-      .catch((err) => {
+      },
+      (err) => {
         setError(err);
         setLoading(false);
-      });
+      }
+    );
   };
 
   return (
