@@ -1,9 +1,13 @@
 package com.village.bellevue.service;
 
+import org.springframework.data.domain.Page;
+
 import com.village.bellevue.entity.EquipmentEntity;
-import java.util.List;
+import com.village.bellevue.error.AuthorizationException;
 
 public interface EquipmentService {
-
-  public List<EquipmentEntity> search(String query);
+  public void equip(String item) throws AuthorizationException;
+  public void unequip(String item) throws AuthorizationException;
+  public Page<EquipmentEntity> readAll(int page, int size);
+  public Page<EquipmentEntity> readAllBySlot(String slot, int page, int size);
 }

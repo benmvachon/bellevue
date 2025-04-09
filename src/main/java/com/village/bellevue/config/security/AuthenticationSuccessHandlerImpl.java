@@ -7,7 +7,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
-import com.village.bellevue.repository.UserRepository;
+import com.village.bellevue.repository.ProfileRepository;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,7 +16,7 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class AuthenticationSuccessHandlerImpl implements AuthenticationSuccessHandler {
 
-  @Autowired private UserRepository userRepository;
+  @Autowired private ProfileRepository profileRepository;
 
   @Override
   public void onAuthenticationSuccess(
@@ -25,7 +25,7 @@ public class AuthenticationSuccessHandlerImpl implements AuthenticationSuccessHa
 
     if (authentication != null) {
       Long userId = ((UserDetailsImpl) authentication.getPrincipal()).getId();
-      userRepository.setUserStatusOnline(userId);
+      profileRepository.setStatusOnline(userId);
 
       // Set response headers and send plain text
       response.setContentType("text/plain");

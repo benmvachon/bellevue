@@ -1,12 +1,18 @@
 package com.village.bellevue.repository;
 
-import com.village.bellevue.entity.EquipmentEntity;
-import java.util.List;
+import java.util.Optional;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-@Repository
-public interface EquipmentRepository extends JpaRepository<EquipmentEntity, Long> {
+import com.village.bellevue.entity.EquipmentEntity;
+import com.village.bellevue.entity.id.EquipmentId;
 
-  List<EquipmentEntity> findByNameStartingWithIgnoreCase(String prefix);
+@Repository
+public interface EquipmentRepository extends JpaRepository<EquipmentEntity, EquipmentId> {
+  Page<EquipmentEntity> findByUser(Long user, Pageable pageable);
+  Page<EquipmentEntity> findByUserAndSlot(Long user, String slot, Pageable pageable);
+  Optional<EquipmentEntity> findByUserAndSlotAndEquippedTrue(Long user, String slot);
 }

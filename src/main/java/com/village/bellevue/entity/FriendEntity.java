@@ -30,7 +30,7 @@ public class FriendEntity {
   @Id
   @ManyToOne
   @JoinColumn(name = "friend", nullable = false)
-  private ScrubbedUserEntity friend;
+  private UserProfileEntity friend;
 
   @Column(nullable = false)
   private FriendshipStatus status = FriendshipStatus.PENDING_THEM;

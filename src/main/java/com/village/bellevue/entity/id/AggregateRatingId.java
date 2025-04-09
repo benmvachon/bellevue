@@ -1,8 +1,9 @@
 package com.village.bellevue.entity.id;
 
-import jakarta.persistence.Embeddable;
 import java.io.Serializable;
 import java.util.Objects;
+
+import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,18 +16,18 @@ import lombok.Setter;
 @Embeddable
 public class AggregateRatingId implements Serializable {
   private Long user;
-  private Long recipe;
+  private Long post;
 
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (!(o instanceof AggregateRatingId)) return false;
     AggregateRatingId that = (AggregateRatingId) o;
-    return Objects.equals(user, that.user) && Objects.equals(recipe, that.recipe);
+    return Objects.equals(user, that.user) && Objects.equals(post, that.post);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(user, recipe);
+    return Objects.hash(user, post);
   }
 }

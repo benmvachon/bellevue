@@ -1,28 +1,27 @@
 package com.village.bellevue.controller;
 
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.village.bellevue.config.security.UserDetailsServiceImpl;
-import com.village.bellevue.entity.ScrubbedUserEntity;
-import com.village.bellevue.entity.UserEntity;
-import com.village.bellevue.entity.UserEntity.AvatarType;
-import com.village.bellevue.entity.UserEntity.UserStatus;
 import java.sql.Timestamp;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.village.bellevue.config.security.UserDetailsServiceImpl;
+import com.village.bellevue.entity.UserEntity;
+import com.village.bellevue.entity.UserProfileEntity;
 
 public class UserControllerTest {
 
@@ -36,8 +35,8 @@ public class UserControllerTest {
           "Foo",
           "foo",
           "foo",
-          UserStatus.ONLINE,
-          AvatarType.BEE,
+          "foo@foo.foo",
+          false,
           new Timestamp(System.currentTimeMillis()),
           new Timestamp(System.currentTimeMillis()));
 
@@ -51,7 +50,7 @@ public class UserControllerTest {
 
   @Test
   void testCreateUserSuccess() throws Exception {
-    when(userService.create(user)).thenReturn(new ScrubbedUserEntity(user));
+    when(userService.create(user)).thenReturn(new UserProfileEntity(user, "cat"));
 
     mockMvc
         .perform(

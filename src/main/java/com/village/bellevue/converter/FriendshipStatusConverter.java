@@ -1,6 +1,7 @@
 package com.village.bellevue.converter;
 
 import com.village.bellevue.entity.FriendEntity.FriendshipStatus;
+
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 

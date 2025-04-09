@@ -1,6 +1,7 @@
 package com.village.bellevue.controller;
 
 import java.sql.Timestamp;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,9 +28,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.village.bellevue.entity.FriendEntity;
 import com.village.bellevue.entity.FriendEntity.FriendshipStatus;
-import com.village.bellevue.entity.ScrubbedUserEntity;
-import com.village.bellevue.entity.UserEntity.AvatarType;
-import com.village.bellevue.entity.UserEntity.UserStatus;
+import com.village.bellevue.entity.UserProfileEntity;
+import com.village.bellevue.entity.ProfileEntity.Status;
 import com.village.bellevue.error.FriendshipException;
 import com.village.bellevue.service.FriendService;
 
@@ -39,13 +39,13 @@ public class FriendControllerTest {
   @InjectMocks private FriendController friendController;
   @Mock private FriendService friendService;
 
-  private final ScrubbedUserEntity currentUser =
-      new ScrubbedUserEntity(1L, "Foo", "foo", UserStatus.ONLINE, AvatarType.BEE);
-  private final ScrubbedUserEntity friend =
-      new ScrubbedUserEntity(2L, "Bar", "bar", UserStatus.ONLINE, AvatarType.WALRUS);
+  private final UserProfileEntity currentUser =
+      new UserProfileEntity(1L, "Foo", "foo", Status.OFFLINE, "cat", new HashMap<>(), null, new Timestamp(0), "foo");
+  private final UserProfileEntity friend =
+      new UserProfileEntity(2L, "Bar", "bar", Status.OFFLINE, "cat", new HashMap<>(), null, new Timestamp(0), "bar");
   private final FriendEntity friendship =
       new FriendEntity(
-          currentUser.getId(),
+          currentUser.getUser(),
           friend,
           FriendshipStatus.ACCEPTED,
           new Timestamp(System.currentTimeMillis()),
@@ -81,7 +81,7 @@ public class FriendControllerTest {
 
   @Test
   public void testReadFriendSuccess() throws Exception {
-    ScrubbedUserEntity user = new ScrubbedUserEntity();
+    UserProfileEntity user = new UserProfileEntity();
     when(friendService.read(1L)).thenReturn(Optional.of(user));
 
     mockMvc

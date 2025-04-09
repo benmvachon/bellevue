@@ -1,34 +1,42 @@
 package com.village.bellevue.config.security;
 
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+
+import javax.sql.DataSource;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import com.village.bellevue.entity.ScrubbedUserEntity;
-import com.village.bellevue.entity.UserEntity;
-import com.village.bellevue.entity.UserEntity.AvatarType;
-import com.village.bellevue.entity.UserEntity.UserStatus;
-import com.village.bellevue.repository.UserRepository;
-import java.sql.Timestamp;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+
+import com.village.bellevue.entity.UserEntity;
+import com.village.bellevue.entity.UserProfileEntity;
+import com.village.bellevue.error.AuthorizationException;
+import com.village.bellevue.repository.UserRepository;
 
 public class UserDetailsServiceTest {
 
   @InjectMocks private UserDetailsServiceImpl userDetailsService;
 
   @Mock private UserRepository userRepository;
+  @Mock private DataSource datasource;
+  @Mock private CallableStatement callableStatement;
+  @Mock private Connection connection;
 
   private final UserEntity user =
       new UserEntity(
@@ -36,8 +44,8 @@ public class UserDetailsServiceTest {
           "Foo",
           "foo",
           "foo",
-          UserStatus.ONLINE,
-          AvatarType.BEE,
+          "foo@foo.foo",
+          false,
           new Timestamp(System.currentTimeMillis()),
           new Timestamp(System.currentTimeMillis()));
 
@@ -71,26 +79,29 @@ public class UserDetailsServiceTest {
   }
 
   @Test
-  void testCreate_UserNotAuthenticated() {
+  void testCreate_UserNotAuthenticated() throws AuthorizationException, SQLException {
     try (MockedStatic<SecurityConfig> mockSecurity = mockStatic(SecurityConfig.class)) {
       mockSecurity.when(SecurityConfig::getAuthenticatedUserId).thenReturn(null);
 
       when(userRepository.save(user)).thenReturn(user);
+      when(datasource.getConnection()).thenReturn(connection);
+      when(connection.prepareCall(any())).thenReturn(callableStatement);
+      when(callableStatement.getLong(any())).thenReturn(user.getId());
+      when(callableStatement.getString(any())).thenReturn("cat");
 
-      ScrubbedUserEntity createdUser = userDetailsService.create(user);
+      UserProfileEntity createdUser = userDetailsService.create(user);
 
       assertThat(createdUser).isNotNull();
-      assertThat(createdUser.getId()).isEqualTo(user.getId());
-      verify(userRepository).save(user);
+      assertThat(createdUser.getUser()).isEqualTo(user.getId());
     }
   }
 
   @Test
-  void testCreate_UserAuthenticated() {
+  void testCreate_UserAuthenticated() throws AuthorizationException {
     try (MockedStatic<SecurityConfig> mockSecurity = mockStatic(SecurityConfig.class)) {
       mockSecurity.when(SecurityConfig::getAuthenticatedUserId).thenReturn(user.getId());
 
-      ScrubbedUserEntity createdUser = userDetailsService.create(user);
+      UserProfileEntity createdUser = userDetailsService.create(user);
 
       assertThat(createdUser).isNull();
       verify(userRepository, never()).save(any());

@@ -1,5 +1,7 @@
 package com.village.bellevue.service;
 
+import java.sql.Timestamp;
+import java.util.HashMap;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -22,9 +24,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.village.bellevue.config.security.SecurityConfig;
 import com.village.bellevue.entity.FriendEntity;
 import com.village.bellevue.entity.FriendEntity.FriendshipStatus;
-import com.village.bellevue.entity.ScrubbedUserEntity;
-import com.village.bellevue.entity.UserEntity.AvatarType;
-import com.village.bellevue.entity.UserEntity.UserStatus;
+import com.village.bellevue.entity.UserProfileEntity;
+import com.village.bellevue.entity.ProfileEntity.Status;
 import com.village.bellevue.error.FriendshipException;
 import com.village.bellevue.repository.FriendRepository;
 import com.village.bellevue.service.impl.FriendServiceImpl;
@@ -36,10 +37,10 @@ public class FriendServiceTest {
 
   @Mock private FriendRepository friendRepository;
 
-  private final ScrubbedUserEntity currentUser =
-      new ScrubbedUserEntity(1L, "Foo", "foo", UserStatus.ONLINE, AvatarType.BEE);
-  private final ScrubbedUserEntity friend =
-      new ScrubbedUserEntity(2L, "Bar", "bar", UserStatus.ONLINE, AvatarType.WALRUS);
+  private final UserProfileEntity currentUser =
+      new UserProfileEntity(1L, "Foo", "foo", Status.OFFLINE, "cat", new HashMap<>(), null, new Timestamp(0), "foo");
+  private final UserProfileEntity friend =
+      new UserProfileEntity(2L, "Bar", "bar", Status.OFFLINE, "cat", new HashMap<>(), null, new Timestamp(0), "bar");
 
   public static Stream<Arguments> friendshipStatusProvider() {
     return Stream.of(
@@ -53,16 +54,16 @@ public class FriendServiceTest {
   public void testFriendshipStatus(
       FriendshipStatus status, boolean expectedIsFriend, boolean expectedIsBlockedBy)
       throws FriendshipException {
-    FriendEntity friendship = new FriendEntity(currentUser.getId(), friend, status, null, null);
+    FriendEntity friendship = new FriendEntity(currentUser.getUser(), friend, status, null, null);
 
     try (MockedStatic<SecurityConfig> mockSecurity = mockStatic(SecurityConfig.class)) {
-      mockSecurity.when(SecurityConfig::getAuthenticatedUserId).thenReturn(currentUser.getId());
+      mockSecurity.when(SecurityConfig::getAuthenticatedUserId).thenReturn(currentUser.getUser());
       when(friendRepository.findById(any())).thenReturn(Optional.of(friendship));
 
-      assertEquals(expectedIsFriend, friendService.isFriend(friend.getId()));
-      assertEquals(expectedIsBlockedBy, friendService.isBlockedBy(friend.getId()));
+      assertEquals(expectedIsFriend, friendService.isFriend(friend.getUser()));
+      assertEquals(expectedIsBlockedBy, friendService.isBlockedBy(friend.getUser()));
 
-      Optional<String> retrievedStatus = friendService.getStatus(friend.getId());
+      Optional<String> retrievedStatus = friendService.getStatus(friend.getUser());
       assertTrue(retrievedStatus.isPresent());
       assertEquals(friendship.getStatus().name(), retrievedStatus.get());
 

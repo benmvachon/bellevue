@@ -2,6 +2,7 @@ package com.village.bellevue.config;
 
 import java.time.Duration;
 import java.util.Set;
+
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
@@ -22,8 +23,7 @@ public class CacheConfig {
   public static final String CACHE_WILDCARD_MATCH = "*";
 
   public static final String FRIENDSHIP_STATUS_CACHE_NAME = "friendshipStatusCache";
-  public static final String RECIPE_SECURITY_CACHE_NAME = "recipeSecurityCache";
-  public static final String REVIEW_SECURITY_CACHE_NAME = "reviewSecurityCache";
+  public static final String POST_SECURITY_CACHE_NAME = "postSecurityCache";
 
   public static void evictKeysByPattern(
       RedisTemplate<String, Object> redisTemplate, String cacheName, String pattern) {
