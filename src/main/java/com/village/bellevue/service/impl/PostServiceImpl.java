@@ -22,6 +22,7 @@ import com.village.bellevue.repository.AggregateRatingRepository;
 import com.village.bellevue.repository.ForumRepository;
 import com.village.bellevue.repository.PostRepository;
 import com.village.bellevue.repository.ProfileRepository;
+import com.village.bellevue.service.NotificationService;
 import com.village.bellevue.service.PostService;
 
 import jakarta.persistence.EntityManager;
@@ -35,25 +36,66 @@ public class PostServiceImpl implements PostService {
   private final AggregateRatingRepository ratingRepository;
   private final ForumRepository forumRepository;
   private final ProfileRepository profileRepository;
+  private final NotificationService notificationService;
   private final EntityManager entityManager;
+
+  private final PostModelProvider postModelProvider = new PostModelProvider() {
+    @Override
+    public Optional<AggregateRatingEntity> getAggregateRating(Long postId) {
+      return ratingRepository.findById(
+        new AggregateRatingId(getAuthenticatedUserId(), postId)
+      );
+    }
+
+    @Override
+    public Long getChildrenCount(Long postId) {
+      return getChildren(postId);
+    }
+
+    @Override
+    public boolean canReadPost(PostEntity post) {
+      return canRead(post.getId());
+    }
+  };
 
   public PostServiceImpl(
       PostRepository postRepository,
       AggregateRatingRepository ratingRepository,
       ForumRepository forumRepository,
       ProfileRepository profileRepository,
+      NotificationService notificationService,
       EntityManager entityManager) {
     this.postRepository = postRepository;
     this.ratingRepository = ratingRepository;
     this.forumRepository = forumRepository;
     this.profileRepository = profileRepository;
+    this.notificationService = notificationService;
     this.entityManager = entityManager;
   }
 
-  @Transactional
   @Override
+  @Transactional
   public PostModel create(PostEntity post) throws AuthorizationException {
-    return new PostModel(save(post), Optional.empty(), 0l);
+    PostModel model = null;
+    try {
+      model = new PostModel(save(post), postModelProvider);
+      return model;
+    } finally {
+      if (model != null) {
+        PostModel parent = model.getParent();
+        if (parent == null) {
+          if (model.getForum().getUser() == null) {
+            notificationService.notifyFriends(2l, model.getId());
+          } else {
+            notificationService.notifyMutualFriends(model.getForum().getUser(), 2l, model.getId());
+          }
+        }
+        while (parent != null) {
+          notificationService.notifyFriend(parent.getUser().getUser(), 3l, model.getId());
+          parent = parent.getParent();
+        }
+      }
+    }
   }
 
   @Override
@@ -62,28 +104,8 @@ public class PostServiceImpl implements PostService {
       Optional<PostEntity> post = postRepository.findById(id);
       if (post.isPresent()) {
         PostEntity postEntity = post.get();
-
-        PostModelProvider helper = new PostModelProvider() {
-          @Override
-          public Optional<AggregateRatingEntity> getAggregateRating(Long postId) {
-            return ratingRepository.findById(
-              new AggregateRatingId(getAuthenticatedUserId(), postId)
-            );
-          }
-
-          @Override
-          public Long getChildrenCount(Long postId) {
-            return getChildren(postId);
-          }
-
-          @Override
-          public boolean canReadPost(PostEntity post) {
-            return canRead(post.getId());
-          }
-        };
-
         try {
-          return Optional.of(new PostModel(postEntity, helper));
+          return Optional.of(new PostModel(postEntity, postModelProvider));
         } finally {
           profileRepository.setLocation(getAuthenticatedUserId(), postEntity.getForum());
         }
@@ -129,6 +151,7 @@ public class PostServiceImpl implements PostService {
   }
 
   @Override
+  @Transactional
   public boolean delete(Long id) throws AuthorizationException {
     Optional<PostModel> post = read(id);
     if (post.isEmpty()) return false;
@@ -141,6 +164,7 @@ public class PostServiceImpl implements PostService {
   private PostEntity save(PostEntity post) throws AuthorizationException {
     Long userId = getAuthenticatedUserId();
     if (!forumRepository.canRead(post.getForum().getId(), userId)) throw new AuthorizationException("User not authorized");
+    if (post.getParent() != null && !canRead(post.getParent().getId())) throw new AuthorizationException("User not authorized");
     ForumEntity forum = entityManager.getReference(ForumEntity.class, post.getForum().getId());
     UserProfileEntity user = entityManager.getReference(UserProfileEntity.class, getAuthenticatedUserId());
     post.setForum(forum);
@@ -160,6 +184,12 @@ public class PostServiceImpl implements PostService {
           "T(com.village.bellevue.config.CacheConfig).getCacheKey(T(com.village.bellevue.service.impl.PostServiceImpl).CAN_READ_CACHE_KEY, T(com.village.bellevue.config.security.SecurityConfig).getAuthenticatedUserId(), #id)")
   @Override
   public boolean canRead(Long id) {
-    return postRepository.canRead(id, getAuthenticatedUserId());
+    if (!postRepository.canRead(id, getAuthenticatedUserId())) return false;
+    PostEntity post = postRepository.getReferenceById(id);
+    while (post.getParent() != null) {
+      post = post.getParent();
+      if (!postRepository.canRead(post.getId(), getAuthenticatedUserId())) return false;
+    }
+    return true;
   }
 }

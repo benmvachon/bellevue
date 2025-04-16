@@ -39,8 +39,9 @@ public class ProfileEntity {
   @Column(nullable = false)
   private Status status = Status.OFFLINE;
 
-  @Column(nullable = false)
-  private String avatar = "cat";
+  @ManyToOne
+  @JoinColumn(name = "avatar")
+  private AvatarEntity avatar;
 
   @Convert(converter = JsonToMapConverter.class)
   private Map<String, String> equipment;
@@ -60,13 +61,6 @@ public class ProfileEntity {
     this.user = user.getId();
     this.name = user.getName();
     this.username = user.getUsername();
-  }
-
-  public ProfileEntity(UserEntity user, String avatar) {
-    this.user = user.getId();
-    this.name = user.getName();
-    this.username = user.getUsername();
-    this.avatar = avatar;
   }
 
   public enum Status {

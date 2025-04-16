@@ -171,7 +171,7 @@ public class IntegrationTest extends IntegrationTestWrapper {
     // Retrieve and verify the created post
     ForumEntity createdForum = createResponse.getBody();
     assertThat(createdForum).isNotNull();
-    assertThat(createdForum.getUser().getUser()).isEqualTo(newUser.getId());
+    assertThat(createdForum.getUser()).isEqualTo(newUser.getId());
     assertThat(createdForum.getCategory()).isEqualTo(forum.getCategory());
     assertThat(createdForum.getName()).isEqualTo(forum.getName());
 
@@ -183,7 +183,7 @@ public class IntegrationTest extends IntegrationTestWrapper {
 
     ForumEntity retrievedForum = getResponse.getBody();
     assertThat(retrievedForum).isNotNull();
-    assertThat(retrievedForum.getUser().getUser()).isEqualTo(newUser.getId());
+    assertThat(retrievedForum.getUser()).isEqualTo(newUser.getId());
     assertThat(retrievedForum.getCategory()).isEqualTo(forum.getCategory());
     assertThat(retrievedForum.getName()).isEqualTo(forum.getName());
 

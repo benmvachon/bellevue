@@ -31,6 +31,7 @@ import com.village.bellevue.error.FriendshipException;
 import com.village.bellevue.repository.FriendRepository;
 import com.village.bellevue.repository.UserProfileRepository;
 import com.village.bellevue.service.FriendService;
+import com.village.bellevue.service.NotificationService;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -45,6 +46,7 @@ public class FriendServiceImpl implements FriendService {
   private static final Logger logger = LoggerFactory.getLogger(FriendServiceImpl.class);
   private final FriendRepository friendRepository;
   private final UserProfileRepository userProfileRepository;
+  private final NotificationService notificationService;
   private final DataSource dataSource;
   private final CacheManager cacheManager;
   private final RedisTemplate<String, Object> redisTemplate;
@@ -55,11 +57,13 @@ public class FriendServiceImpl implements FriendService {
   public FriendServiceImpl(
       FriendRepository friendRepository,
       UserProfileRepository userProfileRepository,
+      NotificationService notificationService,
       DataSource dataSource,
       CacheManager cacheManager,
       RedisTemplate<String, Object> redisTemplate) {
     this.friendRepository = friendRepository;
     this.userProfileRepository = userProfileRepository;
+    this.notificationService = notificationService;
     this.dataSource = dataSource;
     this.cacheManager = cacheManager;
     this.redisTemplate = redisTemplate;
@@ -71,10 +75,12 @@ public class FriendServiceImpl implements FriendService {
     if (isBlockedBy(user)) {
       return;
     }
+    boolean success = false;
     try (Connection connection = dataSource.getConnection(); CallableStatement stmt = connection.prepareCall("{call request_friend(?, ?)}")) {
       stmt.setLong(1, getAuthenticatedUserId());
       stmt.setLong(2, user);
       stmt.executeUpdate();
+      success = true;
     } catch (SQLException e) {
       logger.error("Error requesting friend: {}", e.getMessage(), e);
       throw new FriendshipException(
@@ -82,6 +88,7 @@ public class FriendServiceImpl implements FriendService {
     } finally {
       entityManager.flush();
       entityManager.clear(); // ensure the database is updated
+      if (success) notificationService.notifyFriend(user, 5l, getAuthenticatedUserId());
     }
   }
 
@@ -161,16 +168,19 @@ public class FriendServiceImpl implements FriendService {
   @Override
   @Transactional
   public void accept(Long user) throws FriendshipException {
+    boolean success = false;
     try (Connection connection = dataSource.getConnection(); CallableStatement stmt = connection.prepareCall("{call accept_friend(?, ?)}")) {
       stmt.setLong(1, getAuthenticatedUserId());
       stmt.setLong(2, user);
       stmt.executeUpdate();
+      success = true;
     } catch (SQLException e) {
       logger.error("Error accepting friend: {}", e.getMessage(), e);
       throw new FriendshipException(
           "Failed to accept friendship. SQL command error: " + e.getMessage(), e);
     } finally {
       evictCaches(user);
+      if (success) notificationService.notifyFriend(user, 6l, getAuthenticatedUserId());
     }
   }
 

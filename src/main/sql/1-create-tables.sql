@@ -74,8 +74,8 @@ CREATE TABLE post(
     created         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,                                                        -- Timestamp for when the post was created
     PRIMARY KEY     (id),                                                                                       -- Make the ID the primary key
     FOREIGN KEY     (user) REFERENCES user(id) ON DELETE CASCADE,                                               -- user is a reference to the user table
-    FOREIGN KEY     (parent) REFERENCES post(id) ON DELETE CASCADE,                                             -- user is a reference to the user table
-    FOREIGN KEY     (forum) REFERENCES forum(id) ON DELETE CASCADE,                                             -- user is a reference to the user table
+    FOREIGN KEY     (parent) REFERENCES post(id) ON DELETE CASCADE,                                             -- parent is a reference to the post table
+    FOREIGN KEY     (forum) REFERENCES forum(id) ON DELETE CASCADE,                                             -- forum is a reference to the forum table
     INDEX           (user),                                                                                     -- Index on the user for fast look-up
     INDEX           (parent),                                                                                   -- Index on the parent for fast look-up
     INDEX           (forum),                                                                                    -- Index on the forum for fast look-up
@@ -104,6 +104,43 @@ CREATE TABLE aggregate_rating(
     FOREIGN KEY     (post) REFERENCES post(id) ON DELETE CASCADE,                                               -- post is a reference to the post table
     INDEX           (user),                                                                                     -- Index on the user for fast look-up
     INDEX           (post)                                                                                      -- Index on the post for fast look-up
+);
+CREATE TABLE message(
+    id              INT UNSIGNED NOT NULL AUTO_INCREMENT,                                                       -- Unique ID for the record
+    sender          INT UNSIGNED NOT NULL,                                                                      -- ID of the user who sent the message
+    receiver        INT UNSIGNED NOT NULL,                                                                      -- ID of the user to whom the message was sent
+    message         TEXT NOT NULL,                                                                              -- Text content of the message
+    `read`          BOOLEAN NOT NULL DEFAULT 0,                                                                 -- Flag indicating whether the message has been read or not
+    created         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,                                                        -- Timestamp for when the aggregate was last updated
+    PRIMARY KEY     (id),                                                                                       -- Make the ID the primary key
+    FOREIGN KEY     (sender) REFERENCES user(id) ON DELETE CASCADE,                                             -- sender is a reference to the user table
+    FOREIGN KEY     (receiver) REFERENCES user(id) ON DELETE CASCADE,                                           -- receiver is a reference to the user table
+    INDEX           (sender),                                                                                   -- Index on the sender for fast look-up
+    INDEX           (receiver),                                                                                 -- Index on the receiver for fast look-up
+    INDEX           (created),                                                                                  -- Index on the created date for fast look-up
+    INDEX           (sender, receiver)                                                                          -- Index on the user pair for fast look-up
+);
+CREATE TABLE notification_type(
+    id              INT UNSIGNED NOT NULL AUTO_INCREMENT,                                                       -- Unique ID for the record
+    name            VARCHAR(255) NOT NULL UNIQUE,                                                               -- Name of the type (message, reply, rating, request, accept)
+    PRIMARY KEY     (id)                                                                                        -- Make the ID the primary key
+);
+CREATE TABLE notification(
+    id              INT UNSIGNED NOT NULL AUTO_INCREMENT,                                                       -- Unique ID for the record
+    notified        INT UNSIGNED NOT NULL,                                                                      -- ID of the user who receives the notification
+    notifier        INT UNSIGNED NOT NULL,                                                                      -- ID of the user causing the notification
+    type            INT UNSIGNED NOT NULL,                                                                      -- ID of the type of notification
+    entity          INT UNSIGNED,                                                                               -- ID of the object (post, request, rating) which caused the notification
+    `read`          BOOLEAN NOT NULL DEFAULT 0,                                                                 -- Flag indicating whether the message has been read or not
+    created         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,                                                        -- Timestamp for when the aggregate was last updated
+    PRIMARY KEY     (id),                                                                                       -- Make the ID the primary key
+    FOREIGN KEY     (notifier) REFERENCES user(id) ON DELETE CASCADE,                                           -- notifier is a reference to the user table
+    FOREIGN KEY     (notifier) REFERENCES user(id) ON DELETE CASCADE,                                           -- notified is a reference to the user table
+    FOREIGN KEY     (type) REFERENCES notification_type(id) ON DELETE CASCADE,                                  -- type is a reference to the notification_type table
+    INDEX           (notifier),                                                                                 -- Index on the notifier for fast look-up
+    INDEX           (notified),                                                                                 -- Index on the notified for fast look-up
+    INDEX           (created),                                                                                  -- Index on the created date for fast look-up
+    INDEX           (notifier, notified)                                                                        -- Index on the user pair for fast look-up
 );
 CREATE VIEW user_profile AS
 SELECT

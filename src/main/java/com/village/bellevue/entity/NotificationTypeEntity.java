@@ -1,7 +1,5 @@
 package com.village.bellevue.entity;
 
-import java.sql.Timestamp;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.persistence.Column;
@@ -19,20 +17,17 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-@Table(name = "forum")
-public class ForumEntity {
+@Table(name = "notification_type")
+public class NotificationTypeEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  private Long user;
-
-  @Column(nullable = false, unique = true)
+  @Column(unique = true, nullable = false)
   private String name;
 
-  @Column(nullable = false)
-  private String category;
-
-  private Timestamp created = new Timestamp(System.currentTimeMillis());
+  public NotificationTypeEntity(Long id) {
+    this.id = id;
+  }
 }

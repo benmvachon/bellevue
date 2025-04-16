@@ -13,6 +13,8 @@ import com.village.bellevue.error.AuthorizationException;
 import com.village.bellevue.repository.EquipmentRepository;
 import com.village.bellevue.service.EquipmentService;
 
+import jakarta.transaction.Transactional;
+
 @Service
 public class EquipmentServiceImpl implements EquipmentService {
 
@@ -23,6 +25,7 @@ public class EquipmentServiceImpl implements EquipmentService {
   }
 
   @Override
+  @Transactional
   public void equip(String item) throws AuthorizationException {
     Optional<EquipmentEntity> equipment = equipmentRepository.findById(new EquipmentId(getAuthenticatedUserId(), item));
     if (equipment.isPresent()) {
@@ -39,6 +42,7 @@ public class EquipmentServiceImpl implements EquipmentService {
   }
 
   @Override
+  @Transactional
   public void unequip(String item) throws AuthorizationException {
     Optional<EquipmentEntity> equipment = equipmentRepository.findById(new EquipmentId(getAuthenticatedUserId(), item));
     if (equipment.isPresent()) {

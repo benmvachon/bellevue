@@ -11,11 +11,11 @@ import org.springframework.transaction.annotation.Transactional;
 import static com.village.bellevue.config.CacheConfig.POST_SECURITY_CACHE_NAME;
 import static com.village.bellevue.config.security.SecurityConfig.getAuthenticatedUserId;
 import com.village.bellevue.entity.ForumEntity;
-import com.village.bellevue.entity.UserProfileEntity;
 import com.village.bellevue.error.AuthorizationException;
 import com.village.bellevue.repository.ForumRepository;
 import com.village.bellevue.repository.ProfileRepository;
 import com.village.bellevue.service.ForumService;
+import com.village.bellevue.service.NotificationService;
 
 @Service
 public class ForumServiceImpl implements ForumService {
@@ -24,17 +24,29 @@ public class ForumServiceImpl implements ForumService {
 
   private final ForumRepository forumRepository;
   private final ProfileRepository profileRepository;
+  private final NotificationService notificationService;
 
-  public ForumServiceImpl(ForumRepository forumRepository, ProfileRepository profileRepository) {
+  public ForumServiceImpl(
+    ForumRepository forumRepository,
+    ProfileRepository profileRepository,
+    NotificationService notificationService
+  ) {
     this.forumRepository = forumRepository;
     this.profileRepository = profileRepository;
+    this.notificationService = notificationService;
   }
 
-  @Transactional
   @Override
+  @Transactional
   public ForumEntity create(ForumEntity forum) {
-    forum.setUser(new UserProfileEntity(getAuthenticatedUserId()));
-    return save(forum);
+    boolean saved = false;
+    try {
+      forum = save(forum);
+      saved = true;
+      return forum;
+    } finally {
+      if (saved) notificationService.notifyFriends(1l, forum.getId());
+    }
   }
 
   @Override
@@ -67,20 +79,18 @@ public class ForumServiceImpl implements ForumService {
   }
 
   @Override
+  @Transactional
   public boolean delete(Long id) throws AuthorizationException {
     Optional<ForumEntity> forum = read(id);
     if (forum.isEmpty()) return false;
-    if (!getAuthenticatedUserId().equals(forum.get().getUser().getUser()))
+    if (!getAuthenticatedUserId().equals(forum.get().getUser()))
       throw new AuthorizationException("Currently authenticated user is not authorized to delete forum");
     forumRepository.deleteById(id);
     return true;
   }
 
   private ForumEntity save(ForumEntity forum) {
-    UserProfileEntity user = new UserProfileEntity();
-    user.setUser(getAuthenticatedUserId());
-    forum.setUser(user);
-
+    forum.setUser(getAuthenticatedUserId());
     return forumRepository.save(forum);
   }
 
