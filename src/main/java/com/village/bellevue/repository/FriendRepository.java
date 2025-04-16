@@ -37,5 +37,5 @@ public interface FriendRepository extends JpaRepository<FriendEntity, FriendId> 
   Page<FriendEntity> findFriendsExcludingBlocked(@Param("friend") Long friend, @Param("user") Long user, Pageable pageable);
 
   @Query("SELECT CASE WHEN COUNT(f) > 0 THEN true ELSE false END FROM FriendEntity f WHERE f.friend.id = :friend AND f.user = :user AND status = 'accepted'")
-  Boolean areFriends(@Param("user") Long friend, @Param("user") Long user);
+  Boolean areFriends(@Param("friend") Long friend, @Param("user") Long user);
 }

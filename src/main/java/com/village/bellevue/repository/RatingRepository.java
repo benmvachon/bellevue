@@ -51,5 +51,5 @@ public interface RatingRepository extends JpaRepository<RatingEntity, RatingId> 
     ") AND " +
     "r.post = :post AND r.user = :friend"
   )
-  boolean canRead(@Param("post") Long post, @Param("friend") Long friend, @Param("user") Long user);
+  Boolean canRead(@Param("post") Long post, @Param("friend") Long friend, @Param("user") Long user);
 }

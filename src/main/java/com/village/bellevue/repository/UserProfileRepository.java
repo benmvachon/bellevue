@@ -12,7 +12,11 @@ import com.village.bellevue.entity.UserProfileEntity;
 @Repository
 public interface UserProfileRepository extends JpaRepository<UserProfileEntity, Long> {
 
-  UserProfileEntity findByUsername(String username);
+  @Query(
+    "SELECT u FROM UserProfileEntity u " +
+    "WHERE LOWER(u.name) LIKE LOWER(CONCAT(:prefix, '%')) " +
+    "   OR LOWER(u.username) LIKE LOWER(CONCAT(:prefix, '%'))")
+  Page<UserProfileEntity> findByNameOrUsernameStartsWith(@Param("prefix") String prefix, Pageable pageable);
 
   @Query(
     "SELECT u FROM UserProfileEntity u " +

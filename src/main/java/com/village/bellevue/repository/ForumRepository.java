@@ -36,5 +36,5 @@ public interface ForumRepository extends JpaRepository<ForumEntity, Long> {
       "FROM ForumEntity f1 " +
       "LEFT JOIN FriendEntity f2 ON f1.user = f2.friend.id AND f2.status = 'accepted' AND f2.user = :user " +
       "WHERE f1.user IS NULL OR f1.id = :forum AND (f1.user = :user OR f2.id IS NOT NULL)")
-  boolean canRead(@Param("forum") Long forum, @Param("user") Long user);
+  Boolean canRead(@Param("forum") Long forum, @Param("user") Long user);
 }

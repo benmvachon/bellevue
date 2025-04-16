@@ -2,7 +2,6 @@ package com.village.bellevue.controller;
 
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +24,11 @@ import com.village.bellevue.service.FriendService;
 @RequestMapping("/api/friend")
 public class FriendController {
 
-  @Autowired private FriendService friendService;
+  private final FriendService friendService;
+
+  public FriendController(FriendService friendService) {
+    this.friendService = friendService;
+  }
 
   @PostMapping("/{user}/request")
   public ResponseEntity<String> request(@PathVariable Long user) {

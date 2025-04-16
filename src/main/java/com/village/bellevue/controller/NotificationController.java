@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.village.bellevue.entity.NotificationEntity;
 import com.village.bellevue.service.NotificationService;
-import com.village.bellevue.service.RatingService;
 
 @RestController
 @RequestMapping("/api/notification")
@@ -20,7 +19,7 @@ public class NotificationController {
 
   private final NotificationService notificationService;
 
-  public NotificationController(NotificationService notificationService, RatingService ratingService) {
+  public NotificationController(NotificationService notificationService) {
     this.notificationService = notificationService;
   }
 

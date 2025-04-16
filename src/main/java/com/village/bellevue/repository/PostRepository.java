@@ -36,7 +36,7 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
     "LEFT JOIN FriendEntity f ON p.user.id = f.friend.id AND f.user = :user " +
     "WHERE p.parent.id = :post " +
     "AND (p.user.id = :user OR f.status = 'accepted')")
-  long countChildren(@Param("user") Long user, @Param("post") Long post);
+  Long countChildren(@Param("user") Long user, @Param("post") Long post);
 
   @Query(
       "SELECT p.user.id FROM PostEntity p " +
@@ -53,5 +53,5 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
       "WHERE (p.user.id = :user OR f.user = :user) " +
       "AND f.status = 'accepted' " +
       "AND p.id = :post")
-  boolean canRead(@Param("post") Long post, @Param("user") Long user);
+  Boolean canRead(@Param("post") Long post, @Param("user") Long user);
 }
