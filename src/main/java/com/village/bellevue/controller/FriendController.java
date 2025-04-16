@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 import static com.village.bellevue.config.security.SecurityConfig.getAuthenticatedUserId;
 import com.village.bellevue.entity.FriendEntity;
 import com.village.bellevue.entity.FriendEntity.FriendshipStatus;
-import com.village.bellevue.entity.UserProfileEntity;
 import com.village.bellevue.error.FriendshipException;
 import com.village.bellevue.service.FriendService;
 
@@ -40,18 +39,6 @@ public class FriendController {
     }
   }
 
-  @GetMapping("/{user}")
-  public ResponseEntity<UserProfileEntity> read(@PathVariable Long user) {
-    try {
-      Optional<UserProfileEntity> friend = friendService.read(user);
-      return friend
-          .map(ResponseEntity::ok)
-          .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
-    } catch (FriendshipException e) {
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-    }
-  }
-
   @GetMapping("/{user}/status")
   public ResponseEntity<String> readStatus(@PathVariable Long user) {
     if (getAuthenticatedUserId().equals(user)) return ResponseEntity.ok("YOU");
@@ -70,9 +57,10 @@ public class FriendController {
 
   @GetMapping("/{user}/friends")
   public ResponseEntity<Page<FriendEntity>> read(
-      @PathVariable Long user,
-      @RequestParam(name = "p", defaultValue = "0") int page,
-      @RequestParam(name = "n", defaultValue = "5") int size) {
+    @PathVariable Long user,
+    @RequestParam(name = "p", defaultValue = "0") int page,
+    @RequestParam(name = "n", defaultValue = "5") int size
+  ) {
     try {
       Page<FriendEntity> friends = friendService.readAll(user, page, size);
       return ResponseEntity.ok(friends);

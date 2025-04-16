@@ -25,11 +25,9 @@ import static com.village.bellevue.config.CacheConfig.getCacheKey;
 import static com.village.bellevue.config.CacheConfig.getUserCacheKeyPattern;
 import static com.village.bellevue.config.security.SecurityConfig.getAuthenticatedUserId;
 import com.village.bellevue.entity.FriendEntity;
-import com.village.bellevue.entity.UserProfileEntity;
 import com.village.bellevue.entity.id.FriendId;
 import com.village.bellevue.error.FriendshipException;
 import com.village.bellevue.repository.FriendRepository;
-import com.village.bellevue.repository.UserProfileRepository;
 import com.village.bellevue.service.FriendService;
 import com.village.bellevue.service.NotificationService;
 
@@ -45,7 +43,6 @@ public class FriendServiceImpl implements FriendService {
 
   private static final Logger logger = LoggerFactory.getLogger(FriendServiceImpl.class);
   private final FriendRepository friendRepository;
-  private final UserProfileRepository userProfileRepository;
   private final NotificationService notificationService;
   private final DataSource dataSource;
   private final CacheManager cacheManager;
@@ -56,13 +53,11 @@ public class FriendServiceImpl implements FriendService {
 
   public FriendServiceImpl(
       FriendRepository friendRepository,
-      UserProfileRepository userProfileRepository,
       NotificationService notificationService,
       DataSource dataSource,
       CacheManager cacheManager,
       RedisTemplate<String, Object> redisTemplate) {
     this.friendRepository = friendRepository;
-    this.userProfileRepository = userProfileRepository;
     this.notificationService = notificationService;
     this.dataSource = dataSource;
     this.cacheManager = cacheManager;
@@ -90,14 +85,6 @@ public class FriendServiceImpl implements FriendService {
       entityManager.clear(); // ensure the database is updated
       if (success) notificationService.notifyFriend(user, 5l, getAuthenticatedUserId());
     }
-  }
-
-  @Override
-  public Optional<UserProfileEntity> read(Long user) throws FriendshipException {
-    if (isBlockedBy(user)) {
-      return Optional.empty();
-    }
-    return Optional.of(userProfileRepository.findById(user).orElseThrow(() -> new FriendshipException("User not found with id: " + user)));
   }
 
   @Cacheable(
@@ -136,7 +123,7 @@ public class FriendServiceImpl implements FriendService {
   @Cacheable(
       value = FRIENDSHIP_STATUS_CACHE_NAME,
       key
-      = "T(com.village.bellevue.config.CacheConfig).getCacheKey(T(com.village.bellevue.service.impl.FriendServiceImpl).IS_BLOCKING_CACHE_KEY, T(com.village.bellevue.config.security.SecurityConfig).getAuthenticatedUserId(), user)")
+      = "T(com.village.bellevue.config.CacheConfig).getCacheKey(T(com.village.bellevue.service.impl.FriendServiceImpl).IS_BLOCKING_CACHE_KEY, T(com.village.bellevue.config.security.SecurityConfig).getAuthenticatedUserId(), #user)")
   @Override
   public boolean isBlockedBy(Long user) throws FriendshipException {
     if (getAuthenticatedUserId().equals(user)) {
@@ -147,16 +134,6 @@ public class FriendServiceImpl implements FriendService {
       return false;
     }
     return FriendEntity.FriendshipStatus.BLOCKED_YOU.equals(status.get());
-  }
-
-  @Override
-  public Page<UserProfileEntity> readFriendByLocation(Long forum, int page, int size) {
-    return userProfileRepository.findAllFriendsByLocation(getAuthenticatedUserId(), forum, PageRequest.of(page, size));
-  }
-
-  @Override
-  public Page<UserProfileEntity> readNonFriendsByLocation(Long forum, int page, int size) {
-    return userProfileRepository.findAllNonFriendsByLocation(getAuthenticatedUserId(), forum, PageRequest.of(page, size));
   }
 
   @Override

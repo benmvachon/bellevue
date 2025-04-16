@@ -14,9 +14,22 @@ public interface UserProfileRepository extends JpaRepository<UserProfileEntity, 
 
   @Query(
     "SELECT u FROM UserProfileEntity u " +
-    "WHERE LOWER(u.name) LIKE LOWER(CONCAT(:prefix, '%')) " +
-    "   OR LOWER(u.username) LIKE LOWER(CONCAT(:prefix, '%'))")
-  Page<UserProfileEntity> findByNameOrUsernameStartsWith(@Param("prefix") String prefix, Pageable pageable);
+    "WHERE (LOWER(u.name) LIKE LOWER(CONCAT(:prefix, '%')) " +
+    "   OR LOWER(u.username) LIKE LOWER(CONCAT(:prefix, '%'))) " +
+    "AND u.id NOT IN (" +
+    "   SELECT f.friend.id FROM FriendEntity f " +
+    "   WHERE f.user = :user AND f.status = 'blocked_them' " +
+    "   UNION " +
+    "   SELECT f.user FROM FriendEntity f " +
+    "   WHERE f.friend.id = :user AND f.status = 'blocked_you'" +
+    ")"
+  )
+  Page<UserProfileEntity> findByNameOrUsernameStartsWith(
+    @Param("user") Long user,
+    @Param("prefix") String prefix,
+    Pageable pageable
+  );
+  
 
   @Query(
     "SELECT u FROM UserProfileEntity u " +
