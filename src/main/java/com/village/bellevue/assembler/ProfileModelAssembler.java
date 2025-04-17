@@ -1,0 +1,54 @@
+package com.village.bellevue.assembler;
+
+import java.util.Objects;
+
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.server.RepresentationModelAssembler;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+import org.springframework.stereotype.Component;
+
+import static com.village.bellevue.config.security.SecurityConfig.getAuthenticatedUserId;
+import com.village.bellevue.controller.EquipmentController;
+import com.village.bellevue.controller.FriendController;
+import com.village.bellevue.controller.MessageController;
+import com.village.bellevue.model.ProfileModel;
+
+@Component
+public class ProfileModelAssembler implements RepresentationModelAssembler<ProfileModel, EntityModel<ProfileModel>> {
+  @Override
+  public EntityModel<ProfileModel> toModel(ProfileModel profile) {
+    if (!Objects.isNull(getAuthenticatedUserId()) && getAuthenticatedUserId().equals(profile.getId()))
+      return EntityModel.of(
+        profile,
+        linkTo(methodOn(EquipmentController.class).readAll(0, 10)).withRel("equipment")
+      );
+    String friendshipStatus = profile.getFriendshipStatus();
+    if (Objects.isNull(friendshipStatus)) friendshipStatus = "unset";
+    return switch (friendshipStatus.toLowerCase()) {
+      case "blocked_them", "blocked_you" -> EntityModel.of(null);
+      case "accepted" -> EntityModel.of(
+        profile,
+        linkTo(methodOn(FriendController.class).block(profile.getId())).withRel("friend"),
+        linkTo(methodOn(FriendController.class).remove(profile.getId())).withRel("friend"),
+        linkTo(methodOn(FriendController.class).read(profile.getId(), 0, 10)).withRel("friend"),
+        linkTo(methodOn(MessageController.class).message(profile.getId(), null)).withRel("message")
+      );
+      case "pending_you" -> EntityModel.of(
+        profile,
+        linkTo(methodOn(FriendController.class).block(profile.getId())).withRel("friend"),
+        linkTo(methodOn(FriendController.class).accept(profile.getId())).withRel("friend")
+      );
+      case "pending_them" -> EntityModel.of(
+        profile,
+        linkTo(methodOn(FriendController.class).block(profile.getId())).withRel("friend")
+      );
+      default -> EntityModel.of(
+        profile,
+        linkTo(methodOn(FriendController.class).block(profile.getId())).withRel("friend"),
+        linkTo(methodOn(FriendController.class).request(profile.getId())).withRel("friend")
+      );
+    };
+  }
+}
+

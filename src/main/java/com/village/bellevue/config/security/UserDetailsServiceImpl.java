@@ -22,6 +22,7 @@ import static com.village.bellevue.config.security.SecurityConfig.getAuthenticat
 import com.village.bellevue.entity.UserEntity;
 import com.village.bellevue.entity.UserProfileEntity;
 import com.village.bellevue.error.AuthorizationException;
+import com.village.bellevue.model.ProfileModel;
 import com.village.bellevue.repository.UserRepository;
 
 @Service
@@ -43,7 +44,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
   }
 
   @Transactional
-  public UserProfileEntity create(UserEntity user) throws AuthorizationException {
+  public ProfileModel create(UserEntity user) throws AuthorizationException {
     user.setPassword(passwordEncoder.encode(user.getPassword()));
     if (getAuthenticatedUserId() == null) {
       try (Connection connection = dataSource.getConnection();
@@ -71,7 +72,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
   
         // Construct the user profile entity (or whatever object you use)
         user.setId(userId); // Assuming UserEntity has an ID field
-        return new UserProfileEntity(user, avatarName);
+        return new ProfileModel(new UserProfileEntity(user, avatarName));
   
       } catch (SQLException e) {
         throw new AuthorizationException(

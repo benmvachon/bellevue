@@ -99,7 +99,7 @@ public class FriendServiceImpl implements FriendService {
     }
     Optional<FriendEntity> friendship = friendRepository.findById(new FriendId(currentUser, user));
     if (friendship.isPresent()) {
-      return Optional.of(friendship.get().getStatus().name());
+      return Optional.of(friendship.get().getStatus().toValue());
     }
     return Optional.empty();
   }

@@ -9,12 +9,26 @@ import org.springframework.stereotype.Service;
 import static com.village.bellevue.config.security.SecurityConfig.getAuthenticatedUserId;
 import com.village.bellevue.entity.UserProfileEntity;
 import com.village.bellevue.error.FriendshipException;
+import com.village.bellevue.model.ProfileModel;
+import com.village.bellevue.model.ProfileModelProvider;
 import com.village.bellevue.repository.UserProfileRepository;
 import com.village.bellevue.service.FriendService;
 import com.village.bellevue.service.UserProfileService;
 
 @Service
 public class UserProfileServiceImpl implements UserProfileService {
+  private final ProfileModelProvider profileModelProvider = new ProfileModelProvider() {
+    @Override
+    public Optional<String> getFriendshipStatus(Long user) {
+      try {
+        return friendService.getStatus(user);
+      } catch (FriendshipException ex) {
+        return Optional.empty();
+      }
+    }
+    
+  };
+
   private final UserProfileRepository userProfileRepository;
   private final FriendService friendService;
 
@@ -27,25 +41,35 @@ public class UserProfileServiceImpl implements UserProfileService {
   }
 
   @Override
-  public Optional<UserProfileEntity> read(Long user) throws FriendshipException {
+  public Optional<ProfileModel> read(Long user) throws FriendshipException {
     if (friendService.isBlockedBy(user)) {
       return Optional.empty();
     }
-    return Optional.of(userProfileRepository.findById(user).orElseThrow(() -> new FriendshipException("User not found with id: " + user)));
+    UserProfileEntity profile = userProfileRepository.findById(user).orElseThrow(() -> new FriendshipException("User not found with id: " + user));
+    return Optional.of(new ProfileModel(profile, profileModelProvider));
   }
 
   @Override
-  public Page<UserProfileEntity> readFriendsByLocation(Long forum, int page, int size) {
-    return userProfileRepository.findAllFriendsByLocation(getAuthenticatedUserId(), forum, PageRequest.of(page, size));
+  public Page<ProfileModel> readFriendsByLocation(Long forum, int page, int size) {
+    Page<UserProfileEntity> profileEntities = userProfileRepository.findAllFriendsByLocation(getAuthenticatedUserId(), forum, PageRequest.of(page, size));
+    return profileEntities.map(post -> {
+      return new ProfileModel(post, profileModelProvider);
+    });
   }
 
   @Override
-  public Page<UserProfileEntity> readNonFriendsByLocation(Long forum, int page, int size) {
-    return userProfileRepository.findAllNonFriendsByLocation(getAuthenticatedUserId(), forum, PageRequest.of(page, size));
+  public Page<ProfileModel> readNonFriendsByLocation(Long forum, int page, int size) {
+    Page<UserProfileEntity> profileEntities = userProfileRepository.findAllNonFriendsByLocation(getAuthenticatedUserId(), forum, PageRequest.of(page, size));
+    return profileEntities.map(post -> {
+      return new ProfileModel(post, profileModelProvider);
+    });
   }
 
   @Override
-  public Page<UserProfileEntity> readByNamePrefix(String prefix, int page, int size) {
-    return userProfileRepository.findByNameOrUsernameStartsWith(getAuthenticatedUserId(), prefix, PageRequest.of(page, size));
+  public Page<ProfileModel> readByNamePrefix(String prefix, int page, int size) {
+    Page<UserProfileEntity> profileEntities = userProfileRepository.findByNameOrUsernameStartsWith(getAuthenticatedUserId(), prefix, PageRequest.of(page, size));
+    return profileEntities.map(post -> {
+      return new ProfileModel(post, profileModelProvider);
+    });
   }
 }

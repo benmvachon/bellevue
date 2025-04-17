@@ -4,13 +4,14 @@ import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 
-import com.village.bellevue.entity.PostEntity;
 import com.village.bellevue.error.AuthorizationException;
 import com.village.bellevue.model.PostModel;
 
 public interface PostService {
 
-  public PostModel create(PostEntity post) throws AuthorizationException ;
+  public PostModel post(Long forum, String content) throws AuthorizationException;
+
+  public PostModel reply(Long forum, Long parent, String content) throws AuthorizationException;
 
   public Optional<PostModel> read(Long id) throws AuthorizationException;
 

@@ -32,7 +32,7 @@ public class PostEntity {
   private UserProfileEntity user;
 
   @ManyToOne
-  @JoinColumn(name = "parent")
+  @JoinColumn(name = "parent", nullable = true)
   private PostEntity parent;
 
   @ManyToOne

@@ -25,8 +25,8 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import com.village.bellevue.entity.UserEntity;
-import com.village.bellevue.entity.UserProfileEntity;
 import com.village.bellevue.error.AuthorizationException;
+import com.village.bellevue.model.ProfileModel;
 import com.village.bellevue.repository.UserRepository;
 
 public class UserDetailsServiceTest {
@@ -89,10 +89,10 @@ public class UserDetailsServiceTest {
       when(callableStatement.getLong(any())).thenReturn(user.getId());
       when(callableStatement.getString(any())).thenReturn("cat");
 
-      UserProfileEntity createdUser = userDetailsService.create(user);
+      ProfileModel createdUser = userDetailsService.create(user);
 
       assertThat(createdUser).isNotNull();
-      assertThat(createdUser.getUser()).isEqualTo(user.getId());
+      assertThat(createdUser.getId()).isEqualTo(user.getId());
     }
   }
 
@@ -101,7 +101,7 @@ public class UserDetailsServiceTest {
     try (MockedStatic<SecurityConfig> mockSecurity = mockStatic(SecurityConfig.class)) {
       mockSecurity.when(SecurityConfig::getAuthenticatedUserId).thenReturn(user.getId());
 
-      UserProfileEntity createdUser = userDetailsService.create(user);
+      ProfileModel createdUser = userDetailsService.create(user);
 
       assertThat(createdUser).isNull();
       verify(userRepository, never()).save(any());

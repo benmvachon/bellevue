@@ -3,6 +3,9 @@ package com.village.bellevue.controller;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -14,11 +17,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.village.bellevue.assembler.ProfileModelAssembler;
 import com.village.bellevue.config.security.UserDetailsServiceImpl;
 import com.village.bellevue.entity.UserEntity;
-import com.village.bellevue.entity.UserProfileEntity;
 import com.village.bellevue.error.AuthorizationException;
 import com.village.bellevue.error.FriendshipException;
+import com.village.bellevue.model.ProfileModel;
 import com.village.bellevue.service.UserProfileService;
 
 
@@ -28,65 +32,75 @@ public class UserController {
 
   private final UserDetailsServiceImpl userService;
   private final UserProfileService profileService;
+  private final ProfileModelAssembler profileModelAssembler;
+  private final PagedResourcesAssembler<ProfileModel> pagedAssembler;
 
   public UserController(
     UserDetailsServiceImpl userService,
-    UserProfileService profileService
+    UserProfileService profileService,
+    ProfileModelAssembler profileModelAssembler,
+    PagedResourcesAssembler<ProfileModel> pagedAssembler
   ) {
     this.userService = userService;
     this.profileService = profileService;
+    this.profileModelAssembler = profileModelAssembler;
+    this.pagedAssembler = pagedAssembler;
   }
 
   @PostMapping("/signup")
-  public ResponseEntity<UserProfileEntity> create(@RequestBody UserEntity user) {
+  public ResponseEntity<EntityModel<ProfileModel>> create(@RequestBody UserEntity user) {
     try {
-      UserProfileEntity scrubbedUser = userService.create(user);
-      return ResponseEntity.status(HttpStatus.CREATED).body(scrubbedUser);
+      ProfileModel profile = userService.create(user);
+      EntityModel<ProfileModel> entityModel = profileModelAssembler.toModel(profile);
+      return ResponseEntity.status(HttpStatus.CREATED).body(entityModel);
     } catch (AuthorizationException e) {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
   }
 
   @GetMapping("/{user}")
-  public ResponseEntity<UserProfileEntity> read(@PathVariable Long user) {
+  public ResponseEntity<EntityModel<ProfileModel>> read(@PathVariable Long user) {
     try {
-      Optional<UserProfileEntity> friend = profileService.read(user);
-      return friend
-          .map(ResponseEntity::ok)
-          .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+      Optional<ProfileModel> profile = profileService.read(user);
+      return profile
+        .map(model -> ResponseEntity.ok(profileModelAssembler.toModel(model)))
+        .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     } catch (FriendshipException e) {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
   }
 
   @GetMapping("/search/{prefix}")
-  public ResponseEntity<Page<UserProfileEntity>> search(
+  public ResponseEntity<PagedModel<EntityModel<ProfileModel>>> search(
     @PathVariable String prefix,
     @RequestParam(name = "p", defaultValue = "0") int page,
     @RequestParam(name = "n", defaultValue = "5") int size
   ) {
-    Page<UserProfileEntity> users = profileService.readByNamePrefix(prefix, page, size);
-    return ResponseEntity.ok(users);
+    Page<ProfileModel> users = profileService.readByNamePrefix(prefix, page, size);
+    PagedModel<EntityModel<ProfileModel>> pagedModel = pagedAssembler.toModel(users, profileModelAssembler);
+    return ResponseEntity.ok(pagedModel);
   }
 
   @GetMapping("/friends/{location}")
-  public ResponseEntity<Page<UserProfileEntity>> friends(
+  public ResponseEntity<PagedModel<EntityModel<ProfileModel>>> friends(
     @PathVariable Long location,
     @RequestParam(name = "p", defaultValue = "0") int page,
     @RequestParam(name = "n", defaultValue = "5") int size
   ) {
-    Page<UserProfileEntity> users = profileService.readFriendsByLocation(location, page, size);
-    return ResponseEntity.ok(users);
+    Page<ProfileModel> users = profileService.readFriendsByLocation(location, page, size);
+    PagedModel<EntityModel<ProfileModel>> pagedModel = pagedAssembler.toModel(users, profileModelAssembler);
+    return ResponseEntity.ok(pagedModel);
   }
 
   @GetMapping("/nonfriends/{location}")
-  public ResponseEntity<Page<UserProfileEntity>> nonFriends(
+  public ResponseEntity<PagedModel<EntityModel<ProfileModel>>> nonFriends(
     @PathVariable Long location,
     @RequestParam(name = "p", defaultValue = "0") int page,
     @RequestParam(name = "n", defaultValue = "5") int size
   ) {
-    Page<UserProfileEntity> users = profileService.readNonFriendsByLocation(location, page, size);
-    return ResponseEntity.ok(users);
+    Page<ProfileModel> users = profileService.readNonFriendsByLocation(location, page, size);
+    PagedModel<EntityModel<ProfileModel>> pagedModel = pagedAssembler.toModel(users, profileModelAssembler);
+    return ResponseEntity.ok(pagedModel);
   }
 
   @DeleteMapping

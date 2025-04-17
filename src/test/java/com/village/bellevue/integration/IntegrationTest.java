@@ -2,6 +2,7 @@ package com.village.bellevue.integration;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -16,7 +17,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.data.web.PagedModel;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -26,15 +30,13 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.village.bellevue.entity.ForumEntity;
 import com.village.bellevue.entity.PostEntity;
-import com.village.bellevue.entity.RatingEntity;
 import com.village.bellevue.entity.UserEntity;
 import com.village.bellevue.entity.UserProfileEntity;
 import com.village.bellevue.error.FriendshipException;
 import com.village.bellevue.model.PostModel;
+import com.village.bellevue.model.ProfileModel;
 
 @TestMethodOrder(OrderAnnotation.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -79,15 +81,19 @@ public class IntegrationTest extends IntegrationTestWrapper {
 
   @Test
   @Order(1)
-  @SuppressWarnings("null")
+  @SuppressWarnings("")
   void createUser() {
-    ResponseEntity<UserProfileEntity> response =
-        restTemplate.postForEntity(
-            "http://localhost:" + port + "/api/user/signup", newUser, UserProfileEntity.class);
+    ParameterizedTypeReference<EntityModel<ProfileModel>> responseType = new ParameterizedTypeReference<>() {};
+    ResponseEntity<EntityModel<ProfileModel>> response = restTemplate.exchange(
+      "http://localhost:" + port + "/api/user/signup",
+      HttpMethod.POST,
+      new HttpEntity<>(newUser),
+      responseType
+    );
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
     assertNotNull(response.getBody());
-    assertEquals(21L, response.getBody().getUser());
+    assertEquals(21L, response.getBody().getContent().getId());
 
     // make sure we can login as the new user
     login(newUser.getUsername());
@@ -152,36 +158,20 @@ public class IntegrationTest extends IntegrationTestWrapper {
     blockAs("ava_m", newUser.getId(), false); // id 8
   }
 
-  @SuppressWarnings("null")
+  @SuppressWarnings("")
   @Test
   @Order(4)
   void addForums() throws JsonProcessingException {
     login(newUser.getUsername());
 
-    PagedModel<ForumEntity> forums = readForums(false);
-    post.setForum(forums.getContent().get(0));
-
-    // post to the post controller to create the post
-    ResponseEntity<ForumEntity> createResponse =
-        restTemplate.postForEntity(
-            "http://localhost:" + port + "/api/forum", forum, ForumEntity.class);
-
-    assertThat(createResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-
     // Retrieve and verify the created post
-    ForumEntity createdForum = createResponse.getBody();
+    ForumEntity createdForum = createForum(forum, false);
     assertThat(createdForum).isNotNull();
     assertThat(createdForum.getUser()).isEqualTo(newUser.getId());
     assertThat(createdForum.getCategory()).isEqualTo(forum.getCategory());
     assertThat(createdForum.getName()).isEqualTo(forum.getName());
 
-    ResponseEntity<ForumEntity> getResponse =
-        restTemplate.getForEntity(
-            "http://localhost:" + port + "/api/forum/" + createdForum.getId(), ForumEntity.class);
-
-    assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-
-    ForumEntity retrievedForum = getResponse.getBody();
+    ForumEntity retrievedForum = readForum(createdForum.getId(), false);
     assertThat(retrievedForum).isNotNull();
     assertThat(retrievedForum.getUser()).isEqualTo(newUser.getId());
     assertThat(retrievedForum.getCategory()).isEqualTo(forum.getCategory());
@@ -190,27 +180,31 @@ public class IntegrationTest extends IntegrationTestWrapper {
     logout();
   }
 
-  @SuppressWarnings("null")
+  @SuppressWarnings("")
   @Test
   @Order(5)
   void addPost() throws JsonProcessingException {
     login(newUser.getUsername());
 
-    PagedModel<ForumEntity> forums = readForums(false);
-    post.setForum(forums.getContent().get(0));
-
-    // post to the post controller to create the post
-    ResponseEntity<PostModel> createResponse =
-        restTemplate.postForEntity(
-            "http://localhost:" + port + "/api/post", post, PostModel.class);
-
-    assertThat(createResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    PagedModel<EntityModel<ForumEntity>> forums = readForums(false);
+    ForumEntity firstForum = forums.getContent().stream()
+      .map(EntityModel::getContent)
+      .filter(Objects::nonNull)
+      .findFirst()
+      .orElse(null); // or throw an exception if you expect it to exist
+    post.setForum(firstForum);
 
     // Retrieve and verify the created post
-    PostModel createdPost = createResponse.getBody();
+    PostModel createdPost = createPost(firstForum.getId(), "This is a post", false);
     assertThat(createdPost).isNotNull();
     assertThat(createdPost.getContent()).isEqualTo(post.getContent());
     assertThat(createdPost.getUser().getUser()).isEqualTo(newUser.getId());
+
+    PostModel readPost = readPost(createdPost.getId(), false);
+    assertThat(readPost).isNotNull();
+    assertThat(readPost.getContent()).isEqualTo(post.getContent());
+    assertThat(readPost.getUser().getUser()).isEqualTo(newUser.getId());
+
     logout();
   }
 
@@ -325,118 +319,93 @@ public class IntegrationTest extends IntegrationTestWrapper {
     logout();
   }
 
-  private PostModel readPost(Long postId, boolean expectFailure) {
-    ResponseEntity<PostModel> response =
-        restTemplate.getForEntity(
-            "http://localhost:" + port + "/api/post/" + postId, PostModel.class);
-    if (expectFailure) {
-      assertThat(response.getStatusCode()).isNotEqualTo(HttpStatus.OK);
-      return null;
-    } else {
-      assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-      return response.getBody();
-    }
-  }
+  @SuppressWarnings("")
+  private PostModel createPost(Long forum, String content, boolean expectFailure) {
+    ParameterizedTypeReference<EntityModel<PostModel>> responseType = new ParameterizedTypeReference<>() {};
+    ResponseEntity<EntityModel<PostModel>> response = restTemplate.exchange(
+      "http://localhost:" + port + "/api/post/" + forum,
+      HttpMethod.POST,
+      new HttpEntity<>(content),
+      responseType
+    );
 
-  private PagedModel<ForumEntity> readForums(boolean expectFailure) throws JsonProcessingException {
-    String url = "http://localhost:" + port + "/api/forum";
-
-    ResponseEntity<String> response =
-        restTemplate.exchange(url, HttpMethod.GET, null, String.class);
-
-    if (expectFailure) {
-      assertThat(response.getStatusCode()).isNotEqualTo(HttpStatus.OK);
-      return null;
-    } else {
-      assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-      // Deserialize JSON response to Page<ForumEntity>
-      ObjectMapper mapper = forumMapperWithPageSupport();
-      JavaType pageType =
-          mapper.getTypeFactory().constructParametricType(PagedModel.class, ForumEntity.class);
-      return mapper.readValue(response.getBody(), pageType);
-    }
-  }
-
-  private void addRating(RatingEntity rating, boolean expectFailure) {
-    ResponseEntity<RatingEntity> response =
-        restTemplate.postForEntity(
-            "http://localhost:" + port + "/api/rating", rating, RatingEntity.class);
     if (expectFailure) {
       assertThat(response.getStatusCode()).isNotEqualTo(HttpStatus.CREATED);
-    } else {
-      assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+      return null;
     }
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    return response.getBody().getContent();
   }
 
-  private PagedModel<RatingEntity> readRatings(boolean expectFailure) throws JsonProcessingException {
-    String url = "http://localhost:" + port + "/api/rating";
-
-    ResponseEntity<String> response =
-        restTemplate.exchange(url, HttpMethod.GET, null, String.class);
+  @SuppressWarnings("")
+  private PostModel readPost(Long postId, boolean expectFailure) {
+    ParameterizedTypeReference<EntityModel<PostModel>> responseType = new ParameterizedTypeReference<>() {};
+    ResponseEntity<EntityModel<PostModel>> response = restTemplate.exchange(
+      "http://localhost:" + port + "/api/post/" + postId,
+      HttpMethod.GET,
+      null,
+      responseType
+    );
 
     if (expectFailure) {
       assertThat(response.getStatusCode()).isNotEqualTo(HttpStatus.OK);
       return null;
-    } else {
-      assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-      // Deserialize JSON response to Page<SimplePostEntity>
-      ObjectMapper mapper = ratingMapperWithPageSupport();
-      JavaType pageType =
-          mapper.getTypeFactory().constructParametricType(PagedModel.class, RatingEntity.class);
-      return mapper.readValue(response.getBody(), pageType);
     }
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    return response.getBody().getContent();
   }
 
-  private PagedModel<RatingEntity> readRatingsByPost(Long postId, boolean expectFailure)
-      throws JsonProcessingException {
-    String url = "http://localhost:" + port + "/api/rating/post/" + postId;
+  @SuppressWarnings("")
+  private ForumEntity createForum(ForumEntity forum, boolean expectFailure) {
+    // post to the post controller to create the forum
+    ParameterizedTypeReference<EntityModel<ForumEntity>> responseType = new ParameterizedTypeReference<>() {};
+    ResponseEntity<EntityModel<ForumEntity>> response = restTemplate.exchange(
+      "http://localhost:" + port + "/api/forum",
+      HttpMethod.POST,
+      new HttpEntity<>(forum),
+      responseType
+    );
 
-    ResponseEntity<String> response =
-        restTemplate.exchange(url, HttpMethod.GET, null, String.class);
+    if (expectFailure) {
+      assertThat(response.getStatusCode()).isNotEqualTo(HttpStatus.CREATED);
+      return null;
+    }
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    return response.getBody().getContent();
+  }
+
+  @SuppressWarnings("")
+  private ForumEntity readForum(long forum, boolean expectFailure) {
+    ParameterizedTypeReference<EntityModel<ForumEntity>> responseType = new ParameterizedTypeReference<>() {};
+    ResponseEntity<EntityModel<ForumEntity>> response = restTemplate.exchange(
+      "http://localhost:" + port + "/api/forum/" + forum,
+      HttpMethod.GET,
+      null,
+      responseType
+    );
 
     if (expectFailure) {
       assertThat(response.getStatusCode()).isNotEqualTo(HttpStatus.OK);
       return null;
-    } else {
-      assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-      // Deserialize JSON response to Page<SimplePostEntity>
-      ObjectMapper mapper = ratingMapperWithPageSupport();
-      JavaType pageType =
-          mapper.getTypeFactory().constructParametricType(PagedModel.class, RatingEntity.class);
-      return mapper.readValue(response.getBody(), pageType);
     }
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    return response.getBody().getContent();
   }
 
-  private PagedModel<RatingEntity> readRatingsByFriend(Long friend, boolean expectFailure)
-      throws JsonProcessingException {
-    String url = "http://localhost:" + port + "/api/rating/friend/" + friend;
+  private PagedModel<EntityModel<ForumEntity>> readForums(boolean expectFailure) {
+    String url = "http://localhost:" + port + "/api/forum";
 
-    ResponseEntity<String> response =
-        restTemplate.exchange(url, HttpMethod.GET, null, String.class);
+    ParameterizedTypeReference<PagedModel<EntityModel<ForumEntity>>> responseType =
+        new ParameterizedTypeReference<>() {};
+
+    ResponseEntity<PagedModel<EntityModel<ForumEntity>>> response =
+        restTemplate.exchange(url, HttpMethod.GET, null, responseType);
 
     if (expectFailure) {
       assertThat(response.getStatusCode()).isNotEqualTo(HttpStatus.OK);
       return null;
-    } else {
-      assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-      // Deserialize JSON response to Page<SimplePostEntity>
-      ObjectMapper mapper = ratingMapperWithPageSupport();
-      JavaType pageType =
-          mapper.getTypeFactory().constructParametricType(PagedModel.class, RatingEntity.class);
-      return mapper.readValue(response.getBody(), pageType);
     }
-  }
-
-  private RatingEntity readRating(Long ratingId, boolean expectFailure) {
-    ResponseEntity<RatingEntity> response =
-        restTemplate.getForEntity(
-            "http://localhost:" + port + "/api/rating/" + ratingId, RatingEntity.class);
-    if (expectFailure) {
-      assertThat(response.getStatusCode()).isNotEqualTo(HttpStatus.OK);
-      return null;
-    } else {
-      assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-      return response.getBody();
-    }
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    return response.getBody();
   }
 }

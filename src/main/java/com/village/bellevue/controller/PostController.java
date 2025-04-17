@@ -3,6 +3,9 @@ package com.village.bellevue.controller;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,53 +16,84 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.village.bellevue.entity.PostEntity;
+import com.village.bellevue.assembler.PostModelAssembler;
 import com.village.bellevue.error.AuthorizationException;
 import com.village.bellevue.model.PostModel;
 import com.village.bellevue.service.PostService;
-import com.village.bellevue.service.RatingService;
 
 @RestController
 @RequestMapping("/api/post")
 public class PostController {
 
   private final PostService postService;
+  private final PostModelAssembler postModelAssembler;
+  private final PagedResourcesAssembler<PostModel> pagedAssembler;
 
-  public PostController(PostService postService, RatingService ratingService) {
+  public PostController(
+    PostService postService,
+    PostModelAssembler postModelAssembler,
+    PagedResourcesAssembler<PostModel> pagedAssembler
+  ) {
     this.postService = postService;
+    this.postModelAssembler = postModelAssembler;
+    this.pagedAssembler = pagedAssembler;
   }
 
-  @PostMapping
-  public ResponseEntity<PostModel> create(@RequestBody PostEntity post) {
+  @PostMapping("/{forum}")
+  public ResponseEntity<EntityModel<PostModel>> post(
+    @PathVariable Long forum,
+    @RequestBody String content
+  ) {
     try {
-      PostModel createdPost = postService.create(post);
-      return ResponseEntity.status(HttpStatus.CREATED).body(createdPost);
+      PostModel createdPost = postService.post(forum, content);
+      EntityModel<PostModel> entityModel = postModelAssembler.toModel(createdPost);
+      return ResponseEntity.status(HttpStatus.CREATED).body(entityModel);
+    } catch (AuthorizationException e) {
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+  }
+
+
+  @PostMapping("/{forum}/{parent}")
+  public ResponseEntity<EntityModel<PostModel>> reply(
+    @PathVariable Long forum,
+    @PathVariable Long parent,
+    @RequestBody String content
+  ) {
+    try {
+      PostModel createdPost = postService.reply(forum, parent, content);
+      EntityModel<PostModel> entityModel = postModelAssembler.toModel(createdPost);
+      return ResponseEntity.status(HttpStatus.CREATED).body(entityModel);
     } catch (AuthorizationException e) {
       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
   }
 
   @GetMapping("/forum/{forum}")
-  public ResponseEntity<Page<PostModel>> readAllByForum(
-      @PathVariable Long forum,
-      @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "10") int size) {
+  public ResponseEntity<PagedModel<EntityModel<PostModel>>> readAllByForum(
+    @PathVariable Long forum,
+    @RequestParam(defaultValue = "0") int page,
+    @RequestParam(defaultValue = "10") int size
+  ) {
     try {
       Page<PostModel> posts = postService.readAllByForum(forum, page, size);
-      return ResponseEntity.status(HttpStatus.OK).body(posts);
+      PagedModel<EntityModel<PostModel>> pagedModel = pagedAssembler.toModel(posts, postModelAssembler);
+      return ResponseEntity.status(HttpStatus.OK).body(pagedModel);
     } catch (AuthorizationException e) {
       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
   }
 
   @GetMapping("/children/{parent}")
-  public ResponseEntity<Page<PostModel>> readAllByParent(
-      @PathVariable Long parent,
-      @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "10") int size) {
+  public ResponseEntity<PagedModel<EntityModel<PostModel>>> readAllByParent(
+    @PathVariable Long parent,
+    @RequestParam(defaultValue = "0") int page,
+    @RequestParam(defaultValue = "10") int size
+  ) {
     try {
       Page<PostModel> posts = postService.readAllByParent(parent, page, size);
-      return ResponseEntity.status(HttpStatus.OK).body(posts);
+      PagedModel<EntityModel<PostModel>> pagedModel = pagedAssembler.toModel(posts, postModelAssembler);
+      return ResponseEntity.status(HttpStatus.OK).body(pagedModel);
     } catch (AuthorizationException e) {
       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }

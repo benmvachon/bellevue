@@ -22,22 +22,14 @@ import com.village.bellevue.repository.AggregateRatingRepository;
 import com.village.bellevue.repository.ForumRepository;
 import com.village.bellevue.repository.PostRepository;
 import com.village.bellevue.repository.ProfileRepository;
+import com.village.bellevue.repository.UserProfileRepository;
 import com.village.bellevue.service.NotificationService;
 import com.village.bellevue.service.PostService;
-
-import jakarta.persistence.EntityManager;
 
 @Service
 public class PostServiceImpl implements PostService {
 
   public static final String CAN_READ_CACHE_KEY = "canRead";
-
-  private final PostRepository postRepository;
-  private final AggregateRatingRepository ratingRepository;
-  private final ForumRepository forumRepository;
-  private final ProfileRepository profileRepository;
-  private final NotificationService notificationService;
-  private final EntityManager entityManager;
 
   private final PostModelProvider postModelProvider = new PostModelProvider() {
     @Override
@@ -58,41 +50,70 @@ public class PostServiceImpl implements PostService {
     }
   };
 
+  private final PostRepository postRepository;
+  private final AggregateRatingRepository ratingRepository;
+  private final ForumRepository forumRepository;
+  private final ProfileRepository profileRepository;
+  private final UserProfileRepository userProfileRepository;
+  private final NotificationService notificationService;
+
   public PostServiceImpl(
-      PostRepository postRepository,
-      AggregateRatingRepository ratingRepository,
-      ForumRepository forumRepository,
-      ProfileRepository profileRepository,
-      NotificationService notificationService,
-      EntityManager entityManager) {
+    PostRepository postRepository,
+    AggregateRatingRepository ratingRepository,
+    ForumRepository forumRepository,
+    ProfileRepository profileRepository,
+    UserProfileRepository userProfileRepository,
+    NotificationService notificationService
+  ) {
     this.postRepository = postRepository;
     this.ratingRepository = ratingRepository;
     this.forumRepository = forumRepository;
     this.profileRepository = profileRepository;
+    this.userProfileRepository = userProfileRepository;
     this.notificationService = notificationService;
-    this.entityManager = entityManager;
   }
 
   @Override
   @Transactional
-  public PostModel create(PostEntity post) throws AuthorizationException {
+  public PostModel post(Long forum, String content) throws AuthorizationException {
     PostModel model = null;
     try {
+      PostEntity post = new PostEntity();
+      ForumEntity forumEntity = forumRepository.getReferenceById(forum);
+      post.setForum(forumEntity);
+      post.setContent(content);
       model = new PostModel(save(post), postModelProvider);
       return model;
     } finally {
       if (model != null) {
-        PostModel parent = model.getParent();
-        if (parent == null) {
-          if (model.getForum().getUser() == null) {
-            notificationService.notifyFriends(2l, model.getId());
-          } else {
-            notificationService.notifyMutualFriends(model.getForum().getUser(), 2l, model.getId());
-          }
+        if (model.getForum().getUser() == null) {
+          notificationService.notifyFriends(2l, model.getId());
+        } else {
+          notificationService.notifyMutualFriends(model.getForum().getUser(), 2l, model.getId());
         }
-        while (parent != null) {
-          notificationService.notifyFriend(parent.getUser().getUser(), 3l, model.getId());
-          parent = parent.getParent();
+      }
+    }
+  }
+
+  @Override
+  @Transactional
+  public PostModel reply(Long parent, Long forum, String content) throws AuthorizationException {
+    PostModel model = null;
+    try {
+      PostEntity post = new PostEntity();
+      ForumEntity forumEntity = forumRepository.getReferenceById(forum);
+      PostEntity parentEntity = postRepository.getReferenceById(parent);
+      post.setForum(forumEntity);
+      post.setParent(parentEntity);
+      post.setContent(content);
+      model = new PostModel(save(post), postModelProvider);
+      return model;
+    } finally {
+      if (model != null) {
+        PostModel parentModel = model.getParent();
+        while (parentModel != null) {
+          notificationService.notifyFriend(parentModel.getUser().getUser(), 3l, model.getId());
+          parentModel = parentModel.getParent();
         }
       }
     }
@@ -165,8 +186,8 @@ public class PostServiceImpl implements PostService {
     Long userId = getAuthenticatedUserId();
     if (!forumRepository.canRead(post.getForum().getId(), userId)) throw new AuthorizationException("User not authorized");
     if (post.getParent() != null && !canRead(post.getParent().getId())) throw new AuthorizationException("User not authorized");
-    ForumEntity forum = entityManager.getReference(ForumEntity.class, post.getForum().getId());
-    UserProfileEntity user = entityManager.getReference(UserProfileEntity.class, getAuthenticatedUserId());
+    ForumEntity forum = forumRepository.getReferenceById(post.getForum().getId());
+    UserProfileEntity user = userProfileRepository.getReferenceById(userId);
     post.setForum(forum);
     post.setUser(user);
     profileRepository.setLocation(userId, forum);

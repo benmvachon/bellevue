@@ -3,6 +3,9 @@ package com.village.bellevue.controller;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -13,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.village.bellevue.assembler.FriendModelAssembler;
 import static com.village.bellevue.config.security.SecurityConfig.getAuthenticatedUserId;
 import com.village.bellevue.entity.FriendEntity;
 import com.village.bellevue.entity.FriendEntity.FriendshipStatus;
@@ -24,9 +28,17 @@ import com.village.bellevue.service.FriendService;
 public class FriendController {
 
   private final FriendService friendService;
+  private final FriendModelAssembler friendModelAssembler;
+  private final PagedResourcesAssembler<FriendEntity> pagedAssembler;
 
-  public FriendController(FriendService friendService) {
+  public FriendController(
+    FriendService friendService,
+    FriendModelAssembler friendModelAssembler,
+    PagedResourcesAssembler<FriendEntity> pagedAssembler
+  ) {
     this.friendService = friendService;
+    this.friendModelAssembler = friendModelAssembler;
+    this.pagedAssembler = pagedAssembler;
   }
 
   @PostMapping("/{user}/request")
@@ -56,14 +68,15 @@ public class FriendController {
   }
 
   @GetMapping("/{user}/friends")
-  public ResponseEntity<Page<FriendEntity>> read(
+  public ResponseEntity<PagedModel<EntityModel<FriendEntity>>> read(
     @PathVariable Long user,
     @RequestParam(name = "p", defaultValue = "0") int page,
     @RequestParam(name = "n", defaultValue = "5") int size
   ) {
     try {
       Page<FriendEntity> friends = friendService.readAll(user, page, size);
-      return ResponseEntity.ok(friends);
+      PagedModel<EntityModel<FriendEntity>> pagedModel = pagedAssembler.toModel(friends, friendModelAssembler);
+      return ResponseEntity.ok(pagedModel);
     } catch (FriendshipException e) {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }

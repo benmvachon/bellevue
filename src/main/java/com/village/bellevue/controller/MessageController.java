@@ -1,6 +1,9 @@
 package com.village.bellevue.controller;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.village.bellevue.assembler.MessageModelAssembler;
+import com.village.bellevue.assembler.ThreadModelAssembler;
 import com.village.bellevue.entity.MessageEntity;
 import com.village.bellevue.entity.UserProfileEntity;
 import com.village.bellevue.error.AuthorizationException;
@@ -22,9 +27,23 @@ import com.village.bellevue.service.MessageService;
 public class MessageController {
 
   private final MessageService messageService;
+  private final MessageModelAssembler messageModelAssembler;
+  private final ThreadModelAssembler threadModelAssembler;
+  private final PagedResourcesAssembler<MessageEntity> pagedMessageAssembler;
+  private final PagedResourcesAssembler<UserProfileEntity> pagedProfileAssembler;
 
-  public MessageController(MessageService messageService) {
+  public MessageController(
+    MessageService messageService,
+    MessageModelAssembler messageModelAssembler,
+    ThreadModelAssembler threadModelAssembler,
+    PagedResourcesAssembler<MessageEntity> pagedMessageAssembler,
+    PagedResourcesAssembler<UserProfileEntity> pagedProfileAssembler
+  ) {
     this.messageService = messageService;
+    this.messageModelAssembler = messageModelAssembler;
+    this.threadModelAssembler = threadModelAssembler;
+    this.pagedMessageAssembler = pagedMessageAssembler;
+    this.pagedProfileAssembler = pagedProfileAssembler;
   }
 
   @PostMapping("/{friend}")
@@ -41,31 +60,34 @@ public class MessageController {
   }
 
   @GetMapping
-  public ResponseEntity<Page<UserProfileEntity>> readThreads(
+  public ResponseEntity<PagedModel<EntityModel<UserProfileEntity>>> readThreads(
     @RequestParam(defaultValue = "0") int page,
     @RequestParam(defaultValue = "10") int size
   ) {
     Page<UserProfileEntity> threads = messageService.readThreads(page, size);
-    return ResponseEntity.status(HttpStatus.OK).body(threads);
+    PagedModel<EntityModel<UserProfileEntity>> pagedModel = pagedProfileAssembler.toModel(threads, threadModelAssembler);
+    return ResponseEntity.status(HttpStatus.OK).body(pagedModel);
   }
 
   @GetMapping("/unread")
-  public ResponseEntity<Page<UserProfileEntity>> readUnreadThreads(
+  public ResponseEntity<PagedModel<EntityModel<UserProfileEntity>>> readUnreadThreads(
     @RequestParam(defaultValue = "0") int page,
     @RequestParam(defaultValue = "10") int size
   ) {
     Page<UserProfileEntity> threads = messageService.readUnreadThreads(page, size);
-    return ResponseEntity.status(HttpStatus.OK).body(threads);
+    PagedModel<EntityModel<UserProfileEntity>> pagedModel = pagedProfileAssembler.toModel(threads, threadModelAssembler);
+    return ResponseEntity.status(HttpStatus.OK).body(pagedModel);
   }
 
   @GetMapping("/{friend}")
-  public ResponseEntity<Page<MessageEntity>> readAll(
+  public ResponseEntity<PagedModel<EntityModel<MessageEntity>>> readAll(
     @PathVariable Long friend,
     @RequestParam(defaultValue = "0") int page,
     @RequestParam(defaultValue = "10") int size
   ) {
     Page<MessageEntity> messages = messageService.readAll(friend, page, size);
-    return ResponseEntity.status(HttpStatus.OK).body(messages);
+    PagedModel<EntityModel<MessageEntity>> pagedModel = pagedMessageAssembler.toModel(messages, messageModelAssembler);
+    return ResponseEntity.status(HttpStatus.OK).body(pagedModel);
   }
 
   @PutMapping("/{friend}/read")
