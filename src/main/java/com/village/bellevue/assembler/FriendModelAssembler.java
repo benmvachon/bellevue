@@ -7,6 +7,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import org.springframework.stereotype.Component;
 
 import com.village.bellevue.controller.FriendController;
+import com.village.bellevue.controller.UserController;
 import com.village.bellevue.entity.FriendEntity;
 import com.village.bellevue.entity.FriendEntity.FriendshipStatus;
 
@@ -17,7 +18,8 @@ public class FriendModelAssembler implements RepresentationModelAssembler<Friend
     if (FriendshipStatus.ACCEPTED.equals(friend.getStatus()))
       return EntityModel.of(
         friend,
-        linkTo(methodOn(FriendController.class).read(friend.getFriend().getUser(), 0, 10)).withRel("friend")
+        linkTo(methodOn(UserController.class).read(friend.getFriend().getUser())).withRel("user"),
+        linkTo(methodOn(FriendController.class).read(friend.getFriend().getUser(), 0, 10)).withRel("friends")
       );
     return EntityModel.of(friend);
   }

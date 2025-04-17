@@ -17,7 +17,7 @@ public class MessageModelAssembler implements RepresentationModelAssembler<Messa
     if (!getAuthenticatedUserId().equals(message.getSender().getUser()))
       return EntityModel.of(
         message,
-        linkTo(methodOn(MessageController.class).markAsRead(message.getSender().getUser(), message.getId())).withRel("message"),
+        linkTo(methodOn(MessageController.class).markAsRead(message.getSender().getUser(), message.getId())).withRel("mark"),
         linkTo(methodOn(MessageController.class).message(message.getSender().getUser(), null)).withRel("message")
       );
     return EntityModel.of(

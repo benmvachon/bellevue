@@ -15,8 +15,8 @@ public class ThreadModelAssembler implements RepresentationModelAssembler<UserPr
   public EntityModel<UserProfileEntity> toModel(UserProfileEntity thread) {
     return EntityModel.of(
       thread,
-      linkTo(methodOn(MessageController.class).readAll(thread.getUser(), 0, 10)).withRel("message"),
-      linkTo(methodOn(MessageController.class).markAsRead(thread.getUser())).withRel("message")
+      linkTo(methodOn(MessageController.class).readAll(thread.getUser(), 0, 10)).withRel("read"),
+      linkTo(methodOn(MessageController.class).markAsRead(thread.getUser())).withRel("mark")
     );
   }
 }

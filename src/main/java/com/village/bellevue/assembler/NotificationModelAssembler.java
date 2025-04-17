@@ -20,18 +20,18 @@ public class NotificationModelAssembler implements RepresentationModelAssembler<
   public EntityModel<NotificationEntity> toModel(NotificationEntity notification) {
     Link entityLink = null;
     if (notification.getType().getId().equals(1l)) {
-      entityLink = linkTo(methodOn(ForumController.class).read(notification.getEntity())).withRel("forum");
+      entityLink = linkTo(methodOn(ForumController.class).read(notification.getEntity())).withRel("entity");
     } else if (notification.getType().getId().equals(2l) || notification.getType().getId().equals(3l) || notification.getType().getId().equals(4l)) {
-      entityLink = linkTo(methodOn(PostController.class).read(notification.getEntity())).withRel("post");
+      entityLink = linkTo(methodOn(PostController.class).read(notification.getEntity())).withRel("entity");
     } else if (notification.getType().getId().equals(5l) || notification.getType().getId().equals(6l)) {
-      entityLink = linkTo(methodOn(UserController.class).read(notification.getEntity())).withRel("user");
+      entityLink = linkTo(methodOn(UserController.class).read(notification.getEntity())).withRel("entity");
     } else if (notification.getType().getId().equals(7l)) {
-      entityLink = linkTo(methodOn(MessageController.class).readAll(notification.getEntity(), 0, 10)).withRel("message");
+      entityLink = linkTo(methodOn(MessageController.class).readAll(notification.getEntity(), 0, 10)).withRel("entity");
     }
     
     return EntityModel.of(
       notification,
-      linkTo(methodOn(NotificationController.class).markAsRead(notification.getId())).withRel("notification"),
+      linkTo(methodOn(NotificationController.class).markAsRead(notification.getId())).withRel("mark"),
       entityLink
     );
   }

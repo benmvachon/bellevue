@@ -16,7 +16,7 @@ public class ForumModelAssembler implements RepresentationModelAssembler<ForumEn
   public EntityModel<ForumEntity> toModel(ForumEntity forum) {
     return EntityModel.of(
       forum,
-      linkTo(methodOn(PostController.class).readAllByForum(forum.getId(), 0, 10)).withRel("post"),
+      linkTo(methodOn(PostController.class).readAllByForum(forum.getId(), 0, 10)).withRel("posts"),
       linkTo(methodOn(PostController.class).post(forum.getId(), null)).withRel("post"),
       linkTo(methodOn(UserController.class).read(forum.getUser())).withRel("user")
     );

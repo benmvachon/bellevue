@@ -29,24 +29,24 @@ public class ProfileModelAssembler implements RepresentationModelAssembler<Profi
       case "blocked_them", "blocked_you" -> EntityModel.of(null);
       case "accepted" -> EntityModel.of(
         profile,
-        linkTo(methodOn(FriendController.class).block(profile.getId())).withRel("friend"),
-        linkTo(methodOn(FriendController.class).remove(profile.getId())).withRel("friend"),
-        linkTo(methodOn(FriendController.class).read(profile.getId(), 0, 10)).withRel("friend"),
+        linkTo(methodOn(FriendController.class).block(profile.getId())).withRel("block"),
+        linkTo(methodOn(FriendController.class).remove(profile.getId())).withRel("remove"),
+        linkTo(methodOn(FriendController.class).read(profile.getId(), 0, 10)).withRel("friends"),
         linkTo(methodOn(MessageController.class).message(profile.getId(), null)).withRel("message")
       );
       case "pending_you" -> EntityModel.of(
         profile,
-        linkTo(methodOn(FriendController.class).block(profile.getId())).withRel("friend"),
-        linkTo(methodOn(FriendController.class).accept(profile.getId())).withRel("friend")
+        linkTo(methodOn(FriendController.class).block(profile.getId())).withRel("block"),
+        linkTo(methodOn(FriendController.class).accept(profile.getId())).withRel("accept")
       );
       case "pending_them" -> EntityModel.of(
         profile,
-        linkTo(methodOn(FriendController.class).block(profile.getId())).withRel("friend")
+        linkTo(methodOn(FriendController.class).block(profile.getId())).withRel("block")
       );
       default -> EntityModel.of(
         profile,
-        linkTo(methodOn(FriendController.class).block(profile.getId())).withRel("friend"),
-        linkTo(methodOn(FriendController.class).request(profile.getId())).withRel("friend")
+        linkTo(methodOn(FriendController.class).block(profile.getId())).withRel("block"),
+        linkTo(methodOn(FriendController.class).request(profile.getId())).withRel("request")
       );
     };
   }
