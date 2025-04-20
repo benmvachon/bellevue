@@ -39,6 +39,16 @@ public class NotificationServiceImpl implements NotificationService {
   }
 
   @Override
+  public Page<NotificationEntity> readAll(int page, int size) {
+    return notificationRepository.findAll(getAuthenticatedUserId(), PageRequest.of(page, size));
+  }
+
+  @Override
+  public Long countUnread() {
+    return notificationRepository.countUnread(getAuthenticatedUserId());
+  }
+
+  @Override
   @Async
   @Transactional
   public void notifyFriends(Long type, Long entity) {
@@ -71,6 +81,7 @@ public class NotificationServiceImpl implements NotificationService {
   @Transactional
   public void notifyFriend(Long friend, Long type, Long entity) {
     Long user = getAuthenticatedUserId();
+    if (user.equals(friend)) return;
     logger.info("Notifying friend " + friend + " of user " + user);
     UserProfileEntity notifier = new UserProfileEntity(user);
     NotificationTypeEntity notificationType = new NotificationTypeEntity(type);
@@ -94,10 +105,5 @@ public class NotificationServiceImpl implements NotificationService {
   @Transactional
   public void markAsRead(Long id) {
     notificationRepository.markAsRead(id, getAuthenticatedUserId());
-  }
-
-  @Override
-  public Page<NotificationEntity> readAll(int page, int size) {
-    return notificationRepository.findAll(getAuthenticatedUserId(), PageRequest.of(page, size));
   }
 }

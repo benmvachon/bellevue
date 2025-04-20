@@ -40,7 +40,7 @@ public class RatingServiceImpl implements RatingService {
   @Override
   @Transactional
   public boolean rate(Long post, Star rating) throws AuthorizationException, RatingException {
-    if (!postRepository.canRead(getAuthenticatedUserId(), post)) {
+    if (!postRepository.canRead(post, getAuthenticatedUserId())) {
       throw new AuthorizationException(
           "Currently authenticated user is not authorized to rating post");
     }

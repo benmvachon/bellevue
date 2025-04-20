@@ -16,4 +16,6 @@ public interface UserProfileService {
   Page<ProfileModel> readFriendsByLocation(Long forum, int page, int size);
 
   Page<ProfileModel> readNonFriendsByLocation(Long forum, int page, int size);
+
+  void setBlackboard(String blackboard);
 }

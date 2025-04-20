@@ -3,17 +3,19 @@ package com.village.bellevue.model;
 import java.util.Optional;
 
 import com.village.bellevue.entity.AggregateRatingEntity;
+import com.village.bellevue.entity.ForumEntity;
 import com.village.bellevue.entity.PostEntity;
+import com.village.bellevue.entity.UserProfileEntity;
+import com.village.bellevue.error.AuthorizationException;
 
-@FunctionalInterface
 public interface PostModelProvider {
-  Optional<AggregateRatingEntity> getAggregateRating(Long postId);
+  Optional<AggregateRatingEntity> getAggregateRating(Long post);
 
-  default Long getChildrenCount(Long postId) {
-    return 0L;
-  }
+  Long getChildrenCount(Long post);
 
-  default boolean canReadPost(PostEntity post) {
-    return false;
-  }
+  boolean canReadPost(PostEntity post);
+
+  ProfileModel getProfile(UserProfileEntity user);
+
+  ForumModel getForum(ForumEntity forum) throws AuthorizationException;
 }

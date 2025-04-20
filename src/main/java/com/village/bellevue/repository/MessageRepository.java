@@ -15,22 +15,39 @@ import com.village.bellevue.entity.UserProfileEntity;
 @Repository
 public interface MessageRepository extends JpaRepository<MessageEntity, Long> {
 
-  @Query("SELECT DISTINCT(m.sender) FROM MessageEntity m WHERE m.receiver = :user ORDER BY m.created DESC")
+  @Query(
+    "SELECT DISTINCT(u) FROM UserProfileEntity u " +
+    "JOIN MessageEntity m ON (" +
+    "(m.receiver.id = :user AND m.sender.id = u.user) OR " +
+    "(m.sender.id = :user AND m.receiver.id = u.user)" +
+    ")"
+  )
   Page<UserProfileEntity> findThreads(@Param("user") Long user, Pageable pageable);
 
-  @Query("SELECT DISTINCT(m.sender) FROM MessageEntity m WHERE m.receiver = :user AND m.read = false ORDER BY m.created DESC")
+  @Query(
+    "SELECT m.sender FROM MessageEntity m " +
+    "WHERE m.id IN (" +
+    "SELECT MAX(m2.id) FROM MessageEntity m2 " +
+    "WHERE m2.receiver.id = :user AND m2.read = false " +
+    "GROUP BY m2.sender.id" +
+    ") " +
+    "ORDER BY m.created DESC"
+  )
   Page<UserProfileEntity> findUnreadThreads(@Param("user") Long user, Pageable pageable);
 
-  @Query("SELECT m FROM MessageEntity m WHERE (m.receiver = :user AND m.sender.id = :friend) OR (m.receiver = :friend AND m.sender.id = :user) ORDER BY m.created DESC")
+  @Query("SELECT COUNT(DISTINCT(m.sender)) FROM MessageEntity m WHERE m.receiver.id = :user AND m.read = false")
+  Long countUnreadThreads(@Param("user") Long user);
+
+  @Query("SELECT m FROM MessageEntity m WHERE (m.receiver.id = :user AND m.sender.id = :friend) OR (m.receiver.id = :friend AND m.sender.id = :user) ORDER BY m.created ASC")
   Page<MessageEntity> findAll(@Param("user") Long user, @Param("friend") Long friend, Pageable pageable);
 
   @Modifying
   @Transactional
-  @Query("UPDATE MessageEntity m SET m.read = true WHERE m.receiver = :user AND m.sender.id = :friend AND m.read = false")
+  @Query("UPDATE MessageEntity m SET m.read = true WHERE m.receiver.id = :user AND m.sender.id = :friend AND m.read = false")
   void markAllAsRead(@Param("user") Long user, @Param("friend") Long friend);
 
   @Modifying
   @Transactional
-  @Query("UPDATE MessageEntity m SET m.read = true WHERE m.receiver = :user AND m.id = :id AND m.read = false")
-  void markAsRead(@Param("id") Long id);
+  @Query("UPDATE MessageEntity m SET m.read = true WHERE m.receiver.id = :user AND m.id = :id AND m.read = false")
+  void markAsRead(@Param("user") Long user, @Param("id") Long id);
 }

@@ -37,7 +37,8 @@ public interface UserProfileRepository extends JpaRepository<UserProfileEntity, 
     "WHERE u.location.id = :forum " +
     "AND f.user = :user " +
     "AND f.status = 'accepted' " +
-    "ORDER BY u.lastSeen DESC")
+    "ORDER BY u.lastSeen DESC"
+  )
   Page<UserProfileEntity> findAllFriendsByLocation(@Param("user") Long user, @Param("forum") Long forum, Pageable pageable);
 
   @Query(
@@ -48,6 +49,7 @@ public interface UserProfileRepository extends JpaRepository<UserProfileEntity, 
     "AND f.status != 'accepted' " +
     "AND f.status != 'blocked_them' " +
     "AND f.status != 'blocked_you' " +
-    "ORDER BY u.lastSeen DESC")
+    "ORDER BY u.lastSeen DESC"
+  )
   Page<UserProfileEntity> findAllNonFriendsByLocation(@Param("user") Long user, @Param("forum") Long forum, Pageable pageable);
 }

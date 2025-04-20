@@ -4,8 +4,8 @@ import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 
-import com.village.bellevue.entity.FriendEntity;
 import com.village.bellevue.error.FriendshipException;
+import com.village.bellevue.model.ProfileModel;
 
 public interface FriendService {
 
@@ -17,7 +17,7 @@ public interface FriendService {
 
   public boolean isBlockedBy(Long user) throws FriendshipException;
 
-  public Page<FriendEntity> readAll(Long user, int page, int size) throws FriendshipException;
+  public Page<ProfileModel> readAll(Long user, int page, int size) throws FriendshipException;
 
   public void accept(Long user) throws FriendshipException;
 

@@ -20,7 +20,7 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
       "AND p.parent IS NULL " +
       "AND (p.forum.user IS NULL OR p.forum.user = :user OR forumFriend.status = 'accepted') " +
       "AND (p.user.id = :user OR postFriend.status = 'accepted') " +
-      "ORDER BY p.created DESC")
+      "ORDER BY p.created ASC")
   Page<PostEntity> findAllTopLevelByForum(@Param("user") Long user, @Param("forum") Long forum, Pageable pageable);
 
   @Query(
@@ -28,7 +28,7 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
       "LEFT JOIN FriendEntity f ON p.user.id = f.friend.id AND f.user = :user " +
       "WHERE p.parent.id = :post " +
       "AND (p.user.id = :user OR f.status = 'accepted') " +
-      "ORDER BY p.created ASC")
+      "ORDER BY p.created DESC")
   Page<PostEntity> findAllChildren(@Param("user") Long user, @Param("post") Long post, Pageable pageable);
 
   @Query(

@@ -35,6 +35,7 @@ import com.village.bellevue.entity.PostEntity;
 import com.village.bellevue.entity.UserEntity;
 import com.village.bellevue.entity.UserProfileEntity;
 import com.village.bellevue.error.FriendshipException;
+import com.village.bellevue.model.ForumModel;
 import com.village.bellevue.model.PostModel;
 import com.village.bellevue.model.ProfileModel;
 
@@ -165,13 +166,13 @@ public class IntegrationTest extends IntegrationTestWrapper {
     login(newUser.getUsername());
 
     // Retrieve and verify the created post
-    ForumEntity createdForum = createForum(forum, false);
+    ForumModel createdForum = createForum(forum, false);
     assertThat(createdForum).isNotNull();
     assertThat(createdForum.getUser()).isEqualTo(newUser.getId());
     assertThat(createdForum.getCategory()).isEqualTo(forum.getCategory());
     assertThat(createdForum.getName()).isEqualTo(forum.getName());
 
-    ForumEntity retrievedForum = readForum(createdForum.getId(), false);
+    ForumModel retrievedForum = readForum(createdForum.getId(), false);
     assertThat(retrievedForum).isNotNull();
     assertThat(retrievedForum.getUser()).isEqualTo(newUser.getId());
     assertThat(retrievedForum.getCategory()).isEqualTo(forum.getCategory());
@@ -186,24 +187,24 @@ public class IntegrationTest extends IntegrationTestWrapper {
   void addPost() throws JsonProcessingException {
     login(newUser.getUsername());
 
-    PagedModel<EntityModel<ForumEntity>> forums = readForums(false);
-    ForumEntity firstForum = forums.getContent().stream()
+    PagedModel<EntityModel<ForumModel>> forums = readForums(false);
+    ForumModel firstForum = forums.getContent().stream()
       .map(EntityModel::getContent)
       .filter(Objects::nonNull)
       .findFirst()
       .orElse(null); // or throw an exception if you expect it to exist
-    post.setForum(firstForum);
+    post.setForum(new ForumEntity(firstForum));
 
     // Retrieve and verify the created post
     PostModel createdPost = createPost(firstForum.getId(), "This is a post", false);
     assertThat(createdPost).isNotNull();
     assertThat(createdPost.getContent()).isEqualTo(post.getContent());
-    assertThat(createdPost.getUser().getUser()).isEqualTo(newUser.getId());
+    assertThat(createdPost.getUser().getId()).isEqualTo(newUser.getId());
 
     PostModel readPost = readPost(createdPost.getId(), false);
     assertThat(readPost).isNotNull();
     assertThat(readPost.getContent()).isEqualTo(post.getContent());
-    assertThat(readPost.getUser().getUser()).isEqualTo(newUser.getId());
+    assertThat(readPost.getUser().getId()).isEqualTo(newUser.getId());
 
     logout();
   }
@@ -356,10 +357,10 @@ public class IntegrationTest extends IntegrationTestWrapper {
   }
 
   @SuppressWarnings("")
-  private ForumEntity createForum(ForumEntity forum, boolean expectFailure) {
+  private ForumModel createForum(ForumEntity forum, boolean expectFailure) {
     // post to the post controller to create the forum
-    ParameterizedTypeReference<EntityModel<ForumEntity>> responseType = new ParameterizedTypeReference<>() {};
-    ResponseEntity<EntityModel<ForumEntity>> response = restTemplate.exchange(
+    ParameterizedTypeReference<EntityModel<ForumModel>> responseType = new ParameterizedTypeReference<>() {};
+    ResponseEntity<EntityModel<ForumModel>> response = restTemplate.exchange(
       "http://localhost:" + port + "/api/forum",
       HttpMethod.POST,
       new HttpEntity<>(forum),
@@ -375,9 +376,9 @@ public class IntegrationTest extends IntegrationTestWrapper {
   }
 
   @SuppressWarnings("")
-  private ForumEntity readForum(long forum, boolean expectFailure) {
-    ParameterizedTypeReference<EntityModel<ForumEntity>> responseType = new ParameterizedTypeReference<>() {};
-    ResponseEntity<EntityModel<ForumEntity>> response = restTemplate.exchange(
+  private ForumModel readForum(long forum, boolean expectFailure) {
+    ParameterizedTypeReference<EntityModel<ForumModel>> responseType = new ParameterizedTypeReference<>() {};
+    ResponseEntity<EntityModel<ForumModel>> response = restTemplate.exchange(
       "http://localhost:" + port + "/api/forum/" + forum,
       HttpMethod.GET,
       null,
@@ -392,13 +393,13 @@ public class IntegrationTest extends IntegrationTestWrapper {
     return response.getBody().getContent();
   }
 
-  private PagedModel<EntityModel<ForumEntity>> readForums(boolean expectFailure) {
+  private PagedModel<EntityModel<ForumModel>> readForums(boolean expectFailure) {
     String url = "http://localhost:" + port + "/api/forum";
 
-    ParameterizedTypeReference<PagedModel<EntityModel<ForumEntity>>> responseType =
+    ParameterizedTypeReference<PagedModel<EntityModel<ForumModel>>> responseType =
         new ParameterizedTypeReference<>() {};
 
-    ResponseEntity<PagedModel<EntityModel<ForumEntity>>> response =
+    ResponseEntity<PagedModel<EntityModel<ForumModel>>> response =
         restTemplate.exchange(url, HttpMethod.GET, null, responseType);
 
     if (expectFailure) {

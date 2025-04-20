@@ -16,11 +16,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.village.bellevue.assembler.FriendModelAssembler;
+import com.village.bellevue.assembler.ProfileModelAssembler;
 import static com.village.bellevue.config.security.SecurityConfig.getAuthenticatedUserId;
-import com.village.bellevue.entity.FriendEntity;
 import com.village.bellevue.entity.FriendEntity.FriendshipStatus;
 import com.village.bellevue.error.FriendshipException;
+import com.village.bellevue.model.ProfileModel;
 import com.village.bellevue.service.FriendService;
 
 @RestController
@@ -28,16 +28,16 @@ import com.village.bellevue.service.FriendService;
 public class FriendController {
 
   private final FriendService friendService;
-  private final FriendModelAssembler friendModelAssembler;
-  private final PagedResourcesAssembler<FriendEntity> pagedAssembler;
+  private final ProfileModelAssembler profileModelAssembler;
+  private final PagedResourcesAssembler<ProfileModel> pagedAssembler;
 
   public FriendController(
     FriendService friendService,
-    FriendModelAssembler friendModelAssembler,
-    PagedResourcesAssembler<FriendEntity> pagedAssembler
+    ProfileModelAssembler profileModelAssembler,
+    PagedResourcesAssembler<ProfileModel> pagedAssembler
   ) {
     this.friendService = friendService;
-    this.friendModelAssembler = friendModelAssembler;
+    this.profileModelAssembler = profileModelAssembler;
     this.pagedAssembler = pagedAssembler;
   }
 
@@ -57,25 +57,25 @@ public class FriendController {
     try {
       Optional<String> friend = friendService.getStatus(user);
       if (friend.isEmpty() || FriendshipStatus.BLOCKED_YOU.equals(friend.get())) {
-        return ResponseEntity.ok("UNSET");
+        return ResponseEntity.ok("unset");
       }
       return friend
           .map(ResponseEntity::ok)
-          .orElseGet(() -> ResponseEntity.ok("UNSET"));
+          .orElseGet(() -> ResponseEntity.ok("unset"));
     } catch (FriendshipException e) {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
   }
 
   @GetMapping("/{user}/friends")
-  public ResponseEntity<PagedModel<EntityModel<FriendEntity>>> read(
+  public ResponseEntity<PagedModel<EntityModel<ProfileModel>>> read(
     @PathVariable Long user,
-    @RequestParam(name = "p", defaultValue = "0") int page,
-    @RequestParam(name = "n", defaultValue = "5") int size
+    @RequestParam(defaultValue = "0") int page,
+    @RequestParam(defaultValue = "5") int size
   ) {
     try {
-      Page<FriendEntity> friends = friendService.readAll(user, page, size);
-      PagedModel<EntityModel<FriendEntity>> pagedModel = pagedAssembler.toModel(friends, friendModelAssembler);
+      Page<ProfileModel> friends = friendService.readAll(user, page, size);
+      PagedModel<EntityModel<ProfileModel>> pagedModel = pagedAssembler.toModel(friends, profileModelAssembler);
       return ResponseEntity.ok(pagedModel);
     } catch (FriendshipException e) {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();

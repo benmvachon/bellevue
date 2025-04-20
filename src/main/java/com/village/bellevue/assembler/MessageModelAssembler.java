@@ -22,7 +22,7 @@ public class MessageModelAssembler implements RepresentationModelAssembler<Messa
       );
     return EntityModel.of(
       message,
-      linkTo(methodOn(MessageController.class).message(message.getReceiver(), null)).withRel("message")
+      linkTo(methodOn(MessageController.class).message(message.getReceiver().getUser(), null)).withRel("message")
     );
   }
 }

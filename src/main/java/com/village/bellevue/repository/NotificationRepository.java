@@ -17,6 +17,9 @@ public interface NotificationRepository extends JpaRepository<NotificationEntity
   @Query("SELECT n FROM NotificationEntity n WHERE n.notified = :user ORDER BY n.created DESC")
   Page<NotificationEntity> findAll(@Param("user") Long user, Pageable pageable);
 
+  @Query("SELECT COUNT(n) FROM NotificationEntity n WHERE n.notified = :user AND n.read = false ORDER BY n.created DESC")
+  Long countUnread(@Param("user") Long user);
+
   @Modifying
   @Transactional
   @Query("UPDATE NotificationEntity n SET n.read = true WHERE n.notified = :user AND n.read = false")

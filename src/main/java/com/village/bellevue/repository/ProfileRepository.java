@@ -31,4 +31,9 @@ public interface ProfileRepository extends JpaRepository<ProfileEntity, Long> {
   @Transactional
   @Query("UPDATE ProfileEntity p SET p.location = :location WHERE p.id = :user")
   void setLocation(Long user, ForumEntity location);
+
+  @Modifying
+  @Transactional
+  @Query("UPDATE ProfileEntity p SET p.blackboard = :blackboard WHERE p.id = :user")
+  void setBlackboard(Long user, String blackboard);
 }

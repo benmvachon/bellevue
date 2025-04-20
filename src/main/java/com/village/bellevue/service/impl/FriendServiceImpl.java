@@ -27,6 +27,8 @@ import static com.village.bellevue.config.security.SecurityConfig.getAuthenticat
 import com.village.bellevue.entity.FriendEntity;
 import com.village.bellevue.entity.id.FriendId;
 import com.village.bellevue.error.FriendshipException;
+import com.village.bellevue.model.ProfileModel;
+import com.village.bellevue.model.ProfileModelProvider;
 import com.village.bellevue.repository.FriendRepository;
 import com.village.bellevue.service.FriendService;
 import com.village.bellevue.service.NotificationService;
@@ -36,6 +38,17 @@ import jakarta.persistence.PersistenceContext;
 
 @Service
 public class FriendServiceImpl implements FriendService {
+
+  private final ProfileModelProvider profileModelProvider = (Long user) -> {
+    try {
+      if (getAuthenticatedUserId().equals(user)) return Optional.of("self");
+      Optional<String> friendshipStatus = getStatus(user);
+      if (friendshipStatus.isEmpty()) return Optional.of("unset");
+      return friendshipStatus;
+    } catch (FriendshipException ex) {
+      return Optional.of("unset");
+    }
+  };
 
   public static final String STATUS_CACHE_KEY = "status";
   public static final String IS_FRIEND_CACHE_KEY = "isFriend";
@@ -84,6 +97,7 @@ public class FriendServiceImpl implements FriendService {
       entityManager.flush();
       entityManager.clear(); // ensure the database is updated
       if (success) notificationService.notifyFriend(user, 5l, getAuthenticatedUserId());
+      evictCaches(user);
     }
   }
 
@@ -137,9 +151,11 @@ public class FriendServiceImpl implements FriendService {
   }
 
   @Override
-  public Page<FriendEntity> readAll(Long user, int page, int size) throws FriendshipException {
-    return friendRepository.findFriendsExcludingBlocked(
-        user, getAuthenticatedUserId(), PageRequest.of(page, size));
+  public Page<ProfileModel> readAll(Long user, int page, int size) throws FriendshipException {
+    Page<FriendEntity> friendEntities = friendRepository.findFriendsExcludingBlocked(user, getAuthenticatedUserId(), PageRequest.of(page, size));
+    return friendEntities.map(friendEntity -> {
+      return new ProfileModel(friendEntity.getFriend(), profileModelProvider);
+    });
   }
 
   @Override

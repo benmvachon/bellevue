@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -58,6 +59,12 @@ public class UserController {
     }
   }
 
+  @PutMapping("/blackboard")
+  public ResponseEntity<Void> create(@RequestBody String blackboard) {
+    profileService.setBlackboard(blackboard);
+    return ResponseEntity.status(HttpStatus.CREATED).build();
+  }
+
   @GetMapping("/{user}")
   public ResponseEntity<EntityModel<ProfileModel>> read(@PathVariable Long user) {
     try {
@@ -73,8 +80,8 @@ public class UserController {
   @GetMapping("/search/{prefix}")
   public ResponseEntity<PagedModel<EntityModel<ProfileModel>>> search(
     @PathVariable String prefix,
-    @RequestParam(name = "p", defaultValue = "0") int page,
-    @RequestParam(name = "n", defaultValue = "5") int size
+    @RequestParam(defaultValue = "0") int page,
+    @RequestParam(defaultValue = "5") int size
   ) {
     Page<ProfileModel> users = profileService.readByNamePrefix(prefix, page, size);
     PagedModel<EntityModel<ProfileModel>> pagedModel = pagedAssembler.toModel(users, profileModelAssembler);
@@ -84,8 +91,8 @@ public class UserController {
   @GetMapping("/friends/{location}")
   public ResponseEntity<PagedModel<EntityModel<ProfileModel>>> friends(
     @PathVariable Long location,
-    @RequestParam(name = "p", defaultValue = "0") int page,
-    @RequestParam(name = "n", defaultValue = "5") int size
+    @RequestParam(defaultValue = "0") int page,
+    @RequestParam(defaultValue = "5") int size
   ) {
     Page<ProfileModel> users = profileService.readFriendsByLocation(location, page, size);
     PagedModel<EntityModel<ProfileModel>> pagedModel = pagedAssembler.toModel(users, profileModelAssembler);
@@ -95,8 +102,8 @@ public class UserController {
   @GetMapping("/nonfriends/{location}")
   public ResponseEntity<PagedModel<EntityModel<ProfileModel>>> nonFriends(
     @PathVariable Long location,
-    @RequestParam(name = "p", defaultValue = "0") int page,
-    @RequestParam(name = "n", defaultValue = "5") int size
+    @RequestParam(defaultValue = "0") int page,
+    @RequestParam(defaultValue = "5") int size
   ) {
     Page<ProfileModel> users = profileService.readNonFriendsByLocation(location, page, size);
     PagedModel<EntityModel<ProfileModel>> pagedModel = pagedAssembler.toModel(users, profileModelAssembler);

@@ -44,6 +44,11 @@ public class NotificationController {
     return ResponseEntity.status(HttpStatus.OK).body(pagedModel);
   }
 
+  @GetMapping("/unread")
+  public ResponseEntity<Long> unread() {
+    return ResponseEntity.status(HttpStatus.OK).body(notificationService.countUnread());
+  }
+
   @PutMapping("/read")
   public ResponseEntity<Void> markAsRead() {
     notificationService.markAllAsRead();

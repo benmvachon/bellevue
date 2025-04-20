@@ -1,8 +1,10 @@
 package com.village.bellevue.entity;
 
 import java.sql.Timestamp;
+import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.village.bellevue.model.ForumModel;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -35,4 +37,12 @@ public class ForumEntity {
   private String category;
 
   private Timestamp created = new Timestamp(System.currentTimeMillis());
+
+  public ForumEntity(ForumModel model) {
+    this.id = model.getId();
+    this.user = Objects.nonNull(model.getUser()) ? model.getUser().getId() : null;
+    this.name = model.getName();
+    this.category = model.getCategory();
+    this.created = model.getCreated();
+  }
 }

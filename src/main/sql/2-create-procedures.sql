@@ -218,9 +218,8 @@ CREATE PROCEDURE request_friend(
 BEGIN
     -- Insert the friendship record with status 'pending_them' to facilitate acceptance
     INSERT INTO friend (user, friend, status)
-    VALUES (p_friend, p_user, 'pending_them')
-    ON DUPLICATE KEY UPDATE 
-        status = 'pending_them', updated = CURRENT_TIMESTAMP;
+    VALUES (p_user, p_friend, 'pending_them')
+    ON DUPLICATE KEY UPDATE status = 'pending_them', updated = CURRENT_TIMESTAMP;
     -- Insert the reciprocal friendship record with status 'pending_you' to facilitate acceptance
     INSERT INTO friend (user, friend, status)
     VALUES (p_friend, p_user, 'pending_you')

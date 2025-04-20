@@ -22,6 +22,7 @@ import com.village.bellevue.assembler.ForumModelAssembler;
 import com.village.bellevue.entity.ForumEntity;
 import com.village.bellevue.error.AuthorizationException;
 import com.village.bellevue.model.CategoryModel;
+import com.village.bellevue.model.ForumModel;
 import com.village.bellevue.service.ForumService;
 
 @RestController
@@ -31,14 +32,14 @@ public class ForumController {
   private final ForumService forumService;
   private final ForumModelAssembler forumModelAssembler;
   private final CategoryModelAssembler categoryModelAssembler;
-  private final PagedResourcesAssembler<ForumEntity> pagedForumAssembler;
+  private final PagedResourcesAssembler<ForumModel> pagedForumAssembler;
   private final PagedResourcesAssembler<String> pagedStringAssembler;
 
   public ForumController(
     ForumService forumService,
     ForumModelAssembler forumModelAssembler,
     CategoryModelAssembler categoryModelAssembler,
-    PagedResourcesAssembler<ForumEntity> pagedForumAssembler,
+    PagedResourcesAssembler<ForumModel> pagedForumAssembler,
     PagedResourcesAssembler<String> pagedStringAssembler
   ) {
     this.forumService = forumService;
@@ -49,19 +50,23 @@ public class ForumController {
   }
 
   @PostMapping
-  public ResponseEntity<EntityModel<ForumEntity>> create(@RequestBody ForumEntity forum) {
-    ForumEntity createdForum = forumService.create(forum);
-    EntityModel<ForumEntity> entityModel = forumModelAssembler.toModel(createdForum);
-    return ResponseEntity.status(HttpStatus.CREATED).body(entityModel);
+  public ResponseEntity<EntityModel<ForumModel>> create(@RequestBody ForumEntity forum) {
+    try {
+      ForumModel createdForum = forumService.create(forum);
+      EntityModel<ForumModel> entityModel = forumModelAssembler.toModel(createdForum);
+      return ResponseEntity.status(HttpStatus.CREATED).body(entityModel);
+    } catch (AuthorizationException e) {
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
   }
 
   @GetMapping
-  public ResponseEntity<PagedModel<EntityModel<ForumEntity>>> readAll(
+  public ResponseEntity<PagedModel<EntityModel<ForumModel>>> readAll(
     @RequestParam(defaultValue = "0") int page,
     @RequestParam(defaultValue = "10") int size
   ) {
-    Page<ForumEntity> forums = forumService.readAll(page, size);
-    PagedModel<EntityModel<ForumEntity>> pagedModel = pagedForumAssembler.toModel(forums, forumModelAssembler);
+    Page<ForumModel> forums = forumService.readAll(page, size);
+    PagedModel<EntityModel<ForumModel>> pagedModel = pagedForumAssembler.toModel(forums, forumModelAssembler);
     return ResponseEntity.status(HttpStatus.OK).body(pagedModel);
   }
 
@@ -81,23 +86,23 @@ public class ForumController {
   }
 
   @GetMapping("/category/{category}")
-  public ResponseEntity<PagedModel<EntityModel<ForumEntity>>> readAllByCategory(
+  public ResponseEntity<PagedModel<EntityModel<ForumModel>>> readAllByCategory(
     @PathVariable String category,
     @RequestParam(defaultValue = "0") int page,
     @RequestParam(defaultValue = "10") int size
   ) {
-    Page<ForumEntity> forums = forumService.readAllByCategory(category, page, size);
-    PagedModel<EntityModel<ForumEntity>> pagedModel = pagedForumAssembler.toModel(forums, forumModelAssembler);
+    Page<ForumModel> forums = forumService.readAllByCategory(category, page, size);
+    PagedModel<EntityModel<ForumModel>> pagedModel = pagedForumAssembler.toModel(forums, forumModelAssembler);
     return ResponseEntity.status(HttpStatus.OK).body(pagedModel);
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<EntityModel<ForumEntity>> read(@PathVariable Long id) {
+  public ResponseEntity<EntityModel<ForumModel>> read(@PathVariable Long id) {
     try {
-      Optional<ForumEntity> forum = forumService.read(id);
+      Optional<ForumModel> forum = forumService.read(id);
       return forum
-          .map(forumEntity -> ResponseEntity.ok(forumModelAssembler.toModel(forumEntity)))
-          .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        .map(forumEntity -> ResponseEntity.ok(forumModelAssembler.toModel(forumEntity)))
+        .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     } catch (AuthorizationException e) {
       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }

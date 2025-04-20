@@ -70,13 +70,8 @@ public class MessageController {
   }
 
   @GetMapping("/unread")
-  public ResponseEntity<PagedModel<EntityModel<UserProfileEntity>>> readUnreadThreads(
-    @RequestParam(defaultValue = "0") int page,
-    @RequestParam(defaultValue = "10") int size
-  ) {
-    Page<UserProfileEntity> threads = messageService.readUnreadThreads(page, size);
-    PagedModel<EntityModel<UserProfileEntity>> pagedModel = pagedProfileAssembler.toModel(threads, threadModelAssembler);
-    return ResponseEntity.status(HttpStatus.OK).body(pagedModel);
+  public ResponseEntity<Long> readUnreadThreads() {
+    return ResponseEntity.status(HttpStatus.OK).body(messageService.countUnreadThreads());
   }
 
   @GetMapping("/{friend}")

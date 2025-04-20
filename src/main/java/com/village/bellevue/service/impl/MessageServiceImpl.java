@@ -2,6 +2,7 @@ package com.village.bellevue.service.impl;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import static com.village.bellevue.config.security.SecurityConfig.getAuthenticatedUserId;
@@ -38,7 +39,7 @@ public class MessageServiceImpl implements MessageService {
     MessageEntity messageEntity = new MessageEntity();
     try {
       messageEntity.setMessage(message);
-      messageEntity.setReceiver(friend);
+      messageEntity.setReceiver(new UserProfileEntity(friend));
       messageEntity = save(messageEntity);
     } finally {
       if (messageEntity.getId() != null) {
@@ -53,8 +54,8 @@ public class MessageServiceImpl implements MessageService {
   }
 
   @Override
-  public Page<UserProfileEntity> readUnreadThreads(int page, int size) {
-    return messageRepository.findUnreadThreads(getAuthenticatedUserId(), PageRequest.of(page, size));
+  public Long countUnreadThreads() {
+    return messageRepository.countUnreadThreads(getAuthenticatedUserId());
   }
 
   @Override
@@ -63,20 +64,22 @@ public class MessageServiceImpl implements MessageService {
   }
 
   @Override
+  @Async
   @Transactional
   public void markAllAsRead(Long friend) {
     messageRepository.markAllAsRead(getAuthenticatedUserId(), friend);
   }
 
   @Override
+  @Async
   @Transactional
   public void markAsRead(Long id) {
-    messageRepository.markAsRead(id);
+    messageRepository.markAsRead(getAuthenticatedUserId(), id);
   }
 
   private MessageEntity save(MessageEntity message) throws AuthorizationException {
     Long user = getAuthenticatedUserId();
-    if (!friendRepository.areFriends(message.getReceiver(), user)) throw new AuthorizationException("Not authorized to message user");
+    if (!friendRepository.areFriends(message.getReceiver().getUser(), user)) throw new AuthorizationException("Not authorized to message user");
     UserProfileEntity sender = new UserProfileEntity(user);
     message.setSender(sender);
     message.setRead(false);

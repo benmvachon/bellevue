@@ -31,8 +31,9 @@ public class MessageEntity {
   @JoinColumn(name = "sender")
   private UserProfileEntity sender;
 
-  @Column(nullable = false)
-  private Long receiver;
+  @ManyToOne
+  @JoinColumn(name = "receiver")
+  private UserProfileEntity receiver;
 
   @Column(columnDefinition = "TEXT")
   private String message;

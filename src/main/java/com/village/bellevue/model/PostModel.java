@@ -4,9 +4,7 @@ import java.sql.Timestamp;
 import java.util.Optional;
 
 import com.village.bellevue.entity.AggregateRatingEntity;
-import com.village.bellevue.entity.ForumEntity;
 import com.village.bellevue.entity.PostEntity;
-import com.village.bellevue.entity.UserProfileEntity;
 import com.village.bellevue.error.AuthorizationException;
 
 import lombok.AllArgsConstructor;
@@ -20,9 +18,9 @@ public class PostModel {
 
   private Long id;
 
-  private UserProfileEntity user;
+  private ProfileModel user;
   private PostModel parent;
-  private ForumEntity forum;
+  private ForumModel forum;
 
   private String content;
   private Timestamp created;
@@ -36,8 +34,8 @@ public class PostModel {
       throw new AuthorizationException("Not authorized");
     }
     this.id = post.getId();
-    this.user = post.getUser();
-    this.forum = post.getForum();
+    this.user = helper.getProfile(post.getUser());
+    this.forum = helper.getForum(post.getForum());
     this.content = post.getContent();
     this.created = post.getCreated();
 
@@ -51,20 +49,6 @@ public class PostModel {
 
     if (post.getParent() != null) {
       this.parent = new PostModel(post.getParent(), helper);
-    }
-  }
-
-  public PostModel(PostEntity post, Optional<AggregateRatingEntity> rating, Long children) {
-    this.id = post.getId();
-    this.user = post.getUser();
-    this.forum = post.getForum();
-    this.content = post.getContent();
-    this.created = post.getCreated();
-    this.children = children;
-
-    if (rating.isPresent()) {
-      this.rating = rating.get().getRating();
-      this.ratingCount = rating.get().getRatingCount();
     }
   }
 }

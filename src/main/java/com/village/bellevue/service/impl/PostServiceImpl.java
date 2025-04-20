@@ -16,13 +16,18 @@ import com.village.bellevue.entity.PostEntity;
 import com.village.bellevue.entity.UserProfileEntity;
 import com.village.bellevue.entity.id.AggregateRatingId;
 import com.village.bellevue.error.AuthorizationException;
+import com.village.bellevue.error.FriendshipException;
+import com.village.bellevue.model.ForumModel;
+import com.village.bellevue.model.ForumModelProvider;
 import com.village.bellevue.model.PostModel;
 import com.village.bellevue.model.PostModelProvider;
+import com.village.bellevue.model.ProfileModel;
 import com.village.bellevue.repository.AggregateRatingRepository;
 import com.village.bellevue.repository.ForumRepository;
 import com.village.bellevue.repository.PostRepository;
 import com.village.bellevue.repository.ProfileRepository;
 import com.village.bellevue.repository.UserProfileRepository;
+import com.village.bellevue.service.FriendService;
 import com.village.bellevue.service.NotificationService;
 import com.village.bellevue.service.PostService;
 
@@ -48,6 +53,51 @@ public class PostServiceImpl implements PostService {
     public boolean canReadPost(PostEntity post) {
       return canRead(post.getId());
     }
+
+    @Override
+    public ProfileModel getProfile(UserProfileEntity user) {
+      return new ProfileModel(user, (Long user1) -> {
+        try {
+          if (getAuthenticatedUserId().equals(user1)) {
+            return Optional.of("self");
+          }
+          Optional<String> friendshipStatus = friendService.getStatus(user1);
+          if (friendshipStatus.isEmpty()) return Optional.of("unset");
+          return friendshipStatus;
+        } catch (FriendshipException ex) {
+          return Optional.of("unset");
+        }
+      });
+    }
+
+    @Override
+    public ForumModel getForum(ForumEntity forum) throws AuthorizationException {
+      return new ForumModel(forum, new ForumModelProvider() {
+        @Override
+        public boolean canReadForum(ForumEntity forum) {
+          return forumRepository.canRead(forum.getId(), getAuthenticatedUserId());
+        }
+    
+        @Override
+        public Optional<ProfileModel> getProfile(Long user) {
+          if (user != null) {
+            return Optional.of(new ProfileModel(userProfileRepository.getReferenceById(user), (Long user1) -> {
+              try {
+                if (getAuthenticatedUserId().equals(user1)) {
+                  return Optional.of("self");
+                }
+                Optional<String> friendshipStatus = friendService.getStatus(user1);
+                if (friendshipStatus.isEmpty()) return Optional.of("unset");
+                return friendshipStatus;
+              } catch (FriendshipException ex) {
+                return Optional.of("unset");
+              }
+            }));
+          }
+          return Optional.empty();
+        }
+      });
+    }
   };
 
   private final PostRepository postRepository;
@@ -56,6 +106,7 @@ public class PostServiceImpl implements PostService {
   private final ProfileRepository profileRepository;
   private final UserProfileRepository userProfileRepository;
   private final NotificationService notificationService;
+  private final FriendService friendService;
 
   public PostServiceImpl(
     PostRepository postRepository,
@@ -63,7 +114,8 @@ public class PostServiceImpl implements PostService {
     ForumRepository forumRepository,
     ProfileRepository profileRepository,
     UserProfileRepository userProfileRepository,
-    NotificationService notificationService
+    NotificationService notificationService,
+    FriendService friendService
   ) {
     this.postRepository = postRepository;
     this.ratingRepository = ratingRepository;
@@ -71,6 +123,7 @@ public class PostServiceImpl implements PostService {
     this.profileRepository = profileRepository;
     this.userProfileRepository = userProfileRepository;
     this.notificationService = notificationService;
+    this.friendService = friendService;
   }
 
   @Override
@@ -89,7 +142,7 @@ public class PostServiceImpl implements PostService {
         if (model.getForum().getUser() == null) {
           notificationService.notifyFriends(2l, model.getId());
         } else {
-          notificationService.notifyMutualFriends(model.getForum().getUser(), 2l, model.getId());
+          notificationService.notifyMutualFriends(model.getForum().getUser().getId(), 2l, model.getId());
         }
       }
     }
@@ -97,7 +150,7 @@ public class PostServiceImpl implements PostService {
 
   @Override
   @Transactional
-  public PostModel reply(Long parent, Long forum, String content) throws AuthorizationException {
+  public PostModel reply(Long forum, Long parent, String content) throws AuthorizationException {
     PostModel model = null;
     try {
       PostEntity post = new PostEntity();
@@ -112,7 +165,7 @@ public class PostServiceImpl implements PostService {
       if (model != null) {
         PostModel parentModel = model.getParent();
         while (parentModel != null) {
-          notificationService.notifyFriend(parentModel.getUser().getUser(), 3l, model.getId());
+          notificationService.notifyFriend(parentModel.getUser().getId(), 3l, model.getId());
           parentModel = parentModel.getParent();
         }
       }
@@ -148,7 +201,11 @@ public class PostServiceImpl implements PostService {
     );
     try {
       return postEntities.map(post -> {
-        return new PostModel(post, ratingRepository.findById(new AggregateRatingId(user, post.getId())), getChildren(post.getId()));
+        try {
+          return new PostModel(post, postModelProvider);
+        } catch (AuthorizationException e) {
+          return null;
+        }
       });
     } finally {
       ForumEntity forumEntity = new ForumEntity();
@@ -167,7 +224,11 @@ public class PostServiceImpl implements PostService {
       PageRequest.of(page, size)
     );
     return postEntities.map(post -> {
-      return new PostModel(post, ratingRepository.findById(new AggregateRatingId(user, post.getId())), getChildren(post.getId()));
+      try {
+        return new PostModel(post, postModelProvider);
+      } catch (AuthorizationException e) {
+        return null;
+      }
     });
   }
 
@@ -176,7 +237,7 @@ public class PostServiceImpl implements PostService {
   public boolean delete(Long id) throws AuthorizationException {
     Optional<PostModel> post = read(id);
     if (post.isEmpty()) return false;
-    if (!getAuthenticatedUserId().equals(post.get().getUser().getUser()))
+    if (!getAuthenticatedUserId().equals(post.get().getUser().getId()))
       throw new AuthorizationException("Currently authenticated user is not authorized to delete post");
     postRepository.deleteById(id);
     return true;
