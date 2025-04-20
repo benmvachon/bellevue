@@ -143,6 +143,7 @@ public class PostServiceImpl implements PostService {
           notificationService.notifyFriends(2l, model.getId());
         } else {
           notificationService.notifyMutualFriends(model.getForum().getUser().getId(), 2l, model.getId());
+          notificationService.notifyFriend(model.getForum().getUser().getId(), 2l, model.getId());
         }
       }
     }

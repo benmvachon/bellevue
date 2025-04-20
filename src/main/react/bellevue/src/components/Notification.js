@@ -1,9 +1,9 @@
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import withAuth from '../utils/withAuth.js';
-import { markNotificationRead } from '../api/api.js';
+import { markNotificationRead, acceptFriend } from '../api/api.js';
 
-function Notifications({ notification, onClose }) {
+function Notification({ notification, onClose, openMessages }) {
   const navigate = useNavigate();
 
   const markAsRead = () => {
@@ -17,9 +17,26 @@ function Notifications({ notification, onClose }) {
 
   const notificationClick = () => {
     switch (notification.typeName) {
+      case 'reply':
+      case 'rating':
+        navigate(`/post/${notification.entity}`);
+        break;
+      case 'request':
+        acceptFriend(notification.entity, () => {
+          navigate(`/profile/${notification.entity}`);
+        });
+        break;
+      case 'acceptance':
+        navigate(`/profile/${notification.entity}`);
+        break;
+      case 'message':
+        openMessages(notification.entity);
+        break;
       default:
-        navigate(`/profile/${notification.notifier.id}`);
+        navigate(`/${notification.typeName}/${notification.entity}`);
+        break;
     }
+    onClose();
     markAsRead();
   };
 
@@ -35,9 +52,10 @@ function Notifications({ notification, onClose }) {
   );
 }
 
-Notifications.propTypes = {
+Notification.propTypes = {
   notification: PropTypes.object.isRequired,
-  onClose: PropTypes.func.isRequired
+  onClose: PropTypes.func.isRequired,
+  openMessages: PropTypes.func.isRequired
 };
 
-export default withAuth(Notifications);
+export default withAuth(Notification);

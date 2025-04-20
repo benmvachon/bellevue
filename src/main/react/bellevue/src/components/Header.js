@@ -60,12 +60,16 @@ function Header() {
     <div className="header">
       <button onClick={() => navigate('/')}>Home</button>
       <button onClick={() => navigate(`/profile/${userId}`)}>Profile</button>
-      <h1>Blorvis</h1>
+      <h1>BLORVIS</h1>
       <button onClick={openNotifications}>
         Notifications: {notificationCount}
       </button>
       <button onClick={openThreads}>Messages: {unreadThreadCount}</button>
-      <Notifications show={showNotifications} onClose={closeNotifications} />
+      <Notifications
+        show={showNotifications}
+        onClose={closeNotifications}
+        openMessages={openMessages}
+      />
       <Threads
         show={showThreads}
         onClose={closeThreads}

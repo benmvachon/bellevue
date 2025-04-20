@@ -6,7 +6,7 @@ import { addReply, getPost, getReplies, ratePost } from '../api/api.js';
 import Rating from './Rating.js';
 import InfiniteScroll from './InfiniteScroll.js';
 
-function Post({ id }) {
+function Post({ id, children }) {
   const navigate = useNavigate();
   const [post, setPost] = useState(null);
   const [replies, setReplies] = useState(null);
@@ -49,6 +49,29 @@ function Post({ id }) {
 
   if (error) return JSON.stringify(error);
   if (!post) return;
+  if (!children) {
+    children = [];
+    if (post.children > 0) {
+      children.push(
+        <button onClick={() => setShowReplies(!showReplies)}>
+          {showReplies
+            ? `Hide (${post.children}) replies`
+            : `Show (${post.children}) replies`}
+        </button>
+      );
+      if (showReplies) {
+        children.push(
+          <InfiniteScroll
+            page={replies}
+            renderItem={(reply) => (
+              <Post key={`post-${reply.id}`} id={reply.id} />
+            )}
+            loadMore={loadMore}
+          />
+        );
+      }
+    }
+  }
 
   return (
     <div className="post">
@@ -74,26 +97,14 @@ function Post({ id }) {
         <textarea value={reply} onChange={(e) => setReply(e.target.value)} />
         <button type="submit">Reply</button>
       </form>
-      {post.children > 0 && (
-        <button onClick={() => setShowReplies(!showReplies)}>
-          {showReplies ? 'Hide replies' : 'Show replies'}
-        </button>
-      )}
-      {showReplies && post.children > 0 && (
-        <InfiniteScroll
-          page={replies}
-          renderItem={(reply) => (
-            <Post key={`post-${reply.id}`} id={reply.id} />
-          )}
-          loadMore={loadMore}
-        />
-      )}
+      {children}
     </div>
   );
 }
 
 Post.propTypes = {
-  id: PropTypes.number
+  id: PropTypes.number,
+  children: PropTypes.element
 };
 
 export default withAuth(Post);

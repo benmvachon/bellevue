@@ -7,6 +7,10 @@ function InfiniteScroll({ page, renderItem, loadMore, reverse = false }) {
   const nextPage = () => {
     loadMore(page.number + 1);
   };
+  const nextPageSize = Math.min(
+    page.size,
+    page.totalElements - page.size * (page.number + 1)
+  );
   if (reverse) {
     return (
       <div className="loader">
@@ -18,7 +22,11 @@ function InfiniteScroll({ page, renderItem, loadMore, reverse = false }) {
   return (
     <div className="loader">
       {page?.content?.map(renderItem)}
-      {moreToLoad && <button onClick={nextPage}>Load more</button>}
+      {moreToLoad && (
+        <button onClick={nextPage}>
+          Load ({nextPageSize}) more ({page.totalElements} total)
+        </button>
+      )}
     </div>
   );
 }

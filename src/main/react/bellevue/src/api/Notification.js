@@ -3,13 +3,13 @@ import Profile from './Profile';
 class Notification {
   constructor(id, notifier, notified, type, entity, read, created, _links) {
     this.id = id;
-    this.notifier = notifier ? Profile.fromJSON(notifier) : null;
+    this.notifier = notifier ? Profile.fromJSON(notifier) : undefined;
     this.notified = notified;
     this.typeName = type?.name;
     this.typeId = type?.typeId;
     this.entity = entity;
     this.read = read;
-    this.created = new Date(created);
+    this.created = created ? new Date(created) : undefined;
     // TODO: process _links
   }
 

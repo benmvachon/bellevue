@@ -28,7 +28,7 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
       "LEFT JOIN FriendEntity f ON p.user.id = f.friend.id AND f.user = :user " +
       "WHERE p.parent.id = :post " +
       "AND (p.user.id = :user OR f.status = 'accepted') " +
-      "ORDER BY p.created DESC")
+      "ORDER BY p.created ASC")
   Page<PostEntity> findAllChildren(@Param("user") Long user, @Param("post") Long post, Pageable pageable);
 
   @Query(
