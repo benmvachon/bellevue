@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import withAuth from '../utils/withAuth.js';
-import { getThreads, markThreadRead } from '../api/api.js';
+import { getThreads, markThreadRead, markThreadsRead } from '../api/api.js';
 import InfiniteScroll from './InfiniteScroll.js';
 
 function Threads({ show = false, onClose, openMessages }) {
@@ -29,7 +29,7 @@ function Threads({ show = false, onClose, openMessages }) {
   };
 
   const markAsRead = (thread) => {
-    markThreadRead(thread);
+    markThreadRead(thread, undefined, setError);
   };
 
   const profileClick = (thread) => {
@@ -65,6 +65,9 @@ function Threads({ show = false, onClose, openMessages }) {
         </div>
         <div className="buttons">
           <button onClick={onClose}>Close</button>
+          <button onClick={() => markThreadsRead(undefined, setError)}>
+            Mark all as read
+          </button>
         </div>
       </div>
     </div>

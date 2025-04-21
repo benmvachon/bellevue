@@ -23,7 +23,11 @@ function PostPage() {
   if (error) return JSON.stringify(error);
   if (!post) return;
 
-  let postElement = <Post id={post.id} />;
+  let postElement = (
+    <div className="selected-post">
+      <Post id={post.id} />
+    </div>
+  );
   let parent = post.parent;
   while (parent) {
     postElement = <Post id={parent.id}>{postElement}</Post>;
@@ -31,10 +35,11 @@ function PostPage() {
   }
 
   return (
-    <div className="page forum-page">
+    <div className="page post-page">
       <Header />
+      <h2>{post.forum.name}</h2>
       <button onClick={() => navigate(`/forum/${post.forum.id}`)}>
-        {post.forum.name}
+        Back to forum
       </button>
       <div className="contents">
         <div className="posts">{postElement}</div>

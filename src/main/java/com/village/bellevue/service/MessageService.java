@@ -11,6 +11,7 @@ public interface MessageService {
   public Page<UserProfileEntity> readThreads(int page, int size);
   public Long countUnreadThreads();
   public Page<MessageEntity> readAll(Long friend, int page, int size);
-  public void markAllAsRead(Long friend);
+  public void markAllAsRead();
+  public void markThreadAsRead(Long friend);
   public void markAsRead(Long id);
 }

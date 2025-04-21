@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import withAuth from '../utils/withAuth.js';
-import { markNotificationRead, acceptFriend } from '../api/api.js';
+import { markNotificationRead } from '../api/api.js';
 
 function Notification({ notification, onClose, openMessages }) {
   const navigate = useNavigate();
@@ -22,10 +22,6 @@ function Notification({ notification, onClose, openMessages }) {
         navigate(`/post/${notification.entity}`);
         break;
       case 'request':
-        acceptFriend(notification.entity, () => {
-          navigate(`/profile/${notification.entity}`);
-        });
-        break;
       case 'acceptance':
         navigate(`/profile/${notification.entity}`);
         break;
@@ -42,12 +38,9 @@ function Notification({ notification, onClose, openMessages }) {
 
   return (
     <div className="notification">
-      <button onClick={() => profileClick()}>
-        {notification.notifier.name}
-      </button>
-      <button onClick={() => notificationClick()}>
-        {notification.typeName}
-      </button>
+      <button onClick={profileClick}>{notification.notifier.name}</button>
+      <button onClick={notificationClick}>{notification.typeName}</button>
+      <button onClick={markAsRead}>Mark as read</button>
     </div>
   );
 }

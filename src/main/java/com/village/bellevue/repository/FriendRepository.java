@@ -28,13 +28,13 @@ public interface FriendRepository extends JpaRepository<FriendEntity, FriendId> 
   Stream<Long> streamMutualFriends(@Param("user") Long user, @Param("friend") Long friend);
   
 
-  @Query("SELECT f FROM FriendEntity f WHERE status = 'accepted' AND f.user = :user")
+  @Query("SELECT f FROM FriendEntity f WHERE status = 'accepted' AND f.user = :user ORDER BY f.friend.name ASC")
   Page<FriendEntity> findFriends(@Param("user") Long user, Pageable pageable);
 
   @Query(
     "SELECT f FROM FriendEntity f WHERE f.user = :friend AND status = 'accepted' AND f.friend.id NOT IN " +
     "(SELECT b.friend.id FROM FriendEntity b WHERE (b.user = :user AND b.status = 'blocked_them') OR (b.user = :user AND b.status = 'blocked_you')) " +
-    "ORDER BY f.friend.name DESC")
+    "ORDER BY f.friend.name ASC")
   Page<FriendEntity> findFriendsExcludingBlocked(@Param("friend") Long friend, @Param("user") Long user, Pageable pageable);
 
   @Query("SELECT CASE WHEN COUNT(f) > 0 THEN true ELSE false END FROM FriendEntity f WHERE f.friend.id = :friend AND f.user = :user AND status = 'accepted'")

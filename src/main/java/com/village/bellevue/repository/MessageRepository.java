@@ -43,8 +43,13 @@ public interface MessageRepository extends JpaRepository<MessageEntity, Long> {
 
   @Modifying
   @Transactional
+  @Query("UPDATE MessageEntity m SET m.read = true WHERE m.receiver.id = :user AND m.read = false")
+  void markAllAsRead(@Param("user") Long user);
+
+  @Modifying
+  @Transactional
   @Query("UPDATE MessageEntity m SET m.read = true WHERE m.receiver.id = :user AND m.sender.id = :friend AND m.read = false")
-  void markAllAsRead(@Param("user") Long user, @Param("friend") Long friend);
+  void markThreadAsRead(@Param("user") Long user, @Param("friend") Long friend);
 
   @Modifying
   @Transactional

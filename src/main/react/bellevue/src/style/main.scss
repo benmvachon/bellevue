@@ -60,46 +60,50 @@ html {
               text-align: center;
             }
           }
+        }
+      }
 
-          div.posts {
-            margin: 32px;
+      div.posts {
+        margin: 32px;
 
-            h3 {
-              width: 100%;
-              text-align: center;
-            }
+        h3 {
+          width: 100%;
+          text-align: center;
+        }
 
-            form {
+        form {
+          display: flex;
+          flex-direction: column;
+          width: 100%;
+        }
+
+        div.post {
+          display: flex;
+          flex-direction: column;
+          margin-left: 32px;
+
+          div.post-header {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-evenly;
+            align-items: center;
+
+            div.rating {
               display: flex;
-              flex-direction: column;
-              width: 100%;
-            }
 
-            div.post {
-              display: flex;
-              flex-direction: column;
-              margin-left: 32px;
+              button.full {
+                background-color: #444c;
+              }
 
-              div.post-header {
-                display: flex;
-                flex-direction: row;
-                justify-content: space-evenly;
-                align-items: center;
-
-                div.rating {
-                  display: flex;
-
-                  button.full {
-                    background-color: #444c;
-                  }
-
-                  buttons.empty {
-                    background-color: white;
-                  }
-                }
+              buttons.empty {
+                background-color: white;
               }
             }
           }
+        }
+
+        div.selected-post {
+          background: #ddd;
         }
       }
 

@@ -255,6 +255,13 @@ export const markThreadRead = (friend, callback, error) => {
     .catch((err) => error(err));
 };
 
+export const markThreadsRead = (callback, error) => {
+  api
+    .put('/message/read')
+    .then(callback)
+    .catch((err) => error(err));
+};
+
 export const getMessages = (friend, callback, error, page = 0) => {
   api
     .get(`/message/${friend}?page=${page}`)

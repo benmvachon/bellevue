@@ -66,8 +66,15 @@ public class MessageServiceImpl implements MessageService {
   @Override
   @Async
   @Transactional
-  public void markAllAsRead(Long friend) {
-    messageRepository.markAllAsRead(getAuthenticatedUserId(), friend);
+  public void markAllAsRead() {
+    messageRepository.markAllAsRead(getAuthenticatedUserId());
+  }
+
+  @Override
+  @Async
+  @Transactional
+  public void markThreadAsRead(Long friend) {
+    messageRepository.markThreadAsRead(getAuthenticatedUserId(), friend);
   }
 
   @Override

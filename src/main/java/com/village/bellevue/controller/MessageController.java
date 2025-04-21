@@ -85,9 +85,15 @@ public class MessageController {
     return ResponseEntity.status(HttpStatus.OK).body(pagedModel);
   }
 
+  @PutMapping("/read")
+  public ResponseEntity<Void> markAsRead() {
+    messageService.markAllAsRead();
+    return ResponseEntity.status(HttpStatus.OK).build();
+  }
+
   @PutMapping("/{friend}/read")
   public ResponseEntity<Void> markAsRead(@PathVariable Long friend) {
-    messageService.markAllAsRead(friend);
+    messageService.markThreadAsRead(friend);
     return ResponseEntity.status(HttpStatus.OK).build();
   }
 
