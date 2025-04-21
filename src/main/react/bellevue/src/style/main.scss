@@ -25,8 +25,8 @@ html {
 
     div.page {
       position: relative;
-      height: 768px;
-      width: 768px;
+      height: min(100dvh, 100dvw);
+      width: min(100dvh, 100dvw);
       margin: 0;
       background: white;
       display: flex;
@@ -118,6 +118,10 @@ html {
 
         h1 {
           color: white;
+
+          @media (width < 512px) {
+            display: none;
+          }
         }
       }
 
