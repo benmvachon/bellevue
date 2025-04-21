@@ -4,6 +4,7 @@ import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.Map;
 
 import javax.sql.DataSource;
 
@@ -48,7 +49,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     user.setPassword(passwordEncoder.encode(user.getPassword()));
     if (getAuthenticatedUserId() == null) {
       try (Connection connection = dataSource.getConnection();
-           CallableStatement stmt = connection.prepareCall("{call add_user(?, ?, ?, ?, ?, ?)}")) {
+           CallableStatement stmt = connection.prepareCall("{call add_user(?, ?, ?, ?, ?, ?, ?)}")) {
   
         // Set input parameters (1–4)
         stmt.setString(1, user.getName());
@@ -59,12 +60,14 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         // Register output parameters (5–6)
         stmt.registerOutParameter(5, Types.INTEGER);     // p_user_id
         stmt.registerOutParameter(6, Types.VARCHAR);     // p_avatar_name
+        stmt.registerOutParameter(7, Types.VARCHAR);     // p_hat_name
   
         stmt.executeUpdate();
   
         // Retrieve output values
         Long userId = stmt.getLong(5);
         String avatarName = stmt.getString(6);
+        String hatName = stmt.getString(7);
   
         if (stmt.wasNull()) {
           throw new AuthorizationException("User creation failed — user ID is null.");
@@ -72,7 +75,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
   
         // Construct the user profile entity (or whatever object you use)
         user.setId(userId); // Assuming UserEntity has an ID field
-        return new ProfileModel(new UserProfileEntity(user, avatarName));
+        UserProfileEntity profile = new UserProfileEntity(user, avatarName);
+        profile.setEquipment(Map.of("hat", hatName));
+        return new ProfileModel(profile);
   
       } catch (SQLException e) {
         throw new AuthorizationException(

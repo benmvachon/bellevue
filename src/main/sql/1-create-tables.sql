@@ -42,15 +42,24 @@ CREATE TABLE profile(
     FOREIGN KEY     (location) REFERENCES forum(id),                                                            -- location is a reference to the forum table
     INDEX           (location)
 );
+CREATE TABLE item(
+    id              INT UNSIGNED NOT NULL AUTO_INCREMENT,                                                       -- Unique ID for the record
+    name            VARCHAR(255) NOT NULL,                                                                      -- Name of the item
+    slot            VARCHAR(255) NOT NULL,                                                                      -- Where the item is equipped (avatar, hat, mask, shirt, glow, etc)
+    PRIMARY KEY     (id),                                                                                       -- Joint primary key of user and item
+    INDEX           (name),                                                                                     -- Index on the slot for fast look-up
+    INDEX           (slot)                                                                                      -- Index on the name for fast look-up
+);
 CREATE TABLE equipment(
     user            INT UNSIGNED NOT NULL,                                                                      -- ID of the user
-    item            VARCHAR(255) NOT NULL,                                                                      -- Name of the equipment
-    slot            VARCHAR(255) NOT NULL,                                                                      -- Where the item is equipped (avatar, hat, mask, shirt, glow, etc)
+    item            INT UNSIGNED NOT NULL,                                                                      -- Name of the equipment
     equipped        BOOLEAN NOT NULL DEFAULT 0,                                                                 -- Flag indicating equipment status
     unlocked        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,                                                        -- Timestamp for when the item was unlocked by the user
     PRIMARY KEY     (user, item),                                                                               -- Joint primary key of user and item
     FOREIGN KEY     (user) REFERENCES user(id) ON DELETE CASCADE,                                               -- user is a reference to the user table
-    INDEX           (slot),                                                                                     -- Index on the slot for fast look-up
+    FOREIGN KEY     (item) REFERENCES item(id) ON DELETE CASCADE,                                               -- item is a reference to the item table
+    INDEX           (user),                                                                                     -- Index on the user for fast look-up
+    INDEX           (item),                                                                                     -- Index on the item for fast look-up
     INDEX           (equipped),                                                                                 -- Index on the equipped status for fast look-up
     INDEX           (unlocked)                                                                                  -- Index on the unlocked date for fast look-up
 );
@@ -154,13 +163,14 @@ SELECT
     COALESCE(a.name, 'cat') AS avatar,
     -- Only aggregate equipment if slot is not null
     JSON_OBJECTAGG(
-        COALESCE(e.slot, 'null'),
-        COALESCE(e.item, 'null')
+        COALESCE(i.slot, 'null'),
+        COALESCE(i.name, 'null')
     ) AS equipment
 FROM profile p
 JOIN user u ON p.user = u.id
 LEFT JOIN avatar a ON p.avatar = a.id
 LEFT JOIN equipment e ON p.user = e.user AND e.equipped = 1
+LEFT JOIN item i ON e.item = i.id
 GROUP BY
     p.user, u.name, u.username,
     p.status, p.location, p.last_seen,

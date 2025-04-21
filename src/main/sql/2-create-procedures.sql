@@ -5,10 +5,12 @@ CREATE PROCEDURE add_user(
     IN p_email VARCHAR(255),
     IN p_password BINARY(60),
     OUT p_user_id INT UNSIGNED,
-    OUT p_avatar_name VARCHAR(255)
+    OUT p_avatar_name VARCHAR(255),
+    OUT p_hat_name VARCHAR(255)
 )
 BEGIN
     DECLARE v_avatar_id INT UNSIGNED;
+    DECLARE v_hat_id INT UNSIGNED;
 
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
@@ -35,6 +37,16 @@ BEGIN
     -- Insert into the profile table
     INSERT INTO profile (user, avatar)
     VALUES (p_user_id, v_avatar_id);
+
+    -- Pick a random hat ID and name
+    SELECT id, name INTO v_hat_id, p_hat_name
+    FROM item
+    WHERE id < 8
+    ORDER BY RAND()
+    LIMIT 1;
+
+    INSERT INTO equipment (user, item, equipped)
+    VALUES (p_user_id, v_hat_id, true);
 
     COMMIT;
 END;

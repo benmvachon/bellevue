@@ -21,7 +21,7 @@ public class ProfileModelAssembler implements RepresentationModelAssembler<Profi
     if (!Objects.isNull(getAuthenticatedUserId()) && getAuthenticatedUserId().equals(profile.getId()))
       return EntityModel.of(
         profile,
-        linkTo(methodOn(EquipmentController.class).readAll(0, 10)).withRel("equipment")
+        linkTo(methodOn(EquipmentController.class).readAll(0, 10, "all")).withRel("equipment")
       );
     String friendshipStatus = profile.getFriendshipStatus();
     if (Objects.isNull(friendshipStatus)) friendshipStatus = "unset";

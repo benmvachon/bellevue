@@ -42,7 +42,7 @@ public class SecurityConfig extends GlobalAuthenticationConfigurerAdapter {
                         "/api/user/logout",
                         "/login",
                         "/logout",
-                        "signup",
+                        "/signup",
                         "/resources/**",
                         "/static/**")
                     .permitAll()

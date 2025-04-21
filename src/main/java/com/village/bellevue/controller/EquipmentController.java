@@ -39,24 +39,18 @@ public class EquipmentController {
   @GetMapping
   public ResponseEntity<PagedModel<EntityModel<EquipmentEntity>>> readAll(
       @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "5") int size) {
-    Page<EquipmentEntity> equipments = equipmentService.readAll(page, size);
-    PagedModel<EntityModel<EquipmentEntity>> pagedModel = pagedAssembler.toModel(equipments, equipmentModelAssembler);
-    return ResponseEntity.status(HttpStatus.OK).body(pagedModel);
-  }
-
-  @GetMapping("/slot/{slot}")
-  public ResponseEntity<PagedModel<EntityModel<EquipmentEntity>>> readAllBySlot(
-      @PathVariable String slot,
-      @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "5") int size) {
-    Page<EquipmentEntity> equipments = equipmentService.readAllBySlot(slot, page, size);
+      @RequestParam(defaultValue = "5") int size,
+      @RequestParam(defaultValue = "all") String slot
+  ) {
+    Page<EquipmentEntity> equipments;
+    if ("all".equals(slot)) equipments = equipmentService.readAll(page, size);
+    else equipments = equipmentService.readAllBySlot(slot, page, size);
     PagedModel<EntityModel<EquipmentEntity>> pagedModel = pagedAssembler.toModel(equipments, equipmentModelAssembler);
     return ResponseEntity.status(HttpStatus.OK).body(pagedModel);
   }
 
   @PutMapping("/{item}/equip")
-  public ResponseEntity<String> equip(@PathVariable String item) {
+  public ResponseEntity<String> equip(@PathVariable Long item) {
     try {
       equipmentService.equip(item);
       return ResponseEntity.ok("Item equipped.");
@@ -66,7 +60,7 @@ public class EquipmentController {
   }
 
   @PutMapping("/{item}/unequip")
-  public ResponseEntity<String> unequip(@PathVariable String item) {
+  public ResponseEntity<String> unequip(@PathVariable Long item) {
     try {
       equipmentService.unequip(item);
       return ResponseEntity.ok("Item equipped.");

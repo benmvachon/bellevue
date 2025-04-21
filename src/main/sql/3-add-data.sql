@@ -1,4 +1,12 @@
 INSERT INTO avatar (name) VALUES ('cat'), ('raptor'), ('walrus'), ('bee'), ('monkey'), ('horse');
+INSERT INTO item (name, slot) VALUES
+('red_cap', 'hat'),
+('blue_cap', 'hat'),
+('yellow_cap', 'hat'),
+('green_cap', 'hat'),
+('black_hat', 'hat'),
+('white_hat', 'hat'),
+('brown_hat', 'hat');
 
 INSERT INTO forum (name, category) VALUES
 ('Announcements', 'General'),                           -- id 1

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import static com.village.bellevue.config.security.SecurityConfig.getAuthenticatedUserId;
 import com.village.bellevue.entity.EquipmentEntity;
+import com.village.bellevue.entity.ItemEntity;
 import com.village.bellevue.entity.id.EquipmentId;
 import com.village.bellevue.error.AuthorizationException;
 import com.village.bellevue.repository.EquipmentRepository;
@@ -26,11 +27,11 @@ public class EquipmentServiceImpl implements EquipmentService {
 
   @Override
   @Transactional
-  public void equip(String item) throws AuthorizationException {
-    Optional<EquipmentEntity> equipment = equipmentRepository.findById(new EquipmentId(getAuthenticatedUserId(), item));
+  public void equip(Long item) throws AuthorizationException {
+    Optional<EquipmentEntity> equipment = equipmentRepository.findById(new EquipmentId(getAuthenticatedUserId(), new ItemEntity(item)));
     if (equipment.isPresent()) {
       EquipmentEntity equipmentEntity = equipment.get();
-      Optional<EquipmentEntity> equipped = equipmentRepository.findByUserAndSlotAndEquippedTrue(getAuthenticatedUserId(), equipmentEntity.getSlot());
+      Optional<EquipmentEntity> equipped = equipmentRepository.findByUserAndSlotAndEquippedTrue(getAuthenticatedUserId(), equipmentEntity.getItem().getSlot());
       if (equipped.isPresent()) {
         EquipmentEntity equippedEntity = equipped.get();
         equippedEntity.setEquipped(false);
@@ -43,8 +44,8 @@ public class EquipmentServiceImpl implements EquipmentService {
 
   @Override
   @Transactional
-  public void unequip(String item) throws AuthorizationException {
-    Optional<EquipmentEntity> equipment = equipmentRepository.findById(new EquipmentId(getAuthenticatedUserId(), item));
+  public void unequip(Long item) throws AuthorizationException {
+    Optional<EquipmentEntity> equipment = equipmentRepository.findById(new EquipmentId(getAuthenticatedUserId(), new ItemEntity(item)));
     if (equipment.isPresent()) {
       EquipmentEntity equipmentEntity = equipment.get();
       equipmentEntity.setEquipped(false);

@@ -7,6 +7,7 @@ import Forum from './Forum.js';
 import Post from './Post.js';
 import Notification from './Notification.js';
 import Message from './Message.js';
+import Equipment from './Equipment.js';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
@@ -284,6 +285,30 @@ export const sendMessage = (friend, message, callback, error) => {
 export const markMessageRead = (friend, message, callback, error) => {
   api
     .put(`/message/${friend}/read/${message}`)
+    .then(callback)
+    .catch((err) => error(err));
+};
+
+export const getEquipment = (callback, error, page = 0, slot = 'all') => {
+  api
+    .get(`/equipment?page=${page}&slot=${slot}`)
+    .then((response) => {
+      const page = Page.fromJSON(response.data, Equipment.equipmentMapper);
+      callback(page);
+    })
+    .catch((err) => error(err));
+};
+
+export const equipItem = (item, callback, error) => {
+  api
+    .put(`/equipment/${item}/equip`)
+    .then(callback)
+    .catch((err) => error(err));
+};
+
+export const unequipItem = (item, callback, error) => {
+  api
+    .put(`/equipment/${item}/unequip`)
     .then(callback)
     .catch((err) => error(err));
 };

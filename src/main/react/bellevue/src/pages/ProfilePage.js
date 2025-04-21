@@ -14,6 +14,7 @@ import {
 import Header from '../components/Header.js';
 import Messages from '../components/Messages.js';
 import InfiniteScroll from '../components/InfiniteScroll.js';
+import Equipment from '../components/Equipment.js';
 
 function ProfilePage() {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ function ProfilePage() {
   const [showMessages, setShowMessages] = useState(false);
   const [error, setError] = useState(false);
   const [blackboard, setBlackboard] = useState('');
+  const [showEquipment, setShowEquipment] = useState(false);
 
   const self = '' + userId === '' + id;
 
@@ -61,6 +63,9 @@ function ProfilePage() {
 
   const openMessages = () => setShowMessages(true);
   const closeMessages = () => setShowMessages(false);
+
+  const openEquipment = () => setShowEquipment(true);
+  const closeEquipment = () => setShowEquipment(false);
 
   if (error) return JSON.stringify(error);
   if (!profile) return;
@@ -107,8 +112,11 @@ function ProfilePage() {
       <Header />
       <h2>{profile?.name}</h2>
       <p>{profile?.username}</p>
+      <p>
+        {profile?.avatar} {JSON.stringify(profile?.equipment)}
+      </p>
       {self ? <p>This is you</p> : <p>{profile?.status}</p>}
-      {self ? <button>Equipment</button> : buttons}
+      {self ? <button onClick={openEquipment}>Equipment</button> : buttons}
       {self ? (
         <form onSubmit={() => updateBlackboard(blackboard, refresh, setError)}>
           <textarea
@@ -137,6 +145,13 @@ function ProfilePage() {
         />
       </div>
       <Messages show={showMessages} onClose={closeMessages} friend={id} />
+      {self && (
+        <Equipment
+          show={showEquipment}
+          onClose={closeEquipment}
+          refreshProfile={refresh}
+        />
+      )}
     </div>
   );
 }

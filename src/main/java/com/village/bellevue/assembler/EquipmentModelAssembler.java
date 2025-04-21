@@ -15,8 +15,8 @@ public class EquipmentModelAssembler implements RepresentationModelAssembler<Equ
   public EntityModel<EquipmentEntity> toModel(EquipmentEntity equipment) {
     return EntityModel.of(
       equipment,
-      linkTo(methodOn(EquipmentController.class).equip(equipment.getItem())).withRel("equip"),
-      linkTo(methodOn(EquipmentController.class).unequip(equipment.getItem())).withRel("unequip")
+      linkTo(methodOn(EquipmentController.class).equip(equipment.getItem().getId())).withRel("equip"),
+      linkTo(methodOn(EquipmentController.class).unequip(equipment.getItem().getId())).withRel("unequip")
     );
   }
 }

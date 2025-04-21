@@ -7,6 +7,8 @@ import com.village.bellevue.entity.id.EquipmentId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.IdClass;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,9 +25,10 @@ public class EquipmentEntity {
   private Long user;
 
   @Id
-  private String item;
+  @ManyToOne
+  @JoinColumn(name = "item", nullable = false)
+  private ItemEntity item;
 
-  private String slot;
   private boolean equipped;
   private Timestamp unlocked = new Timestamp(System.currentTimeMillis());
 }
