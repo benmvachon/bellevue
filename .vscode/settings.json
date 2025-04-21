@@ -1,10 +1,15 @@
 {
   "java.configuration.updateBuildConfiguration": "automatic",
+  "java.checkstyle.configuration": "${workspaceFolder}/checkstyle.xml",
+  "java.compile.nullAnalysis.mode": "automatic",
+  "java.project.referencedLibraries": [
+    "lib/**/*.jar",
+    "target/dependency/*.jar"
+  ],
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": false,
   "[javascript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "prettier.prettierPath": "./src/main/react/bellevue/node_modules/prettier",
-  "java.checkstyle.configuration": "${workspaceFolder}/checkstyle.xml"
+  "prettier.prettierPath": "./src/main/react/bellevue/node_modules/prettier"
 }
