@@ -1,6 +1,6 @@
 {
   "java.configuration.updateBuildConfiguration": "automatic",
-  "java.checkstyle.configuration": "${workspaceFolder}/checkstyle.xml",
+  "java.checkstyle.configuration": "checkstyle.xml",
   "java.compile.nullAnalysis.mode": "automatic",
   "java.project.referencedLibraries": [
     "lib/**/*.jar",
@@ -11,5 +11,11 @@
   "[javascript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "prettier.prettierPath": "./src/main/react/bellevue/node_modules/prettier"
+  "prettier.prettierPath": "./src/main/react/bellevue/node_modules/prettier",
+  "[java]": {
+    "editor.defaultFormatter": "redhat.java",
+    "editor.tabSize": 2,
+    "editor.detectIndentation": false
+  },
+  "java.format.settings.url": ".vscode/java-formatter.xml"
 }

@@ -1,8 +1,10 @@
 package com.village.bellevue.service.impl;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -13,13 +15,13 @@ import static com.village.bellevue.config.security.SecurityConfig.getAuthenticat
 import com.village.bellevue.entity.ForumEntity;
 import com.village.bellevue.error.AuthorizationException;
 import com.village.bellevue.error.FriendshipException;
+import com.village.bellevue.event.ForumEvent;
 import com.village.bellevue.model.ForumModel;
 import com.village.bellevue.model.ForumModelProvider;
 import com.village.bellevue.model.ProfileModel;
 import com.village.bellevue.repository.ForumRepository;
 import com.village.bellevue.repository.ProfileRepository;
 import com.village.bellevue.service.ForumService;
-import com.village.bellevue.service.NotificationService;
 import com.village.bellevue.service.UserProfileService;
 
 @Service
@@ -54,31 +56,30 @@ public class ForumServiceImpl implements ForumService {
 
   private final ForumRepository forumRepository;
   private final ProfileRepository profileRepository;
-  private final NotificationService notificationService;
   private final UserProfileService userProfileService;
+  private final ApplicationEventPublisher publisher;
 
   public ForumServiceImpl(
     ForumRepository forumRepository,
     ProfileRepository profileRepository,
-    NotificationService notificationService,
-    UserProfileService userProfileService
+    UserProfileService userProfileService,
+    ApplicationEventPublisher publisher
   ) {
     this.forumRepository = forumRepository;
     this.profileRepository = profileRepository;
-    this.notificationService = notificationService;
     this.userProfileService = userProfileService;
+    this.publisher = publisher;
   }
 
   @Override
   @Transactional
   public ForumModel create(ForumEntity forum) throws AuthorizationException {
-    boolean saved = false;
+    ForumModel model = null;
     try {
-      forum = save(forum);
-      saved = true;
-      return new ForumModel(forum, forumModelProvider);
+      model = new ForumModel(save(forum), forumModelProvider);
+      return model;
     } finally {
-      if (saved) notificationService.notifyFriends(1l, forum.getId());
+      if (Objects.nonNull(model)) publisher.publishEvent(new ForumEvent(getAuthenticatedUserId(), model));
     }
   }
 

@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -27,11 +28,12 @@ import static com.village.bellevue.config.security.SecurityConfig.getAuthenticat
 import com.village.bellevue.entity.FriendEntity;
 import com.village.bellevue.entity.id.FriendId;
 import com.village.bellevue.error.FriendshipException;
+import com.village.bellevue.event.AcceptanceEvent;
+import com.village.bellevue.event.RequestEvent;
 import com.village.bellevue.model.ProfileModel;
 import com.village.bellevue.model.ProfileModelProvider;
 import com.village.bellevue.repository.FriendRepository;
 import com.village.bellevue.service.FriendService;
-import com.village.bellevue.service.NotificationService;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -56,25 +58,26 @@ public class FriendServiceImpl implements FriendService {
 
   private static final Logger logger = LoggerFactory.getLogger(FriendServiceImpl.class);
   private final FriendRepository friendRepository;
-  private final NotificationService notificationService;
   private final DataSource dataSource;
   private final CacheManager cacheManager;
   private final RedisTemplate<String, Object> redisTemplate;
+  private final ApplicationEventPublisher publisher;
 
   @PersistenceContext
   private EntityManager entityManager;
 
   public FriendServiceImpl(
-      FriendRepository friendRepository,
-      NotificationService notificationService,
-      DataSource dataSource,
-      CacheManager cacheManager,
-      RedisTemplate<String, Object> redisTemplate) {
+    FriendRepository friendRepository,
+    DataSource dataSource,
+    CacheManager cacheManager,
+    RedisTemplate<String, Object> redisTemplate,
+    ApplicationEventPublisher publisher
+  ) {
     this.friendRepository = friendRepository;
-    this.notificationService = notificationService;
     this.dataSource = dataSource;
     this.cacheManager = cacheManager;
     this.redisTemplate = redisTemplate;
+    this.publisher = publisher;
   }
 
   @Override
@@ -96,7 +99,7 @@ public class FriendServiceImpl implements FriendService {
     } finally {
       entityManager.flush();
       entityManager.clear(); // ensure the database is updated
-      if (success) notificationService.notifyFriend(user, 5l, getAuthenticatedUserId());
+      if (success) publisher.publishEvent(new RequestEvent(getAuthenticatedUserId(), user));
       evictCaches(user);
     }
   }
@@ -173,7 +176,7 @@ public class FriendServiceImpl implements FriendService {
           "Failed to accept friendship. SQL command error: " + e.getMessage(), e);
     } finally {
       evictCaches(user);
-      if (success) notificationService.notifyFriend(user, 6l, getAuthenticatedUserId());
+      if (success) publisher.publishEvent(new AcceptanceEvent(getAuthenticatedUserId(), user));
     }
   }
 

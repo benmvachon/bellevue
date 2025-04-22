@@ -23,11 +23,7 @@ function PostPage() {
   if (error) return JSON.stringify(error);
   if (!post) return;
 
-  let postElement = (
-    <div className="selected-post">
-      <Post id={post.id} />
-    </div>
-  );
+  let postElement = <Post id={post.id} selected />;
   let parent = post.parent;
   while (parent) {
     postElement = <Post id={parent.id}>{postElement}</Post>;

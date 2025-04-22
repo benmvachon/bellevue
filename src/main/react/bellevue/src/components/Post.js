@@ -6,7 +6,7 @@ import { addReply, getPost, getReplies, ratePost } from '../api/api.js';
 import Rating from './Rating.js';
 import InfiniteScroll from './InfiniteScroll.js';
 
-function Post({ id, children }) {
+function Post({ id, selected = false, children }) {
   const navigate = useNavigate();
   const [post, setPost] = useState(null);
   const [replies, setReplies] = useState(null);
@@ -74,7 +74,7 @@ function Post({ id, children }) {
   }
 
   return (
-    <div className="post">
+    <div className={selected ? 'selected post' : 'post'}>
       <div className="post-header">
         <button onClick={() => navigate(`/profile/${post?.user.id}`)}>
           {post?.user.name}
@@ -104,6 +104,7 @@ function Post({ id, children }) {
 
 Post.propTypes = {
   id: PropTypes.number,
+  selected: PropTypes.bool,
   children: PropTypes.element
 };
 

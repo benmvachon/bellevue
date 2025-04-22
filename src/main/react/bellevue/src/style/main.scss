@@ -81,6 +81,15 @@ html {
           display: flex;
           flex-direction: column;
           margin-left: 32px;
+          background: white;
+
+          &.selected { 
+            background: #ddd;
+
+            div.loader {
+              background: white;
+            }
+          }
 
           div.post-header {
             display: flex;
@@ -100,10 +109,6 @@ html {
               }
             }
           }
-        }
-
-        div.selected-post {
-          background: #ddd;
         }
       }
 

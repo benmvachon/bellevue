@@ -87,7 +87,8 @@ public class UserDetailsServiceTest {
       when(datasource.getConnection()).thenReturn(connection);
       when(connection.prepareCall(any())).thenReturn(callableStatement);
       when(callableStatement.getLong(any())).thenReturn(user.getId());
-      when(callableStatement.getString(any())).thenReturn("cat");
+      when(callableStatement.getString(6)).thenReturn("cat");
+      when(callableStatement.getString(7)).thenReturn("yellow_cap");
 
       ProfileModel createdUser = userDetailsService.create(user);
 

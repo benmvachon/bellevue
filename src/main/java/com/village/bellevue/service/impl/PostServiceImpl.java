@@ -3,6 +3,7 @@ package com.village.bellevue.service.impl;
 import java.util.Optional;
 
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import com.village.bellevue.entity.UserProfileEntity;
 import com.village.bellevue.entity.id.AggregateRatingId;
 import com.village.bellevue.error.AuthorizationException;
 import com.village.bellevue.error.FriendshipException;
+import com.village.bellevue.event.PostEvent;
 import com.village.bellevue.model.ForumModel;
 import com.village.bellevue.model.ForumModelProvider;
 import com.village.bellevue.model.PostModel;
@@ -28,7 +30,6 @@ import com.village.bellevue.repository.PostRepository;
 import com.village.bellevue.repository.ProfileRepository;
 import com.village.bellevue.repository.UserProfileRepository;
 import com.village.bellevue.service.FriendService;
-import com.village.bellevue.service.NotificationService;
 import com.village.bellevue.service.PostService;
 
 @Service
@@ -105,8 +106,8 @@ public class PostServiceImpl implements PostService {
   private final ForumRepository forumRepository;
   private final ProfileRepository profileRepository;
   private final UserProfileRepository userProfileRepository;
-  private final NotificationService notificationService;
   private final FriendService friendService;
+  private final ApplicationEventPublisher publisher;
 
   public PostServiceImpl(
     PostRepository postRepository,
@@ -114,16 +115,16 @@ public class PostServiceImpl implements PostService {
     ForumRepository forumRepository,
     ProfileRepository profileRepository,
     UserProfileRepository userProfileRepository,
-    NotificationService notificationService,
-    FriendService friendService
+    FriendService friendService,
+    ApplicationEventPublisher publisher
   ) {
     this.postRepository = postRepository;
     this.ratingRepository = ratingRepository;
     this.forumRepository = forumRepository;
     this.profileRepository = profileRepository;
     this.userProfileRepository = userProfileRepository;
-    this.notificationService = notificationService;
     this.friendService = friendService;
+    this.publisher = publisher;
   }
 
   @Override
@@ -139,12 +140,7 @@ public class PostServiceImpl implements PostService {
       return model;
     } finally {
       if (model != null) {
-        if (model.getForum().getUser() == null) {
-          notificationService.notifyFriends(2l, model.getId());
-        } else {
-          notificationService.notifyMutualFriends(model.getForum().getUser().getId(), 2l, model.getId());
-          notificationService.notifyFriend(model.getForum().getUser().getId(), 2l, model.getId());
-        }
+        publisher.publishEvent(new PostEvent(getAuthenticatedUserId(), model));
       }
     }
   }
@@ -164,11 +160,7 @@ public class PostServiceImpl implements PostService {
       return model;
     } finally {
       if (model != null) {
-        PostModel parentModel = model.getParent();
-        while (parentModel != null) {
-          notificationService.notifyFriend(parentModel.getUser().getId(), 3l, model.getId());
-          parentModel = parentModel.getParent();
-        }
+        publisher.publishEvent(new PostEvent(getAuthenticatedUserId(), model));
       }
     }
   }

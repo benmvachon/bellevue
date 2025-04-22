@@ -6,6 +6,7 @@
 <module name="Checker">
     <module name="FileTabCharacter">
         <property name="eachLine" value="true"/>
+        <property name="severity" value="error" />
     </module>
     <module name="TreeWalker">
         <module name="Indentation">
