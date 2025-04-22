@@ -11,7 +11,7 @@
       "envFile": "${workspaceFolder}/.env",
       "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=58304 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=bellevue",
       "preLaunchTask": "Run All Prelaunch Tasks",
-      "postDebugTask": "Stop Docker Containers"
+      "postDebugTask": "Terminate All Tasks"
     }
   ]
 }

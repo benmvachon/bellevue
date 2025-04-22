@@ -62,6 +62,23 @@
       "args": ["down"],
       "problemMatcher": [],
       "group": "none"
+    },
+    {
+      "label": "Terminate All Tasks",
+      "command": "echo ${input:terminate}",
+      "type": "shell",
+      "problemMatcher": [],
+      "group": "none",
+      "dependsOn": ["Stop Docker Containers"],
+      "dependsOrder": "sequence"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "terminate",
+      "type": "command",
+      "command": "workbench.action.tasks.terminate",
+      "args": "terminateAll"
     }
   ]
 }
