@@ -8,6 +8,8 @@ import Post from './Post.js';
 import Notification from './Notification.js';
 import Message from './Message.js';
 import Equipment from './Equipment.js';
+import SockJS from 'sockjs-client';
+import { Client } from '@stomp/stompjs';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
@@ -15,6 +17,8 @@ export const api = axios.create({
   baseURL: `${API_BASE_URL ? API_BASE_URL : ''}/api`,
   withCredentials: true
 });
+
+export const socket = new SockJS('/ws');
 
 export const login = (username, password, callback, error) => {
   const formData = new URLSearchParams();
@@ -287,6 +291,23 @@ export const markMessageRead = (friend, message, callback, error) => {
     .put(`/message/${friend}/read/${message}`)
     .then(callback)
     .catch((err) => error(err));
+};
+
+export const connectToAMB = (onNotification, onMessage) => {
+  const client = new Client({
+    webSocketFactory: () => new SockJS('/ws'),
+    onConnect: () => {
+      client.subscribe('/user/topic/notification', (message) => {
+        onNotification(JSON.parse(message.body));
+      });
+      client.subscribe('/user/topic/message', (message) => {
+        onMessage(JSON.parse(message.body));
+      });
+    }
+  });
+
+  client.activate();
+  return client;
 };
 
 export const getEquipment = (callback, error, page = 0, slot = 'all') => {

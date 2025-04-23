@@ -43,4 +43,5 @@ INSERT INTO notification_type (name) VALUES
 ('rating'),     -- id 4
 ('request'),    -- id 5
 ('acceptance'), -- id 6
-('message');    -- id 7
+('message'),    -- id 7
+('equipment');  -- id 8

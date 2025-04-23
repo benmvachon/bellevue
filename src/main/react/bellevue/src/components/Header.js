@@ -2,7 +2,11 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import withAuth from '../utils/withAuth.js';
 import { useAuth } from '../utils/AuthContext.js';
-import { getNotificationCount, getMessageCount } from '../api/api.js';
+import {
+  getNotificationCount,
+  getMessageCount,
+  connectToAMB
+} from '../api/api.js';
 import Notifications from './Notifications.js';
 import Threads from './Threads.js';
 import Messages from './Messages.js';
@@ -16,16 +20,16 @@ function Header() {
   const [showThreads, setShowThreads] = useState(false);
   const [showMessages, setShowMessages] = useState(false);
   const [friend, setFriend] = useState(-1);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    getNotificationCount(setNotificationCount, setNotificationCount);
-    getMessageCount(setUnreadThreadCount, setUnreadThreadCount);
-    const interval = setInterval(() => {
-      getNotificationCount(setNotificationCount, setNotificationCount);
-      getMessageCount(setUnreadThreadCount, setUnreadThreadCount);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [setNotificationCount, setUnreadThreadCount]);
+    getNotificationCount(setNotificationCount, setError);
+    getMessageCount(setUnreadThreadCount, setError);
+    connectToAMB(
+      (message) => getNotificationCount(setNotificationCount, setError),
+      (message) => getMessageCount(setUnreadThreadCount, setError)
+    );
+  }, []);
 
   const openNotifications = () => {
     setShowNotifications(true);
@@ -55,6 +59,8 @@ function Header() {
     setFriend(-1);
     setShowThreads(true);
   };
+
+  if (error) return JSON.stringify(error);
 
   return (
     <div className="header">

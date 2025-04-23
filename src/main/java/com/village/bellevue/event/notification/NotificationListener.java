@@ -1,9 +1,10 @@
-package com.village.bellevue.event;
+package com.village.bellevue.event.notification;
 
 import java.util.stream.Stream;
 
 import org.springframework.context.event.EventListener;
 import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.concurrent.DelegatingSecurityContextRunnable;
 import org.springframework.security.core.context.SecurityContext;
@@ -14,6 +15,13 @@ import org.springframework.transaction.annotation.Transactional;
 import com.village.bellevue.entity.NotificationEntity;
 import com.village.bellevue.entity.NotificationTypeEntity;
 import com.village.bellevue.entity.UserProfileEntity;
+import com.village.bellevue.event.AcceptanceEvent;
+import com.village.bellevue.event.EquipmentEvent;
+import com.village.bellevue.event.ForumEvent;
+import com.village.bellevue.event.MessageEvent;
+import com.village.bellevue.event.PostEvent;
+import com.village.bellevue.event.RatingEvent;
+import com.village.bellevue.event.RequestEvent;
 import com.village.bellevue.model.ForumModel;
 import com.village.bellevue.model.PostModel;
 import com.village.bellevue.repository.FriendRepository;
@@ -23,13 +31,16 @@ import com.village.bellevue.repository.NotificationRepository;
 public class NotificationListener {
   private final NotificationRepository notificationRepository;
   private final FriendRepository friendRepository;
+  private final SimpMessagingTemplate messagingTemplate;
 
   public NotificationListener(
     NotificationRepository notificationRepository,
-    FriendRepository friendRepository
+    FriendRepository friendRepository,
+    SimpMessagingTemplate messagingTemplate
   ) {
     this.notificationRepository = notificationRepository;
     this.friendRepository = friendRepository;
+    this.messagingTemplate = messagingTemplate;
   }
 
   @Async
@@ -53,6 +64,7 @@ public class NotificationListener {
       if (post.getParent() != null) {
         PostModel parent = post.getParent();
         while (parent != null) {
+          if (user.equals(parent.getUser().getId())) continue;
           notifyFriend(user, parent.getUser().getId(), 3l, post.getId());
           parent = parent.getParent();
         }
@@ -60,6 +72,7 @@ public class NotificationListener {
         notifyFriends(user, 2l, post.getId());
       } else {
         notifyMutualFriends(user, post.getForum().getUser().getId(), 2l, post.getId());
+        if (user.equals(post.getForum().getUser().getId())) return;
         notifyFriend(user, post.getForum().getUser().getId(), 2l, post.getId());
       }
     }
@@ -72,6 +85,7 @@ public class NotificationListener {
     Long user = event.getUser();
     Long post = event.getPost();
     Long postAuthor = event.getPostAuthor();
+    if (user.equals(postAuthor)) return;
     notifyFriend(user, postAuthor, 4l, post);
   }
 
@@ -100,6 +114,16 @@ public class NotificationListener {
     Long user = event.getUser();
     Long friend = event.getFriend();
     notifyFriend(user, friend, 7l, user);
+    messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/message", event);
+  }
+
+  @Async
+  @EventListener
+  @Transactional
+  public void handleEquipmentEvent(EquipmentEvent event) {
+    Long user = event.getUser();
+    Long item = event.getEquipment().getItem().getId();
+    notifyFriend(user, user, 8l, item);
   }
 
   @Async
@@ -108,6 +132,7 @@ public class NotificationListener {
     try (Stream<Long> friendStream = friendRepository.streamFriends(user)) {
       SecurityContext context = SecurityContextHolder.getContext();
       friendStream.parallel().forEach(friend -> {
+        if (user.equals(friend)) return;
         Runnable task = () -> notifyFriend(user, friend, type, entity);
         DelegatingSecurityContextRunnable securedTask = new DelegatingSecurityContextRunnable(task, context);
         securedTask.run();
@@ -121,6 +146,7 @@ public class NotificationListener {
     try (Stream<Long> friendStream = friendRepository.streamMutualFriends(user, friend)) {
       SecurityContext context = SecurityContextHolder.getContext();
       friendStream.parallel().forEach(mutual -> {
+        if (user.equals(mutual)) return;
         Runnable task = () -> notifyFriend(user, mutual, type, entity);
         DelegatingSecurityContextRunnable securedTask = new DelegatingSecurityContextRunnable(task, context);
         securedTask.run();
@@ -132,7 +158,6 @@ public class NotificationListener {
   @Transactional
   @Modifying
   private void notifyFriend(Long user, Long friend, Long type, Long entity) {
-    if (user.equals(friend)) return;
     UserProfileEntity notifier = new UserProfileEntity(user);
     NotificationTypeEntity notificationType = new NotificationTypeEntity(type);
 
@@ -143,5 +168,6 @@ public class NotificationListener {
     notification.setEntity(entity);
     notification.setRead(false);
     notificationRepository.save(notification);
+    messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/notification", notification);
   }
 }

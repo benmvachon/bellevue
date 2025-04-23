@@ -1,5 +1,7 @@
 package com.village.bellevue.event.equipment.post;
 
+import org.springframework.context.ApplicationEventPublisher;
+
 import com.google.common.base.Strings;
 import com.village.bellevue.event.PostEvent;
 import com.village.bellevue.event.equipment.AbstractEquipmentListener;
@@ -14,9 +16,10 @@ public abstract class AbstractEquipmentPostEventListener extends AbstractEquipme
   public AbstractEquipmentPostEventListener(
     PostRepository postRepository,
     EquipmentRepository equipmentRepository,
+    ApplicationEventPublisher publisher,
     ItemRepository itemRepository
   ) {
-    super(equipmentRepository, itemRepository);
+    super(equipmentRepository, itemRepository, publisher);
     this.postRepository = postRepository;
   }
 

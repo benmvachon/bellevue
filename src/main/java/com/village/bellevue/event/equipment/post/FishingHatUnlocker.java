@@ -1,5 +1,6 @@
 package com.village.bellevue.event.equipment.post;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 import com.village.bellevue.repository.EquipmentRepository;
@@ -12,9 +13,10 @@ public class FishingHatUnlocker extends AbstractEquipmentPostEventListener {
   public FishingHatUnlocker(
     PostRepository postRepository,
     EquipmentRepository equipmentRepository,
+    ApplicationEventPublisher publisher,
     ItemRepository itemRepository
   ) {
-    super(postRepository, equipmentRepository, itemRepository);
+    super(postRepository, equipmentRepository, publisher, itemRepository);
   }
 
   @Override

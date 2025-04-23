@@ -153,6 +153,16 @@ CREATE TABLE notification(
     INDEX           (created),                                                                                  -- Index on the created date for fast look-up
     INDEX           (notifier, notified)                                                                        -- Index on the user pair for fast look-up
 );
+CREATE TABLE favorite(
+    id              INT UNSIGNED NOT NULL AUTO_INCREMENT,                                                       -- Unique ID for the record
+    user            INT UNSIGNED NOT NULL,                                                                      -- ID of the user for whom the aggregate rating applies
+    type            VARCHAR(255) NOT NULL,                                                                      -- The name of the table / entity which is favorited
+    entity          INT UNSIGNED NOT NULL,                                                                      -- ID of the object (post, request, rating) which is favorited
+    created         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,                                                        -- Timestamp for when the item was favorited
+    PRIMARY KEY     (id),                                                                                       -- Make the ID the primary key
+    INDEX           (user),                                                                                     -- Index on the user for fast look-up
+    INDEX           (created)                                                                                   -- Index on the created date for fast look-up
+);
 CREATE VIEW user_profile AS
 SELECT
     p.user,

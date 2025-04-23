@@ -1,5 +1,6 @@
 package com.village.bellevue.event.equipment.rating;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 import com.village.bellevue.entity.RatingEntity.Star;
@@ -13,9 +14,10 @@ public class SunGlassesUnlocker extends AbstractEquipmentRatingEventListener {
   public SunGlassesUnlocker(
     RatingRepository ratingRepository,
     EquipmentRepository equipmentRepository,
+    ApplicationEventPublisher publisher,
     ItemRepository itemRepository
   ) {
-    super(ratingRepository, equipmentRepository, itemRepository);
+    super(ratingRepository, equipmentRepository, publisher, itemRepository);
   }
 
   @Override

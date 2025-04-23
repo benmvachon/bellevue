@@ -4,11 +4,14 @@ import java.sql.Timestamp;
 import java.util.Objects;
 import java.util.Optional;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 
 import com.village.bellevue.entity.EquipmentEntity;
 import com.village.bellevue.entity.ItemEntity;
+import com.village.bellevue.entity.id.EquipmentId;
+import com.village.bellevue.event.EquipmentEvent;
 import com.village.bellevue.event.UserEvent;
 import com.village.bellevue.repository.EquipmentRepository;
 import com.village.bellevue.repository.ItemRepository;
@@ -18,15 +21,18 @@ import jakarta.transaction.Transactional;
 public abstract class AbstractEquipmentListener<T extends UserEvent> {
   private final EquipmentRepository equipmentRepository;
   private final ItemRepository itemRepository;
+  private final ApplicationEventPublisher publisher;
 
   private Long item;
 
   public AbstractEquipmentListener(
     EquipmentRepository equipmentRepository,
-    ItemRepository itemRepository
+    ItemRepository itemRepository,
+    ApplicationEventPublisher publisher
   ) {
     this.equipmentRepository = equipmentRepository;
     this.itemRepository = itemRepository;
+    this.publisher = publisher;
 
     this.item = getItem();
   }
@@ -54,6 +60,7 @@ public abstract class AbstractEquipmentListener<T extends UserEvent> {
   @EventListener
   @Transactional
   public void handleEvent(T event) {
+    if (equipmentRepository.existsById(new EquipmentId(getUser(event), itemRepository.getReferenceById(getItem())))) return;
     if (isEventRelevant(event) && shouldUnlock(event)) unlock(event);
   }
 
@@ -61,8 +68,9 @@ public abstract class AbstractEquipmentListener<T extends UserEvent> {
   @Transactional
   protected void unlock(T event) {
     Long user = getUser(event);
-    ItemEntity item = itemRepository.getReferenceById(this.item);
+    ItemEntity item = itemRepository.getReferenceById(getItem());
     EquipmentEntity equipment = new EquipmentEntity(user, item, false, new Timestamp(System.currentTimeMillis()));
-    equipmentRepository.save(equipment);
+    equipment = equipmentRepository.save(equipment);
+    publisher.publishEvent(new EquipmentEvent(user, equipment));
   }
 }

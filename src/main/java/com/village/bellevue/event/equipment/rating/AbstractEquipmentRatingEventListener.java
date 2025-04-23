@@ -2,6 +2,8 @@ package com.village.bellevue.event.equipment.rating;
 
 import java.util.Objects;
 
+import org.springframework.context.ApplicationEventPublisher;
+
 import com.village.bellevue.entity.RatingEntity.Star;
 import com.village.bellevue.event.RatingEvent;
 import com.village.bellevue.event.equipment.AbstractEquipmentListener;
@@ -16,9 +18,10 @@ public abstract class AbstractEquipmentRatingEventListener extends AbstractEquip
   public AbstractEquipmentRatingEventListener(
     RatingRepository ratingRepository,
     EquipmentRepository equipmentRepository,
+    ApplicationEventPublisher publisher,
     ItemRepository itemRepository
   ) {
-    super(equipmentRepository, itemRepository);
+    super(equipmentRepository, itemRepository, publisher);
     this.ratingRepository = ratingRepository;
   }
 
