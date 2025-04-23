@@ -44,8 +44,10 @@ CREATE TABLE profile(
 );
 CREATE TABLE item(
     id              INT UNSIGNED NOT NULL AUTO_INCREMENT,                                                       -- Unique ID for the record
-    name            VARCHAR(255) NOT NULL,                                                                      -- Name of the item
+    name            VARCHAR(255) NOT NULL UNIQUE,                                                                      -- Name of the item
     slot            VARCHAR(255) NOT NULL,                                                                      -- Where the item is equipped (avatar, hat, mask, shirt, glow, etc)
+    starter         BOOLEAN NOT NULL DEFAULT 0,                                                                 -- Flag indicating starter-item status
+    unlockable      BOOLEAN NOT NULL DEFAULT 1,                                                                 -- Flag indicating unlockable status
     PRIMARY KEY     (id),                                                                                       -- Joint primary key of user and item
     INDEX           (name),                                                                                     -- Index on the slot for fast look-up
     INDEX           (slot)                                                                                      -- Index on the name for fast look-up

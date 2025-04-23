@@ -41,7 +41,7 @@ BEGIN
     -- Pick a random hat ID and name
     SELECT id, name INTO v_hat_id, p_hat_name
     FROM item
-    WHERE id < 8
+    WHERE starter = true
     ORDER BY RAND()
     LIMIT 1;
 

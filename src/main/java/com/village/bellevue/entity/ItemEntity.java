@@ -26,6 +26,9 @@ public class ItemEntity {
   @Column(nullable = false)
   private String slot;
 
+  private boolean starter = false;
+  private boolean unlockable = true;
+
   public ItemEntity(Long id) {
     this.id = id;
   }

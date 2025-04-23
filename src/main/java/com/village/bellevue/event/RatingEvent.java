@@ -5,7 +5,7 @@ import com.village.bellevue.entity.RatingEntity.Star;
 import lombok.Data;
 
 @Data
-public class RatingEvent {
+public class RatingEvent implements UserEvent {
   private final Long user;
   private final Long post;
   private final Long postAuthor;

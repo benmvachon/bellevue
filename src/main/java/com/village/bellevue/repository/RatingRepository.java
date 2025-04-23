@@ -8,10 +8,33 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.village.bellevue.entity.RatingEntity;
+import com.village.bellevue.entity.RatingEntity.Star;
 import com.village.bellevue.entity.id.RatingId;
 
 @Repository
 public interface RatingRepository extends JpaRepository<RatingEntity, RatingId> {
+
+  @Query(
+    "SELECT COUNT(DISTINCT(r)) FROM RatingEntity r " +
+    "LEFT JOIN FriendEntity f ON r.user = f.friend.id " +
+    "WHERE ((f.status = 'accepted' AND f.user = :user) OR r.user = :user) " +
+    "AND r.post = :post"
+  )
+  Integer countByPost(@Param("post") Long post, @Param("user") Long user);
+
+  @Query(
+    "SELECT COUNT(DISTINCT(r)) FROM RatingEntity r " +
+    "LEFT JOIN FriendEntity f ON r.user = f.friend.id " +
+    "WHERE ((f.status = 'accepted' AND f.user = :user) OR r.user = :user) " +
+    "AND r.post = :post AND r.rating = :rating"
+  )
+  Integer countByRatingAndPost(@Param("post") Long post, @Param("rating") Star rating, @Param("user") Long user);
+
+  @Query("SELECT COUNT(DISTINCT(r)) FROM RatingEntity r WHERE r.user = :user")
+  Integer countByUser(@Param("user") Long user);
+
+  @Query("SELECT COUNT(DISTINCT(r)) FROM RatingEntity r WHERE r.user = :user AND r.rating = :rating")
+  Integer countByUserAndRating(@Param("rating") Star rating, @Param("user") Long user);
 
   @Query(
     "SELECT DISTINCT r FROM RatingEntity r " +
@@ -20,7 +43,7 @@ public interface RatingRepository extends JpaRepository<RatingEntity, RatingId> 
     "AND r.post = :post " +
     "ORDER BY r.updated DESC"
   )
-  Page<RatingEntity> findByPostId(@Param("post") Long post, @Param("user") Long user, Pageable pageable);
+  Page<RatingEntity> findByPost(@Param("post") Long post, @Param("user") Long user, Pageable pageable);
 
   @Query(
     "SELECT DISTINCT r FROM RatingEntity r " +
@@ -29,7 +52,7 @@ public interface RatingRepository extends JpaRepository<RatingEntity, RatingId> 
     "AND r.user = :friend " +
     "ORDER BY r.updated DESC"
   )
-  Page<RatingEntity> findByFriendId(@Param("friend") Long friend, @Param("user") Long user, Pageable pageable);
+  Page<RatingEntity> findByFriend(@Param("friend") Long friend, @Param("user") Long user, Pageable pageable);
 
   @Query(
     "SELECT DISTINCT r FROM RatingEntity r " +

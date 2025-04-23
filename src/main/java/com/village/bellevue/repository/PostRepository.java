@@ -54,4 +54,11 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
       "AND f.status = 'accepted' " +
       "AND p.id = :post")
   Boolean canRead(@Param("post") Long post, @Param("user") Long user);
+
+  @Query("SELECT COUNT(p) FROM PostEntity p WHERE p.user.id = :user AND LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+  Integer countAllPostsByUserContainingKeyword(@Param("user") Long user, @Param("keyword") String keyword);
+
+  @Query("SELECT COUNT(p) FROM PostEntity p WHERE p.user.id = :user")
+  Integer countAllPostsByUser(@Param("user") Long user);
+
 }
