@@ -28,6 +28,9 @@ function Notification({ notification, onClose, openMessages }) {
       case 'message':
         openMessages(notification.entity);
         break;
+      case 'equipment':
+        navigate(`/profile/${notification.notified}`);
+        break;
       default:
         navigate(`/${notification.typeName}/${notification.entity}`);
         break;

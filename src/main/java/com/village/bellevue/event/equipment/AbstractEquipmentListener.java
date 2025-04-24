@@ -5,12 +5,12 @@ import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 
 import com.village.bellevue.entity.EquipmentEntity;
 import com.village.bellevue.entity.ItemEntity;
 import com.village.bellevue.entity.id.EquipmentId;
+import com.village.bellevue.error.EquipmentException;
 import com.village.bellevue.event.EquipmentEvent;
 import com.village.bellevue.event.UserEvent;
 import com.village.bellevue.repository.EquipmentRepository;
@@ -57,18 +57,18 @@ public abstract class AbstractEquipmentListener<T extends UserEvent> {
   }
 
   @Async
-  @EventListener
   @Transactional
-  public void handleEvent(T event) {
+  public void handleEvent(T event) throws EquipmentException {
+    if (!(event instanceof T)) return;
     if (equipmentRepository.existsById(new EquipmentId(getUser(event), itemRepository.getReferenceById(getItem())))) return;
     if (isEventRelevant(event) && shouldUnlock(event)) unlock(event);
   }
 
   @Async
   @Transactional
-  protected void unlock(T event) {
+  protected void unlock(T event) throws EquipmentException {
     Long user = getUser(event);
-    ItemEntity item = itemRepository.getReferenceById(getItem());
+    ItemEntity item = itemRepository.findById(getItem()).orElseThrow(() -> new EquipmentException("Failed to find item to unlock for user"));
     EquipmentEntity equipment = new EquipmentEntity(user, item, false, new Timestamp(System.currentTimeMillis()));
     equipment = equipmentRepository.save(equipment);
     publisher.publishEvent(new EquipmentEvent(user, equipment));

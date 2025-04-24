@@ -18,7 +18,7 @@ import com.village.bellevue.entity.NotificationEntity;
 public class NotificationModelAssembler implements RepresentationModelAssembler<NotificationEntity, EntityModel<NotificationEntity>> {
   @Override
   public EntityModel<NotificationEntity> toModel(NotificationEntity notification) {
-    Link entityLink = null;
+    Link entityLink = linkTo(methodOn(UserController.class).read(notification.getNotifier().getUser())).withRel("entity");
     if (notification.getType().getId().equals(1l)) {
       entityLink = linkTo(methodOn(ForumController.class).read(notification.getEntity())).withRel("entity");
     } else if (notification.getType().getId().equals(2l) || notification.getType().getId().equals(3l) || notification.getType().getId().equals(4l)) {

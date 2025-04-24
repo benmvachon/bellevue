@@ -37,7 +37,7 @@ function Header() {
 
   const closeNotifications = () => {
     setShowNotifications(false);
-    getNotificationCount(setNotificationCount, setNotificationCount);
+    getNotificationCount(setNotificationCount, setError);
   };
 
   const openThreads = () => {
@@ -46,7 +46,7 @@ function Header() {
 
   const closeThreads = () => {
     setShowThreads(false);
-    getMessageCount(setUnreadThreadCount, setUnreadThreadCount);
+    getMessageCount(setUnreadThreadCount, setError);
   };
 
   const openMessages = (friend) => {

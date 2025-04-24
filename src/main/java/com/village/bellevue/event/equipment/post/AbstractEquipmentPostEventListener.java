@@ -1,13 +1,17 @@
 package com.village.bellevue.event.equipment.post;
 
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 
 import com.google.common.base.Strings;
+import com.village.bellevue.error.EquipmentException;
 import com.village.bellevue.event.PostEvent;
 import com.village.bellevue.event.equipment.AbstractEquipmentListener;
 import com.village.bellevue.repository.EquipmentRepository;
 import com.village.bellevue.repository.ItemRepository;
 import com.village.bellevue.repository.PostRepository;
+
+import jakarta.transaction.Transactional;
 
 public abstract class AbstractEquipmentPostEventListener extends AbstractEquipmentListener<PostEvent> {
 
@@ -29,6 +33,12 @@ public abstract class AbstractEquipmentPostEventListener extends AbstractEquipme
   @Override
   protected boolean isEventRelevant(PostEvent event) {
     return !Strings.isNullOrEmpty(getKeyword()) && event.getPost().getContent().contains(getKeyword());
+  }
+
+  @EventListener
+  @Transactional
+  public void handleEvent(PostEvent event) throws EquipmentException {
+    super.handleEvent(event);
   }
 
   @Override
