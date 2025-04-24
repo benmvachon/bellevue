@@ -15,7 +15,7 @@ public class PostModelAssembler implements RepresentationModelAssembler<PostMode
   public EntityModel<PostModel> toModel(PostModel post) {
     return EntityModel.of(
       post,
-      linkTo(methodOn(PostController.class).readAllByParent(post.getId(), 0, 10)).withRel("children"),
+      linkTo(methodOn(PostController.class).readAllByParent(post.getId(), 0, 10,  true)).withRel("children"),
       linkTo(methodOn(PostController.class).reply(post.getForum().getId(), post.getId(), null)).withRel("reply")
     );
   }

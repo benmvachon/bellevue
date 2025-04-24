@@ -20,16 +20,75 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
       "AND p.parent IS NULL " +
       "AND (p.forum.user IS NULL OR p.forum.user = :user OR forumFriend.status = 'accepted') " +
       "AND (p.user.id = :user OR postFriend.status = 'accepted') " +
-      "ORDER BY p.created ASC")
-  Page<PostEntity> findAllTopLevelByForum(@Param("user") Long user, @Param("forum") Long forum, Pageable pageable);
+      "ORDER BY p.created DESC")
+  Page<PostEntity> findRecentTopLevelByForum(@Param("user") Long user, @Param("forum") Long forum, Pageable pageable);
+
+  @Query(
+    value = """
+      SELECT p.* FROM post p
+      LEFT JOIN forum f ON p.forum = f.id
+      LEFT JOIN friend ff ON f.user = ff.friend AND ff.user = :user AND ff.status = 'accepted'
+      LEFT JOIN friend pf ON p.user = pf.friend AND pf.user = :user AND pf.status = 'accepted'
+      LEFT JOIN (
+          SELECT parent, COUNT(*) AS child_count
+          FROM post
+          WHERE parent IS NOT NULL
+          GROUP BY parent
+      ) child_counts ON p.id = child_counts.parent
+      LEFT JOIN aggregate_rating ar ON ar.post = p.id AND ar.user = :user
+      WHERE p.forum = :forum
+        AND p.parent IS NULL
+        AND (f.user IS NULL OR f.user = :user OR ff.status = 'accepted')
+        AND (p.user = :user OR pf.status = 'accepted')
+      ORDER BY IFNULL(child_counts.child_count, 0) + IFNULL(ar.rating_count, 0) DESC
+      """,
+    countQuery = """
+      SELECT COUNT(*) FROM post p
+      LEFT JOIN forum f ON p.forum = f.id
+      LEFT JOIN friend ff ON f.user = ff.friend AND ff.user = :user AND ff.status = 'accepted'
+      LEFT JOIN friend pf ON p.user = pf.friend AND pf.user = :user AND pf.status = 'accepted'
+      WHERE p.forum = :forum
+        AND p.parent IS NULL
+        AND (f.user IS NULL OR f.user = :user OR ff.status = 'accepted')
+        AND (p.user = :user OR pf.status = 'accepted')
+      """,
+    nativeQuery = true
+  )
+  Page<PostEntity> findRelevantTopLevelByForum(@Param("user") Long user, @Param("forum") Long forum, Pageable pageable);
 
   @Query(
       "SELECT p FROM PostEntity p " +
       "LEFT JOIN FriendEntity f ON p.user.id = f.friend.id AND f.user = :user " +
       "WHERE p.parent.id = :post " +
       "AND (p.user.id = :user OR f.status = 'accepted') " +
-      "ORDER BY p.created ASC")
-  Page<PostEntity> findAllChildren(@Param("user") Long user, @Param("post") Long post, Pageable pageable);
+      "ORDER BY p.created DESC")
+  Page<PostEntity> findRecentChildren(@Param("user") Long user, @Param("post") Long post, Pageable pageable);
+
+  @Query(
+    value = """
+      SELECT p.* FROM post p
+      LEFT JOIN friend f ON p.user = f.friend AND f.user = :user AND f.status = 'accepted'
+      LEFT JOIN (
+          SELECT parent, COUNT(*) AS child_count
+          FROM post
+          WHERE parent IS NOT NULL
+          GROUP BY parent
+      ) child_counts ON p.id = child_counts.parent
+      LEFT JOIN aggregate_rating ar ON ar.post = p.id AND ar.user = :user
+      WHERE p.parent = :post
+      AND (p.user = :user OR f.status = 'accepted')
+      ORDER BY IFNULL(child_counts.child_count, 0) + IFNULL(ar.rating_count, 0) DESC
+      """,
+    countQuery = """
+      SELECT COUNT(*) FROM post p
+      LEFT JOIN friend f ON p.user = f.friend AND f.user = :user AND f.status = 'accepted'
+      WHERE p.parent = :post
+      AND (p.user = :user OR f.status = 'accepted')
+      """,
+    nativeQuery = true
+  )
+  Page<PostEntity> findRelevantChildren(@Param("user") Long user, @Param("post") Long post, Pageable pageable);
+  
 
   @Query(
     "SELECT COUNT(p) FROM PostEntity p " +

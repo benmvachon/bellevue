@@ -9,6 +9,7 @@ import InfiniteScroll from './InfiniteScroll.js';
 function Post({ id, selected = false, children }) {
   const navigate = useNavigate();
   const [post, setPost] = useState(null);
+  const [sortByRelevance, setSortByRelevance] = useState(true);
   const [replies, setReplies] = useState(null);
   const [reply, setReply] = useState(null);
   const [showReplies, setShowReplies] = useState(true);
@@ -19,7 +20,7 @@ function Post({ id, selected = false, children }) {
   };
 
   const refreshChildren = () => {
-    getReplies(id, setReplies, setError);
+    getReplies(id, setReplies, setError, 0, sortByRelevance);
   };
 
   const loadMore = (page) => {
@@ -33,8 +34,13 @@ function Post({ id, selected = false, children }) {
         }
       },
       setError,
-      page
+      page,
+      sortByRelevance
     );
+  };
+
+  const toggleSort = () => {
+    setSortByRelevance(!sortByRelevance);
   };
 
   useEffect(() => {
@@ -45,7 +51,7 @@ function Post({ id, selected = false, children }) {
   useEffect(() => {
     if (post && post.children > 0) refreshChildren();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [post]);
+  }, [post, sortByRelevance]);
 
   if (error) return JSON.stringify(error);
   if (!post) return;
@@ -57,6 +63,11 @@ function Post({ id, selected = false, children }) {
           {showReplies
             ? `Hide (${post.children}) replies`
             : `Show (${post.children}) replies`}
+        </button>
+      );
+      children.push(
+        <button onClick={toggleSort}>
+          {sortByRelevance ? 'Most recent' : 'Most relevant'}
         </button>
       );
       if (showReplies) {

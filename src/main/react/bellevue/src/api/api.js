@@ -146,9 +146,18 @@ export const addForum = (category, name, callback, error) => {
     .catch((err) => error(err));
 };
 
-export const getPosts = (forum, callback, error, page = 0) => {
+export const getPosts = (
+  forum,
+  callback,
+  error,
+  page = 0,
+  sortByRelevance = true,
+  size = 10
+) => {
   api
-    .get(`/post/forum/${forum}?page=${page}`)
+    .get(
+      `/post/forum/${forum}?page=${page}&size=${size}&sortByRelevance=${sortByRelevance}`
+    )
     .then((response) => {
       const page = Page.fromJSON(response.data, Post.postMapper);
       callback(page);
@@ -156,9 +165,18 @@ export const getPosts = (forum, callback, error, page = 0) => {
     .catch((err) => error(err));
 };
 
-export const getReplies = (post, callback, error, page = 0) => {
+export const getReplies = (
+  post,
+  callback,
+  error,
+  page = 0,
+  sortByRelevance = true,
+  size = 5
+) => {
   api
-    .get(`/post/children/${post}?page=${page}`)
+    .get(
+      `/post/children/${post}?page=${page}&size=${size}&sortByRelevance=${sortByRelevance}`
+    )
     .then((response) => {
       const page = Page.fromJSON(response.data, Post.postMapper);
       callback(page);

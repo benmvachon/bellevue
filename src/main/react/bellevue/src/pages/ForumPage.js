@@ -15,13 +15,15 @@ function ForumPage() {
   const navigate = useNavigate();
   const { id } = useParams();
   const [forum, setForum] = useState(null);
+  const [sortByRelevance, setSortByRelevance] = useState(true);
   const [posts, setPosts] = useState(null);
   const [attendees, setAttendees] = useState(null);
   const [newPost, setNewPost] = useState(null);
   const [error, setError] = useState(false);
 
   const refreshForum = () => getForum(id, setForum, setError);
-  const refreshPosts = () => getPosts(id, setPosts, setError);
+  const refreshPosts = () =>
+    getPosts(id, setPosts, setError, 0, sortByRelevance);
   const refreshAttendees = () =>
     getFriendsInLocation(id, setAttendees, setError);
 
@@ -36,7 +38,8 @@ function ForumPage() {
         }
       },
       setError,
-      page
+      page,
+      sortByRelevance
     );
   };
 
@@ -54,14 +57,24 @@ function ForumPage() {
     );
   };
 
+  const toggleSort = () => {
+    setSortByRelevance(!sortByRelevance);
+  };
+
   useEffect(() => {
     if (id) {
       refreshForum();
-      refreshPosts();
       refreshAttendees();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, setForum, setPosts]);
+  }, [id]);
+
+  useEffect(() => {
+    if (id) {
+      refreshPosts();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, sortByRelevance]);
 
   if (error) return JSON.stringify(error);
   if (!forum) return;
@@ -88,6 +101,9 @@ function ForumPage() {
         </div>
         <div className="posts">
           <h3>Posts</h3>
+          <button onClick={toggleSort}>
+            {sortByRelevance ? 'Most recent' : 'Most relevant'}
+          </button>
           <form
             onSubmit={() => {
               addPost(id, newPost, refreshPosts);

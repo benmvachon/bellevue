@@ -65,7 +65,7 @@ function Threads({ show = false, onClose, openMessages }) {
         </div>
         <div className="buttons">
           <button onClick={onClose}>Close</button>
-          <button onClick={() => markThreadsRead(undefined, setError)}>
+          <button onClick={() => markThreadsRead(onClose, setError)}>
             Mark all as read
           </button>
         </div>

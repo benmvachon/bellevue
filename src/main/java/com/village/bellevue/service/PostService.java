@@ -15,9 +15,9 @@ public interface PostService {
 
   public Optional<PostModel> read(Long id) throws AuthorizationException;
 
-  public Page<PostModel> readAllByForum(Long forum, int page, int size) throws AuthorizationException;
+  public Page<PostModel> readAllByForum(Long forum, int page, int size, boolean sortByRelevance) throws AuthorizationException;
 
-  public Page<PostModel> readAllByParent(Long parent, int page, int size) throws AuthorizationException;
+  public Page<PostModel> readAllByParent(Long parent, int page, int size, boolean sortByRelevance) throws AuthorizationException;
 
   public boolean delete(Long id) throws AuthorizationException;
 

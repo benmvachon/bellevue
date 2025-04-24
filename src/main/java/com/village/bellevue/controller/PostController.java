@@ -73,10 +73,11 @@ public class PostController {
   public ResponseEntity<PagedModel<EntityModel<PostModel>>> readAllByForum(
     @PathVariable Long forum,
     @RequestParam(defaultValue = "0") int page,
-    @RequestParam(defaultValue = "10") int size
+    @RequestParam(defaultValue = "10") int size,
+    @RequestParam(defaultValue = "true") boolean sortByRelevance
   ) {
     try {
-      Page<PostModel> posts = postService.readAllByForum(forum, page, size);
+      Page<PostModel> posts = postService.readAllByForum(forum, page, size, sortByRelevance);
       PagedModel<EntityModel<PostModel>> pagedModel = pagedAssembler.toModel(posts, postModelAssembler);
       return ResponseEntity.status(HttpStatus.OK).body(pagedModel);
     } catch (AuthorizationException e) {
@@ -88,10 +89,11 @@ public class PostController {
   public ResponseEntity<PagedModel<EntityModel<PostModel>>> readAllByParent(
     @PathVariable Long parent,
     @RequestParam(defaultValue = "0") int page,
-    @RequestParam(defaultValue = "10") int size
+    @RequestParam(defaultValue = "10") int size,
+    @RequestParam(defaultValue = "true") boolean sortByRelevance
   ) {
     try {
-      Page<PostModel> posts = postService.readAllByParent(parent, page, size);
+      Page<PostModel> posts = postService.readAllByParent(parent, page, size, sortByRelevance);
       PagedModel<EntityModel<PostModel>> pagedModel = pagedAssembler.toModel(posts, postModelAssembler);
       return ResponseEntity.status(HttpStatus.OK).body(pagedModel);
     } catch (AuthorizationException e) {

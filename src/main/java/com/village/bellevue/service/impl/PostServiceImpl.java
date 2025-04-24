@@ -184,14 +184,20 @@ public class PostServiceImpl implements PostService {
   }
 
   @Override
-  public Page<PostModel> readAllByForum(Long forum, int page, int size) throws AuthorizationException {
+  public Page<PostModel> readAllByForum(Long forum, int page, int size, boolean sortByRelevance) throws AuthorizationException {
     Long user = getAuthenticatedUserId();
     if (!forumRepository.canRead(forum, user)) throw new AuthorizationException("User not authorized");
-    Page<PostEntity> postEntities = postRepository.findAllTopLevelByForum(
-      user,
-      forum,
-      PageRequest.of(page, size)
-    );
+    Page<PostEntity> postEntities = sortByRelevance ?
+      postRepository.findRelevantTopLevelByForum(
+        user,
+        forum,
+        PageRequest.of(page, size)
+      ) : 
+      postRepository.findRecentTopLevelByForum(
+        user,
+        forum,
+        PageRequest.of(page, size)
+      );
     try {
       return postEntities.map(post -> {
         try {
@@ -208,14 +214,20 @@ public class PostServiceImpl implements PostService {
   }
 
   @Override
-  public Page<PostModel> readAllByParent(Long parent, int page, int size) throws AuthorizationException {
+  public Page<PostModel> readAllByParent(Long parent, int page, int size, boolean sortByRelevance) throws AuthorizationException {
     Long user = getAuthenticatedUserId();
     if (!canRead(parent)) throw new AuthorizationException("User not authorized");
-    Page<PostEntity> postEntities = postRepository.findAllChildren(
-      user,
-      parent,
-      PageRequest.of(page, size)
-    );
+    Page<PostEntity> postEntities = sortByRelevance ?
+      postRepository.findRelevantChildren(
+        user,
+        parent,
+        PageRequest.of(page, size)
+      ) :
+      postRepository.findRecentChildren(
+        user,
+        parent,
+        PageRequest.of(page, size)
+      );
     return postEntities.map(post -> {
       try {
         return new PostModel(post, postModelProvider);
