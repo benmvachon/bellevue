@@ -6,21 +6,32 @@ import { addReply, getPost, getReplies, ratePost } from '../api/api.js';
 import Rating from './Rating.js';
 import InfiniteScroll from './InfiniteScroll.js';
 
-function Post({ id, selected = false, children }) {
+function Post({
+  id,
+  selected = false,
+  children,
+  parentSortedByRelevance = true,
+  depth = 0
+}) {
   const navigate = useNavigate();
   const [post, setPost] = useState(null);
-  const [sortByRelevance, setSortByRelevance] = useState(true);
+  const [sortByRelevance, setSortByRelevance] = useState(
+    parentSortedByRelevance
+  );
   const [replies, setReplies] = useState(null);
   const [reply, setReply] = useState(null);
-  const [showReplies, setShowReplies] = useState(true);
+  const [showReplies, setShowReplies] = useState(depth < 2);
   const [error, setError] = useState(false);
+
+  const pageSize = depth < 1 ? 10 : depth < 2 ? 5 : 2;
 
   const refresh = () => {
     getPost(id, setPost, setError);
   };
 
   const refreshChildren = () => {
-    getReplies(id, setReplies, setError, 0, sortByRelevance);
+    showReplies &&
+      getReplies(id, setReplies, setError, 0, sortByRelevance, pageSize);
   };
 
   const loadMore = (page) => {
@@ -35,7 +46,8 @@ function Post({ id, selected = false, children }) {
       },
       setError,
       page,
-      sortByRelevance
+      sortByRelevance,
+      pageSize
     );
   };
 
@@ -49,9 +61,13 @@ function Post({ id, selected = false, children }) {
   }, [id]);
 
   useEffect(() => {
+    setSortByRelevance(parentSortedByRelevance);
+  }, [parentSortedByRelevance]);
+
+  useEffect(() => {
     if (post && post.children > 0) refreshChildren();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [post, sortByRelevance]);
+  }, [post, sortByRelevance, showReplies]);
 
   if (error) return JSON.stringify(error);
   if (!post) return;
@@ -75,7 +91,12 @@ function Post({ id, selected = false, children }) {
           <InfiniteScroll
             page={replies}
             renderItem={(reply) => (
-              <Post key={`post-${reply.id}`} id={reply.id} />
+              <Post
+                key={`post-${reply.id}`}
+                id={reply.id}
+                depth={depth + 1}
+                parentSortedByRelevance={sortByRelevance}
+              />
             )}
             loadMore={loadMore}
           />
@@ -116,7 +137,9 @@ function Post({ id, selected = false, children }) {
 Post.propTypes = {
   id: PropTypes.number,
   selected: PropTypes.bool,
-  children: PropTypes.element
+  children: PropTypes.element,
+  parentSortedByRelevance: PropTypes.bool,
+  depth: PropTypes.number
 };
 
 export default withAuth(Post);

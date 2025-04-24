@@ -117,7 +117,14 @@ function ForumPage() {
           </form>
           <InfiniteScroll
             page={posts}
-            renderItem={(post) => <Post key={`post-${post.id}`} id={post.id} />}
+            renderItem={(post) => (
+              <Post
+                key={`post-${post.id}`}
+                id={post.id}
+                depth={0}
+                parentSortedByRelevance={sortByRelevance}
+              />
+            )}
             loadMore={loadMorePosts}
           />
         </div>
