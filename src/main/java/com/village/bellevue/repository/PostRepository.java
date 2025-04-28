@@ -88,7 +88,40 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
     nativeQuery = true
   )
   Page<PostEntity> findRelevantChildren(@Param("user") Long user, @Param("post") Long post, Pageable pageable);
-  
+
+  @Query(
+    "SELECT p FROM PostEntity p " +
+    "LEFT JOIN FriendEntity f ON p.user.id = f.friend.id AND f.user = :user " +
+    "WHERE p.parent.id = :post AND p.id != :child " +
+    "AND (p.user.id = :user OR f.status = 'accepted') " +
+    "ORDER BY p.created DESC")
+  Page<PostEntity> findRecentOtherChildren(@Param("user") Long user, @Param("post") Long post, @Param("child") Long child, Pageable pageable);
+
+  @Query(
+    value = """
+      SELECT p.* FROM post p
+      LEFT JOIN friend f ON p.user = f.friend AND f.user = :user AND f.status = 'accepted'
+      LEFT JOIN (
+          SELECT parent, COUNT(*) AS child_count
+          FROM post
+          WHERE parent IS NOT NULL
+          GROUP BY parent
+      ) child_counts ON p.id = child_counts.parent
+      LEFT JOIN aggregate_rating ar ON ar.post = p.id AND ar.user = :user
+      WHERE p.parent = :post
+      AND p.id != :child
+      AND (p.user = :user OR f.status = 'accepted')
+      ORDER BY IFNULL(child_counts.child_count, 0) + IFNULL(ar.rating_count, 0) DESC
+      """,
+    countQuery = """
+      SELECT COUNT(*) FROM post p
+      LEFT JOIN friend f ON p.user = f.friend AND f.user = :user AND f.status = 'accepted'
+      WHERE p.parent = :post
+      AND (p.user = :user OR f.status = 'accepted')
+      """,
+    nativeQuery = true
+  )
+  Page<PostEntity> findRelevantOtherChildren(@Param("user") Long user, @Param("post") Long post, @Param("child") Long child, Pageable pageable);
 
   @Query(
     "SELECT COUNT(p) FROM PostEntity p " +

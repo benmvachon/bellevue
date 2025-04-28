@@ -238,6 +238,32 @@ public class PostServiceImpl implements PostService {
   }
 
   @Override
+  public Page<PostModel> readOthersByParent(Long parent, Long child, int page, int size, boolean sortByRelevance) throws AuthorizationException {
+    Long user = getAuthenticatedUserId();
+    if (!canRead(parent)) throw new AuthorizationException("User not authorized");
+    Page<PostEntity> postEntities = sortByRelevance ?
+      postRepository.findRelevantOtherChildren(
+        user,
+        parent,
+        child,
+        PageRequest.of(page, size)
+      ) :
+      postRepository.findRecentOtherChildren(
+        user,
+        parent,
+        child,
+        PageRequest.of(page, size)
+      );
+    return postEntities.map(post -> {
+      try {
+        return new PostModel(post, postModelProvider);
+      } catch (AuthorizationException e) {
+        return null;
+      }
+    });
+  }
+
+  @Override
   @Transactional
   public boolean delete(Long id) throws AuthorizationException {
     Optional<PostModel> post = read(id);

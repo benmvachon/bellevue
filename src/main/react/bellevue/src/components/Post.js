@@ -9,7 +9,8 @@ import InfiniteScroll from './InfiniteScroll.js';
 function Post({
   id,
   selected = false,
-  children,
+  selectedChildId,
+  getSelectedChild,
   parentSortedByRelevance = true,
   depth = 0
 }) {
@@ -31,7 +32,15 @@ function Post({
 
   const refreshChildren = () => {
     showReplies &&
-      getReplies(id, setReplies, setError, 0, sortByRelevance, pageSize);
+      getReplies(
+        id,
+        setReplies,
+        setError,
+        0,
+        sortByRelevance,
+        pageSize,
+        selectedChildId
+      );
   };
 
   const loadMore = (page) => {
@@ -47,7 +56,8 @@ function Post({
       setError,
       page,
       sortByRelevance,
-      pageSize
+      pageSize,
+      selectedChildId
     );
   };
 
@@ -67,43 +77,10 @@ function Post({
   useEffect(() => {
     if (post && post.children > 0) refreshChildren();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [post, sortByRelevance, showReplies]);
+  }, [post, sortByRelevance, showReplies, selectedChildId]);
 
   if (error) return JSON.stringify(error);
   if (!post) return;
-  if (!children) {
-    children = [];
-    if (post.children > 0) {
-      children.push(
-        <button onClick={() => setShowReplies(!showReplies)}>
-          {showReplies
-            ? `Hide (${post.children}) replies`
-            : `Show (${post.children}) replies`}
-        </button>
-      );
-      children.push(
-        <button onClick={toggleSort}>
-          {sortByRelevance ? 'Most recent' : 'Most relevant'}
-        </button>
-      );
-      if (showReplies) {
-        children.push(
-          <InfiniteScroll
-            page={replies}
-            renderItem={(reply) => (
-              <Post
-                key={`post-${reply.id}`}
-                id={reply.id}
-                depth={depth + 1}
-                parentSortedByRelevance={sortByRelevance}
-              />
-            )}
-            loadMore={loadMore}
-          />
-        );
-      }
-    }
-  }
 
   return (
     <div className={selected ? 'selected post' : 'post'}>
@@ -119,6 +96,11 @@ function Post({
             ratePost(post?.id, rating, refresh, refresh);
           }}
         />
+        {selected ? undefined : (
+          <button onClick={() => navigate(`/post/${post?.id}`)}>
+            Go to post
+          </button>
+        )}
       </div>
       <p>{post?.content}</p>
       <form
@@ -129,7 +111,33 @@ function Post({
         <textarea value={reply} onChange={(e) => setReply(e.target.value)} />
         <button type="submit">Reply</button>
       </form>
-      {children}
+      {post.children > 0 && (
+        <div className="post-children-container">
+          <button onClick={() => setShowReplies(!showReplies)}>
+            {showReplies
+              ? `Hide (${post.children}) replies`
+              : `Show (${post.children}) replies`}
+          </button>
+          <button onClick={toggleSort}>
+            {sortByRelevance ? 'Most recent' : 'Most relevant'}
+          </button>
+          {getSelectedChild && getSelectedChild(depth, sortByRelevance)}
+          {showReplies && (
+            <InfiniteScroll
+              page={replies}
+              renderItem={(reply) => (
+                <Post
+                  key={`post-${reply.id}`}
+                  id={reply.id}
+                  depth={depth + 1}
+                  parentSortedByRelevance={sortByRelevance}
+                />
+              )}
+              loadMore={loadMore}
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -137,7 +145,8 @@ function Post({
 Post.propTypes = {
   id: PropTypes.number,
   selected: PropTypes.bool,
-  children: PropTypes.element,
+  selectedChildId: PropTypes.number,
+  getSelectedChild: PropTypes.func,
   parentSortedByRelevance: PropTypes.bool,
   depth: PropTypes.number
 };

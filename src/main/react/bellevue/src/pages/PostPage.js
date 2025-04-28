@@ -23,10 +23,35 @@ function PostPage() {
   if (error) return JSON.stringify(error);
   if (!post) return;
 
-  let postElement = <Post id={post.id} selected />;
+  const getPostElement = (depth, sortByRelevance) => (
+    <Post
+      id={post.id}
+      depth={depth}
+      parentSortedByRelevance={sortByRelevance}
+      selected
+    />
+  );
   let parent = post.parent;
+  let previousParent = post;
+  const parentFuncs = [];
+  let i = 0;
   while (parent) {
-    postElement = <Post id={parent.id}>{postElement}</Post>;
+    const id = Number.parseInt('' + parent.id);
+    const previousId = Number.parseInt('' + previousParent.id);
+    const pointer = Number.parseInt('' + i);
+    parentFuncs[pointer] = (depth, sortByRelevance) => (
+      <Post
+        id={id}
+        depth={depth}
+        parentSortedByRelevance={sortByRelevance}
+        selectedChildId={previousId}
+        getSelectedChild={
+          pointer < 1 ? getPostElement : parentFuncs[pointer - 1]
+        }
+      />
+    );
+    i++;
+    previousParent = parent;
     parent = parent.parent;
   }
 
@@ -38,7 +63,9 @@ function PostPage() {
         Back to forum
       </button>
       <div className="contents">
-        <div className="posts">{postElement}</div>
+        <div className="posts">
+          {i > 0 ? parentFuncs[i - 1](0, true) : getPostElement(0, true)}
+        </div>
       </div>
     </div>
   );

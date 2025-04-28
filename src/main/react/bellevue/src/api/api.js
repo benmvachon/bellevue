@@ -171,12 +171,14 @@ export const getReplies = (
   error,
   page = 0,
   sortByRelevance = true,
-  size = 5
+  size = 5,
+  selectedChildId
 ) => {
+  let uri = `/post/children/${post}?page=${page}&size=${size}&sortByRelevance=${sortByRelevance}`;
+  if (selectedChildId)
+    uri = `/post/children/${post}/${selectedChildId}?page=${page}&size=${size}&sortByRelevance=${sortByRelevance}`;
   api
-    .get(
-      `/post/children/${post}?page=${page}&size=${size}&sortByRelevance=${sortByRelevance}`
-    )
+    .get(uri)
     .then((response) => {
       const page = Page.fromJSON(response.data, Post.postMapper);
       callback(page);

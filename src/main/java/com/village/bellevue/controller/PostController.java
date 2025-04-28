@@ -101,6 +101,23 @@ public class PostController {
     }
   }
 
+  @GetMapping("/children/{parent}/{child}")
+  public ResponseEntity<PagedModel<EntityModel<PostModel>>> readOthersByParent(
+    @PathVariable Long parent,
+    @PathVariable Long child,
+    @RequestParam(defaultValue = "0") int page,
+    @RequestParam(defaultValue = "10") int size,
+    @RequestParam(defaultValue = "true") boolean sortByRelevance
+  ) {
+    try {
+      Page<PostModel> posts = postService.readOthersByParent(parent, child, page, size, sortByRelevance);
+      PagedModel<EntityModel<PostModel>> pagedModel = pagedAssembler.toModel(posts, postModelAssembler);
+      return ResponseEntity.status(HttpStatus.OK).body(pagedModel);
+    } catch (AuthorizationException e) {
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+  }
+
   @GetMapping("/{id}")
   public ResponseEntity<PostModel> read(@PathVariable Long id) {
     try {

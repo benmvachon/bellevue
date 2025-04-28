@@ -19,6 +19,8 @@ public interface PostService {
 
   public Page<PostModel> readAllByParent(Long parent, int page, int size, boolean sortByRelevance) throws AuthorizationException;
 
+  public Page<PostModel> readOthersByParent(Long parent, Long child, int page, int size, boolean sortByRelevance) throws AuthorizationException;
+
   public boolean delete(Long id) throws AuthorizationException;
 
   public boolean canRead(Long id);
