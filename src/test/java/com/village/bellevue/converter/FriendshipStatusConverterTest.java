@@ -16,21 +16,21 @@ public class FriendshipStatusConverterTest {
   public static Stream<Arguments> provideFriendshipStatusForDatabaseColumn() {
     return Stream.of(
         Arguments.of(null, null),
-        Arguments.of(FriendshipStatus.ACCEPTED, "accepted"),
-        Arguments.of(FriendshipStatus.BLOCKED_THEM, "blocked_them"),
-        Arguments.of(FriendshipStatus.BLOCKED_YOU, "blocked_you"),
-        Arguments.of(FriendshipStatus.PENDING_THEM, "pending_them"),
-        Arguments.of(FriendshipStatus.PENDING_YOU, "pending_you"));
+        Arguments.of(FriendshipStatus.ACCEPTED, "ACCEPTED"),
+        Arguments.of(FriendshipStatus.BLOCKED_THEM, "BLOCKED_THEM"),
+        Arguments.of(FriendshipStatus.BLOCKED_YOU, "BLOCKED_YOU"),
+        Arguments.of(FriendshipStatus.PENDING_THEM, "PENDING_THEM"),
+        Arguments.of(FriendshipStatus.PENDING_YOU, "PENDING_YOU"));
   }
 
   public static Stream<Arguments> provideStringForEntityAttribute() {
     return Stream.of(
         Arguments.of(null, null, false),
-        Arguments.of("accepted", FriendshipStatus.ACCEPTED, false),
-        Arguments.of("blocked_them", FriendshipStatus.BLOCKED_THEM, false),
-        Arguments.of("blocked_you", FriendshipStatus.BLOCKED_YOU, false),
-        Arguments.of("pending_them", FriendshipStatus.PENDING_THEM, false),
-        Arguments.of("pending_you", FriendshipStatus.PENDING_YOU, false),
+        Arguments.of("ACCEPTED", FriendshipStatus.ACCEPTED, false),
+        Arguments.of("BLOCKED_THEM", FriendshipStatus.BLOCKED_THEM, false),
+        Arguments.of("BLOCKED_YOU", FriendshipStatus.BLOCKED_YOU, false),
+        Arguments.of("PENDING_THEM", FriendshipStatus.PENDING_THEM, false),
+        Arguments.of("PENDING_YOU", FriendshipStatus.PENDING_YOU, false),
         Arguments.of("invalid", null, true));
   }
 

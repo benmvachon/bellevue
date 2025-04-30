@@ -9,7 +9,7 @@ import jakarta.persistence.Converter;
 public class StarConverter implements AttributeConverter<Star, String> {
   @Override
   public String convertToDatabaseColumn(Star value) {
-    return value != null ? value.toString().toLowerCase() : null;
+    return value != null ? value.toString().toUpperCase() : null;
   }
 
   @Override

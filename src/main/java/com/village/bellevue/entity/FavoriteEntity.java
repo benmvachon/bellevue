@@ -3,15 +3,17 @@ package com.village.bellevue.entity;
 import java.sql.Timestamp;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonValue;
-import com.village.bellevue.entity.id.RatingId;
+import com.village.bellevue.entity.id.FavoriteId;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.IdClass;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,38 +22,29 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@IdClass(RatingId.class)
-@Table(
-  name = "rating",
-  uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"user", "post"})
-  }
-)
-public class RatingEntity {
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+@Table(name = "favorite")
+@IdClass(FavoriteId.class)
+public class FavoriteEntity {
 
-  @Id
-  private Long post;
   @Id
   private Long user;
 
+  @Id
   @Column(nullable = false)
-  private Star rating = Star.FIVE;
+  @Enumerated(EnumType.STRING)
+  private FavoriteType type;
+
+  @Id
+  @Column(nullable = false)
+  private Long entity;
 
   private Timestamp created = new Timestamp(System.currentTimeMillis());
-  private Timestamp updated = new Timestamp(System.currentTimeMillis());
 
-  public RatingEntity(Long post, Long user, Star rating) {
-    this.post = post;
-    this.user = user;
-    this.rating = rating;
-  }
-
-  public enum Star {
-    ONE,
-    TWO,
-    THREE,
-    FOUR,
-    FIVE;
+  public enum FavoriteType {
+    POST,
+    FORUM,
+    PROFILE;
 
     @JsonValue
     public String toValue() {
@@ -59,8 +52,12 @@ public class RatingEntity {
     }
 
     @JsonCreator
-    public static Star fromString(String value) {
-      return Star.valueOf(value.toUpperCase());
+    public static FavoriteType fromString(String value) {
+      return FavoriteType.valueOf(value.toUpperCase());
+    }
+
+    public boolean equals(String value) {
+      return this.equals(fromString(value));
     }
   }
 }

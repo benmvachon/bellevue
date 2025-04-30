@@ -12,6 +12,7 @@ class Profile {
     lastSeen,
     blackboard,
     friendshipStatus,
+    favorite,
     _links
   ) {
     this.id = id;
@@ -23,7 +24,8 @@ class Profile {
     this.location = location ? Forum.fromJSON(location) : null;
     this.lastSeen = new Date(lastSeen);
     this.blackboard = blackboard;
-    this.friendshipStatus = friendshipStatus || 'unset';
+    this.friendshipStatus = friendshipStatus || 'UNSET';
+    this.favorite = favorite;
     // TODO: process _links
   }
 
@@ -62,7 +64,8 @@ class Profile {
       json.location,
       json.lastSeen?.toString(),
       json.blackboard,
-      json.friendshipStatus
+      json.friendshipStatus,
+      json.favorite
     );
   }
 
@@ -77,7 +80,8 @@ class Profile {
       location: this.location ? this.location.toJSON() : null,
       lastSeen: this.lastSeen,
       blackboard: this.blackboard,
-      friendshipStatus: this.friendshipStatus
+      friendshipStatus: this.friendshipStatus,
+      favorite: this.favorite
     };
   }
 }

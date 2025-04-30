@@ -9,7 +9,9 @@ import {
   acceptFriend,
   removeFriend,
   blockUser,
-  updateBlackboard
+  updateBlackboard,
+  favoriteProfile,
+  unfavoriteProfile
 } from '../api/api.js';
 import Header from '../components/Header.js';
 import Messages from '../components/Messages.js';
@@ -30,6 +32,14 @@ function ProfilePage() {
   const self = '' + userId === '' + id;
 
   const refresh = () => getProfile(id, setProfile, setError);
+
+  const favorite = () => {
+    favoriteProfile(id, refresh, setError);
+  };
+
+  const unfavorite = () => {
+    unfavoriteProfile(id, refresh, setError);
+  };
 
   useEffect(() => {
     refresh();
@@ -72,7 +82,10 @@ function ProfilePage() {
 
   const buttons = [];
   switch (profile?.friendshipStatus) {
-    case 'accepted':
+    case 'SELF':
+      buttons.push(<button onClick={openEquipment}>Equipment</button>);
+      break;
+    case 'ACCEPTED':
       buttons.push(
         <button onClick={openMessages} key="message">
           Message
@@ -83,17 +96,49 @@ function ProfilePage() {
           Remove
         </button>
       );
+      if (profile.favorite)
+        buttons.push(
+          <button onClick={unfavorite} key="unfavorite">
+            Unfavorite
+          </button>
+        );
+      else
+        buttons.push(
+          <button onClick={favorite} key="favorite">
+            Favorite
+          </button>
+        );
+      buttons.push(
+        <button onClick={() => blockUser(id, refresh)} key="block">
+          Block
+        </button>
+      );
       break;
-    case 'pending_you':
+    case 'PENDING_YOU':
       buttons.push(
         <button onClick={() => acceptFriend(id, refresh)} key="accept">
           Accept
         </button>
       );
+      buttons.push(
+        <button onClick={() => blockUser(id, refresh)} key="block">
+          Block
+        </button>
+      );
       break;
-    case 'pending_them':
+    case 'PENDING_THEM':
+      buttons.push(
+        <button onClick={() => blockUser(id, refresh)} key="block">
+          Block
+        </button>
+      );
       break;
     default:
+      buttons.push(
+        <button onClick={() => blockUser(id, refresh)} key="block">
+          Block
+        </button>
+      );
       buttons.push(
         <button onClick={() => requestFriend(id, refresh)} key="request">
           Request
@@ -101,11 +146,6 @@ function ProfilePage() {
       );
       break;
   }
-  buttons.push(
-    <button onClick={() => blockUser(id, refresh)} key="block">
-      Block
-    </button>
-  );
 
   return (
     <div className="page profile-page">
@@ -116,7 +156,7 @@ function ProfilePage() {
         {profile?.avatar} {JSON.stringify(profile?.equipment)}
       </p>
       {self ? <p>This is you</p> : <p>{profile?.status}</p>}
-      {self ? <button onClick={openEquipment}>Equipment</button> : buttons}
+      {buttons}
       {self ? (
         <form onSubmit={() => updateBlackboard(blackboard, refresh, setError)}>
           <textarea

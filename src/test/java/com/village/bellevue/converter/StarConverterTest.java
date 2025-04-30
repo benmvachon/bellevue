@@ -17,21 +17,21 @@ public class StarConverterTest {
   public static Stream<Arguments> provideStarForDatabaseColumn() {
     return Stream.of(
         Arguments.of(null, null),
-        Arguments.of(Star.FIVE, "five"),
-        Arguments.of(Star.FOUR, "four"),
-        Arguments.of(Star.THREE, "three"),
-        Arguments.of(Star.TWO, "two"),
-        Arguments.of(Star.ONE, "one"));
+        Arguments.of(Star.FIVE, "FIVE"),
+        Arguments.of(Star.FOUR, "FOUR"),
+        Arguments.of(Star.THREE, "THREE"),
+        Arguments.of(Star.TWO, "TWO"),
+        Arguments.of(Star.ONE, "ONE"));
   }
 
   public static Stream<Arguments> provideStringForEntityAttribute() {
     return Stream.of(
         Arguments.of(null, null, false),
-        Arguments.of("five", Star.FIVE, false),
-        Arguments.of("four", Star.FOUR, false),
-        Arguments.of("three", Star.THREE, false),
-        Arguments.of("two", Star.TWO, false),
-        Arguments.of("one", Star.ONE, false),
+        Arguments.of("FIVE", Star.FIVE, false),
+        Arguments.of("FOUR", Star.FOUR, false),
+        Arguments.of("THREE", Star.THREE, false),
+        Arguments.of("TWO", Star.TWO, false),
+        Arguments.of("ONE", Star.ONE, false),
         Arguments.of("invalid", null, true));
   }
 

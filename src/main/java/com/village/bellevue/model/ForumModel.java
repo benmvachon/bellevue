@@ -22,6 +22,8 @@ public class ForumModel {
   private ProfileModel user;
   private Timestamp created;
 
+  private boolean favorite = false;
+
   public ForumModel(ForumEntity forum, ForumModelProvider helper) throws AuthorizationException {
     if (!helper.canReadForum(forum)) {
       throw new AuthorizationException("Not authorized");
@@ -31,5 +33,6 @@ public class ForumModel {
     this.name = forum.getName();
     this.user = helper.getProfile(forum.getUser()).orElse(null);
     this.created = forum.getCreated();
+    this.favorite = helper.isFavorite(forum);
   }
 }

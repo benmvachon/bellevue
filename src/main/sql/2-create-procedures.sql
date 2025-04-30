@@ -166,20 +166,20 @@ BEGIN
     DECLARE rating_rating DECIMAL(3,2);
     -- Cursor for ratings usered by p_user
     DECLARE rating_cursor CURSOR FOR 
-        SELECT post, FIELD(rating, 'one', 'two', 'three', 'four', 'five') AS rating FROM rating WHERE user = p_user;
+        SELECT post, FIELD(rating, 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE') AS rating FROM rating WHERE user = p_user;
     -- Cursor for ratings usered by p_friend
     DECLARE rating_cursor_friend CURSOR FOR 
-        SELECT post, FIELD(rating, 'one', 'two', 'three', 'four', 'five') AS rating FROM rating WHERE user = p_friend;
+        SELECT post, FIELD(rating, 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE') AS rating FROM rating WHERE user = p_friend;
     -- Handler to exit the loop
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
     -- Check if the friendship already exists with pending status
     IF EXISTS (
         SELECT * FROM friend
-        WHERE user = p_user AND friend = p_friend AND status = 'pending_you'
+        WHERE user = p_user AND friend = p_friend AND status = 'PENDING_YOU'
     ) THEN
         -- Update it if it does
         UPDATE friend 
-        SET status = 'accepted', updated = CURRENT_TIMESTAMP 
+        SET status = 'ACCEPTED', updated = CURRENT_TIMESTAMP 
         WHERE user = p_user AND friend = p_friend;
         -- Check if the reciprocal friendship already exists
         IF NOT EXISTS (
@@ -188,11 +188,11 @@ BEGIN
         ) THEN
             -- Add it if it doesn't
             INSERT INTO friend (user, friend, status)
-            VALUES (p_friend, p_user, 'accepted');
+            VALUES (p_friend, p_user, 'ACCEPTED');
         ELSE
             -- Update it if it does
             UPDATE friend 
-            SET status = 'accepted', updated = CURRENT_TIMESTAMP 
+            SET status = 'ACCEPTED', updated = CURRENT_TIMESTAMP 
             WHERE user = p_friend AND friend = p_user;
         END IF;
         -- Process ratings usered by p_user
@@ -228,15 +228,15 @@ CREATE PROCEDURE request_friend(
     IN p_friend INT UNSIGNED
 )
 BEGIN
-    -- Insert the friendship record with status 'pending_them' to facilitate acceptance
+    -- Insert the friendship record with status 'PENDING_THEM' to facilitate acceptance
     INSERT INTO friend (user, friend, status)
-    VALUES (p_user, p_friend, 'pending_them')
-    ON DUPLICATE KEY UPDATE status = 'pending_them', updated = CURRENT_TIMESTAMP;
-    -- Insert the reciprocal friendship record with status 'pending_you' to facilitate acceptance
+    VALUES (p_user, p_friend, 'PENDING_THEM')
+    ON DUPLICATE KEY UPDATE status = 'PENDING_THEM', updated = CURRENT_TIMESTAMP;
+    -- Insert the reciprocal friendship record with status 'PENDING_YOU' to facilitate acceptance
     INSERT INTO friend (user, friend, status)
-    VALUES (p_friend, p_user, 'pending_you')
+    VALUES (p_friend, p_user, 'PENDING_YOU')
     ON DUPLICATE KEY UPDATE 
-        status = 'pending_you', updated = CURRENT_TIMESTAMP;
+        status = 'PENDING_YOU', updated = CURRENT_TIMESTAMP;
 END;
 //
 DELIMITER ;
@@ -252,9 +252,9 @@ BEGIN
     DECLARE done INT DEFAULT FALSE;
     -- Declare the cursors and handlers at the start
     DECLARE friend_rating_cursor CURSOR FOR 
-        SELECT post, FIELD(rating, 'one', 'two', 'three', 'four', 'five') AS rating FROM rating WHERE user = p_friend;
+        SELECT post, FIELD(rating, 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE') AS rating FROM rating WHERE user = p_friend;
     DECLARE user_rating_cursor CURSOR FOR 
-        SELECT post, FIELD(rating, 'one', 'two', 'three', 'four', 'five') AS rating FROM rating WHERE user = p_user;
+        SELECT post, FIELD(rating, 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE') AS rating FROM rating WHERE user = p_user;
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
     -- Check if the friendship already exists
     IF EXISTS (
@@ -263,7 +263,7 @@ BEGIN
     ) THEN
         -- Update the status to 'blocked'
         UPDATE friend 
-        SET status = 'blocked_them', updated = CURRENT_TIMESTAMP 
+        SET status = 'BLOCKED_THEM', updated = CURRENT_TIMESTAMP 
         WHERE user = p_user AND friend = p_friend;
         -- Process ratings usered by the friend
         OPEN friend_rating_cursor;
@@ -288,13 +288,13 @@ BEGIN
     ELSE
         -- If the friendship does not exist, just insert a blocked entry
         INSERT INTO friend (user, friend, status)
-        VALUES (p_user, p_friend, 'blocked_them');
+        VALUES (p_user, p_friend, 'BLOCKED_THEM');
     END IF;
-    -- Insert the reciprocal friendship record with status 'blocked_you' to prevent visibility
+    -- Insert the reciprocal friendship record with status 'BLOCKED_YOU' to prevent visibility
     INSERT INTO friend (user, friend, status)
-    VALUES (p_friend, p_user, 'blocked_you')
+    VALUES (p_friend, p_user, 'BLOCKED_YOU')
     ON DUPLICATE KEY UPDATE 
-        status = 'blocked_you', updated = CURRENT_TIMESTAMP;
+        status = 'BLOCKED_YOU', updated = CURRENT_TIMESTAMP;
 END;
 //
 DELIMITER ;
@@ -311,10 +311,10 @@ BEGIN
     DECLARE rating_rating DECIMAL(3,2);
     -- Cursor for ratings usered by p_user
     DECLARE rating_cursor CURSOR FOR 
-        SELECT post, FIELD(rating, 'one', 'two', 'three', 'four', 'five') AS rating FROM rating WHERE user = p_user;
+        SELECT post, FIELD(rating, 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE') AS rating FROM rating WHERE user = p_user;
     -- Cursor for ratings usered by p_friend
     DECLARE rating_cursor_friend CURSOR FOR 
-        SELECT post, FIELD(rating, 'one', 'two', 'three', 'four', 'five') AS rating FROM rating WHERE user = p_friend;
+        SELECT post, FIELD(rating, 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE') AS rating FROM rating WHERE user = p_friend;
     -- Handler to exit the loop
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
     -- Process ratings usered by p_user
@@ -350,22 +350,22 @@ DELIMITER //
 CREATE PROCEDURE add_or_update_rating(
     IN p_user INT UNSIGNED,
     IN p_post INT UNSIGNED,
-    IN p_rating ENUM('one', 'two', 'three', 'four', 'five')
+    IN p_rating ENUM('ONE', 'TWO', 'THREE', 'FOUR', 'FIVE')
 )
 BEGIN
     DECLARE done INT DEFAULT FALSE;
     DECLARE friend_id INT UNSIGNED;
     DECLARE rating_value DECIMAL(3,2);
     DECLARE old_rating_value DECIMAL(3,2);
-    DECLARE existing_rating ENUM('one', 'two', 'three', 'four', 'five');
-    DECLARE friend_cursor CURSOR FOR SELECT friend FROM friend WHERE user = p_user AND status = 'accepted';
+    DECLARE existing_rating ENUM('ONE', 'TWO', 'THREE', 'FOUR', 'FIVE');
+    DECLARE friend_cursor CURSOR FOR SELECT friend FROM friend WHERE user = p_user AND status = 'ACCEPTED';
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
-    SET rating_value = FIELD(p_rating, 'one', 'two', 'three', 'four', 'five');
+    SET rating_value = FIELD(p_rating, 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE');
     SELECT rating INTO existing_rating FROM rating WHERE user = p_user AND post = p_post;
     SET done = false;
 
     IF existing_rating IS NOT NULL THEN
-        SET old_rating_value = FIELD(existing_rating, 'one', 'two', 'three', 'four', 'five');
+        SET old_rating_value = FIELD(existing_rating, 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE');
         OPEN friend_cursor;
         read_loop: LOOP
         FETCH friend_cursor INTO friend_id;
@@ -404,9 +404,9 @@ BEGIN
     DECLARE friend_id INT UNSIGNED;
     DECLARE old_rating DECIMAL(3, 2);
     DECLARE friend_cursor CURSOR FOR
-        SELECT friend FROM friend WHERE user = p_user AND status = 'accepted';
+        SELECT friend FROM friend WHERE user = p_user AND status = 'ACCEPTED';
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
-    SELECT FIELD(rating, 'one', 'two', 'three', 'four', 'five') INTO old_rating FROM rating WHERE user = p_user AND post = p_post;
+    SELECT FIELD(rating, 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE') INTO old_rating FROM rating WHERE user = p_user AND post = p_post;
     DELETE FROM rating WHERE user = p_user AND post = p_post;
     SET done = false;
     OPEN friend_cursor;

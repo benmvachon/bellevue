@@ -9,7 +9,7 @@ import jakarta.persistence.Converter;
 public class FriendshipStatusConverter implements AttributeConverter<FriendshipStatus, String> {
   @Override
   public String convertToDatabaseColumn(FriendshipStatus value) {
-    return value != null ? value.toString().toLowerCase() : null;
+    return value != null ? value.toString().toUpperCase() : null;
   }
 
   @Override

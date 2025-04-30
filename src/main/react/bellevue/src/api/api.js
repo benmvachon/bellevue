@@ -8,6 +8,7 @@ import Post from './Post.js';
 import Notification from './Notification.js';
 import Message from './Message.js';
 import Equipment from './Equipment.js';
+import Favorite from './Favorite.js';
 import SockJS from 'sockjs-client';
 import { Client } from '@stomp/stompjs';
 
@@ -350,6 +351,74 @@ export const equipItem = (item, callback, error) => {
 export const unequipItem = (item, callback, error) => {
   api
     .put(`/equipment/${item}/unequip`)
+    .then(callback)
+    .catch((err) => error(err));
+};
+
+export const getFavorites = (callback, error, page = 0, type) => {
+  if (type) {
+    api
+      .get(`/favorite?page=${page}&type=${type}`)
+      .then((response) => {
+        const page = Page.fromJSON(response.data, Favorite.favoriteMapper);
+        callback(page);
+      })
+      .catch((err) => error(err));
+  } else {
+    api
+      .get(`/favorite?page=${page}`)
+      .then((response) => {
+        const page = Page.fromJSON(response.data, Favorite.favoriteMapper);
+        callback(page);
+      })
+      .catch((err) => error(err));
+  }
+};
+
+export const favoritePost = (post, callback, error) => {
+  api
+    .post('/favorite/post', post, {
+      headers: { 'Content-Type': 'application/json' }
+    })
+    .then(callback)
+    .catch((err) => error(err));
+};
+
+export const favoriteForum = (forum, callback, error) => {
+  api
+    .post('/favorite/forum', forum, {
+      headers: { 'Content-Type': 'application/json' }
+    })
+    .then(callback)
+    .catch((err) => error(err));
+};
+
+export const favoriteProfile = (user, callback, error) => {
+  api
+    .post('/favorite/profile', user, {
+      headers: { 'Content-Type': 'application/json' }
+    })
+    .then(callback)
+    .catch((err) => error(err));
+};
+
+export const unfavoritePost = (post, callback, error) => {
+  api
+    .delete(`/favorite/post/${post}`)
+    .then(callback)
+    .catch((err) => error(err));
+};
+
+export const unfavoriteForum = (forum, callback, error) => {
+  api
+    .delete(`/favorite/forum/${forum}`)
+    .then(callback)
+    .catch((err) => error(err));
+};
+
+export const unfavoriteProfile = (user, callback, error) => {
+  api
+    .delete(`/favorite/profile/${user}`)
     .then(callback)
     .catch((err) => error(err));
 };

@@ -9,7 +9,7 @@ import jakarta.persistence.Converter;
 public class StatusConverter implements AttributeConverter<Status, String> {
   @Override
   public String convertToDatabaseColumn(Status value) {
-    return value != null ? value.toString().toLowerCase() : null;
+    return value != null ? value.toString().toUpperCase() : null;
   }
 
   @Override

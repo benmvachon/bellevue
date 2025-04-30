@@ -5,7 +5,9 @@ import {
   getForum,
   getPosts,
   addPost,
-  getFriendsInLocation
+  getFriendsInLocation,
+  favoriteForum,
+  unfavoriteForum
 } from '../api/api.js';
 import Post from '../components/Post.js';
 import Header from '../components/Header.js';
@@ -61,6 +63,14 @@ function ForumPage() {
     setSortByRelevance(!sortByRelevance);
   };
 
+  const favorite = () => {
+    favoriteForum(id, refreshForum, setError);
+  };
+
+  const unfavorite = () => {
+    unfavoriteForum(id, refreshForum, setError);
+  };
+
   useEffect(() => {
     if (id) {
       refreshForum();
@@ -86,6 +96,11 @@ function ForumPage() {
       <button onClick={() => navigate(`/category/${forum?.category}`)}>
         {forum?.category}
       </button>
+      {forum.favorite ? (
+        <button onClick={unfavorite}>Unfavorite</button>
+      ) : (
+        <button onClick={favorite}>Favorite</button>
+      )}
       <div className="contents">
         <div className="attendees">
           <h3>Attendees</h3>

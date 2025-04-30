@@ -36,6 +36,8 @@ public class ProfileModel {
 
   private String friendshipStatus;
 
+  private boolean favorite = false;
+
   public ProfileModel(UserProfileEntity profile, ProfileModelProvider helper) {
     this.id = profile.getUser();
     this.name = profile.getName();
@@ -51,6 +53,8 @@ public class ProfileModel {
     if (friendshipStatusOption.isPresent()) {
       this.friendshipStatus = friendshipStatusOption.get();
     }
+
+    this.favorite = helper.isFavorite(profile.getUser());
   }
 
   public ProfileModel(UserProfileEntity profile) {

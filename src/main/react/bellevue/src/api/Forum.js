@@ -1,12 +1,13 @@
 import Profile from './Profile';
 
 class Forum {
-  constructor(id, category, name, user, created, _links) {
+  constructor(id, category, name, user, created, favorite, _links) {
     this.id = id;
     this.category = category;
     this.name = name;
     this.user = user ? Profile.fromJSON(user) : undefined;
     this.created = created ? new Date(created) : undefined;
+    this.favorite = favorite;
     // TODO: process _links
   }
 
@@ -28,7 +29,8 @@ class Forum {
       json.category,
       json.name,
       json.user,
-      json.created
+      json.created,
+      json.favorite
     );
   }
 
@@ -38,7 +40,8 @@ class Forum {
       category: this.category,
       name: this.name,
       user: this.user ? this.user.toJSON() : null,
-      created: this.created?.toString()
+      created: this.created?.toString(),
+      favorite: this.favorite
     };
   }
 }

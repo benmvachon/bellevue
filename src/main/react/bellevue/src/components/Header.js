@@ -10,6 +10,7 @@ import {
 import Notifications from './Notifications.js';
 import Threads from './Threads.js';
 import Messages from './Messages.js';
+import Favorites from './Favorites.js';
 
 function Header() {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ function Header() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showThreads, setShowThreads] = useState(false);
   const [showMessages, setShowMessages] = useState(false);
+  const [showFavorites, setShowFavorites] = useState(false);
   const [friend, setFriend] = useState(-1);
   const [error, setError] = useState(false);
 
@@ -60,12 +62,21 @@ function Header() {
     setShowThreads(true);
   };
 
+  const openFavorites = () => {
+    setShowFavorites(true);
+  };
+
+  const closeFavorites = () => {
+    setShowFavorites(false);
+  };
+
   if (error) return JSON.stringify(error);
 
   return (
     <div className="header">
       <button onClick={() => navigate('/')}>Home</button>
       <button onClick={() => navigate(`/profile/${userId}`)}>Profile</button>
+      <button onClick={openFavorites}>Favorites</button>
       <h1>BLORVIS</h1>
       <button onClick={openNotifications}>
         Notifications: {notificationCount}
@@ -82,6 +93,7 @@ function Header() {
         openMessages={openMessages}
       />
       <Messages show={showMessages} friend={friend} onClose={closeMessages} />
+      <Favorites show={showFavorites} onClose={closeFavorites} />
     </div>
   );
 }

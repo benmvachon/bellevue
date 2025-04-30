@@ -29,6 +29,8 @@ public class PostModel {
   private Double rating = 0.0;
   private Integer ratingCount = 0;
 
+  private boolean favorite = false;
+
   public PostModel(PostEntity post, PostModelProvider helper) throws AuthorizationException {
     if (!helper.canReadPost(post)) {
       throw new AuthorizationException("Not authorized");
@@ -40,6 +42,8 @@ public class PostModel {
     this.created = post.getCreated();
 
     this.children = helper.getChildrenCount(post.getId());
+
+    this.favorite = helper.isFavorite(post.getId());
 
     Optional<AggregateRatingEntity> ratingOption = helper.getAggregateRating(post.getId());
     if (ratingOption.isPresent()) {

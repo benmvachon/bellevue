@@ -43,12 +43,12 @@ public class FriendServiceImpl implements FriendService {
 
   private final ProfileModelProvider profileModelProvider = (Long user) -> {
     try {
-      if (getAuthenticatedUserId().equals(user)) return Optional.of("self");
+      if (getAuthenticatedUserId().equals(user)) return Optional.of("SELF");
       Optional<String> friendshipStatus = getStatus(user);
-      if (friendshipStatus.isEmpty()) return Optional.of("unset");
+      if (friendshipStatus.isEmpty()) return Optional.of("UNSET");
       return friendshipStatus;
     } catch (FriendshipException ex) {
-      return Optional.of("unset");
+      return Optional.of("UNSET");
     }
   };
 

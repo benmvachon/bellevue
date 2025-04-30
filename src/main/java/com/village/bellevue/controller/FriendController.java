@@ -57,11 +57,11 @@ public class FriendController {
     try {
       Optional<String> friend = friendService.getStatus(user);
       if (friend.isEmpty() || FriendshipStatus.BLOCKED_YOU.equals(friend.get())) {
-        return ResponseEntity.ok("unset");
+        return ResponseEntity.ok("UNSET");
       }
       return friend
           .map(ResponseEntity::ok)
-          .orElseGet(() -> ResponseEntity.ok("unset"));
+          .orElseGet(() -> ResponseEntity.ok("UNSET"));
     } catch (FriendshipException e) {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }

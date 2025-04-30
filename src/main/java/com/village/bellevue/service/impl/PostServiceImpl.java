@@ -15,7 +15,9 @@ import com.village.bellevue.entity.AggregateRatingEntity;
 import com.village.bellevue.entity.ForumEntity;
 import com.village.bellevue.entity.PostEntity;
 import com.village.bellevue.entity.UserProfileEntity;
+import com.village.bellevue.entity.FavoriteEntity.FavoriteType;
 import com.village.bellevue.entity.id.AggregateRatingId;
+import com.village.bellevue.entity.id.FavoriteId;
 import com.village.bellevue.error.AuthorizationException;
 import com.village.bellevue.error.FriendshipException;
 import com.village.bellevue.event.PostEvent;
@@ -24,7 +26,9 @@ import com.village.bellevue.model.ForumModelProvider;
 import com.village.bellevue.model.PostModel;
 import com.village.bellevue.model.PostModelProvider;
 import com.village.bellevue.model.ProfileModel;
+import com.village.bellevue.model.ProfileModelProvider;
 import com.village.bellevue.repository.AggregateRatingRepository;
+import com.village.bellevue.repository.FavoriteRepository;
 import com.village.bellevue.repository.ForumRepository;
 import com.village.bellevue.repository.PostRepository;
 import com.village.bellevue.repository.ProfileRepository;
@@ -57,16 +61,24 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public ProfileModel getProfile(UserProfileEntity user) {
-      return new ProfileModel(user, (Long user1) -> {
-        try {
-          if (getAuthenticatedUserId().equals(user1)) {
-            return Optional.of("self");
+      return new ProfileModel(user, new ProfileModelProvider() {
+        @Override
+        public Optional<String> getFriendshipStatus(Long user) {
+          try {
+            if (getAuthenticatedUserId().equals(user)) {
+              return Optional.of("SELF");
+            }
+            Optional<String> friendshipStatus = friendService.getStatus(user);
+            if (friendshipStatus.isEmpty()) return Optional.of("UNSET");
+            return friendshipStatus;
+          } catch (FriendshipException ex) {
+            return Optional.of("UNSET");
           }
-          Optional<String> friendshipStatus = friendService.getStatus(user1);
-          if (friendshipStatus.isEmpty()) return Optional.of("unset");
-          return friendshipStatus;
-        } catch (FriendshipException ex) {
-          return Optional.of("unset");
+        }
+
+        @Override
+        public boolean isFavorite(Long user) {
+          return favoriteRepository.existsById(new FavoriteId(getAuthenticatedUserId(), FavoriteType.PROFILE, user));
         }
       });
     }
@@ -85,23 +97,34 @@ public class PostServiceImpl implements PostService {
             return Optional.of(new ProfileModel(userProfileRepository.getReferenceById(user), (Long user1) -> {
               try {
                 if (getAuthenticatedUserId().equals(user1)) {
-                  return Optional.of("self");
+                  return Optional.of("SELF");
                 }
                 Optional<String> friendshipStatus = friendService.getStatus(user1);
-                if (friendshipStatus.isEmpty()) return Optional.of("unset");
+                if (friendshipStatus.isEmpty()) return Optional.of("UNSET");
                 return friendshipStatus;
               } catch (FriendshipException ex) {
-                return Optional.of("unset");
+                return Optional.of("UNSET");
               }
             }));
           }
           return Optional.empty();
         }
+
+        @Override
+        public boolean isFavorite(ForumEntity forum) {
+          return favoriteRepository.existsById(new FavoriteId(getAuthenticatedUserId(), FavoriteType.FORUM, forum.getId()));
+        }
       });
+    }
+
+    @Override
+    public boolean isFavorite(Long post) {
+      return favoriteRepository.existsById(new FavoriteId(getAuthenticatedUserId(), FavoriteType.POST, post));
     }
   };
 
   private final PostRepository postRepository;
+  private final FavoriteRepository favoriteRepository;
   private final AggregateRatingRepository ratingRepository;
   private final ForumRepository forumRepository;
   private final ProfileRepository profileRepository;
@@ -111,6 +134,7 @@ public class PostServiceImpl implements PostService {
 
   public PostServiceImpl(
     PostRepository postRepository,
+    FavoriteRepository favoriteRepository,
     AggregateRatingRepository ratingRepository,
     ForumRepository forumRepository,
     ProfileRepository profileRepository,
@@ -119,6 +143,7 @@ public class PostServiceImpl implements PostService {
     ApplicationEventPublisher publisher
   ) {
     this.postRepository = postRepository;
+    this.favoriteRepository = favoriteRepository;
     this.ratingRepository = ratingRepository;
     this.forumRepository = forumRepository;
     this.profileRepository = profileRepository;

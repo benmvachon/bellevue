@@ -12,13 +12,17 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static com.village.bellevue.config.CacheConfig.POST_SECURITY_CACHE_NAME;
 import static com.village.bellevue.config.security.SecurityConfig.getAuthenticatedUserId;
+
+import com.village.bellevue.entity.FavoriteEntity.FavoriteType;
 import com.village.bellevue.entity.ForumEntity;
+import com.village.bellevue.entity.id.FavoriteId;
 import com.village.bellevue.error.AuthorizationException;
 import com.village.bellevue.error.FriendshipException;
 import com.village.bellevue.event.ForumEvent;
 import com.village.bellevue.model.ForumModel;
 import com.village.bellevue.model.ForumModelProvider;
 import com.village.bellevue.model.ProfileModel;
+import com.village.bellevue.repository.FavoriteRepository;
 import com.village.bellevue.repository.ForumRepository;
 import com.village.bellevue.repository.ProfileRepository;
 import com.village.bellevue.service.ForumService;
@@ -52,22 +56,30 @@ public class ForumServiceImpl implements ForumService {
       }
       return Optional.empty();
     }
+
+    @Override
+    public boolean isFavorite(ForumEntity forum) {
+      return favoriteRepository.existsById(new FavoriteId(getAuthenticatedUserId(), FavoriteType.FORUM, forum.getId()));
+    }
   };
 
   private final ForumRepository forumRepository;
   private final ProfileRepository profileRepository;
   private final UserProfileService userProfileService;
+  private final FavoriteRepository favoriteRepository;
   private final ApplicationEventPublisher publisher;
 
   public ForumServiceImpl(
     ForumRepository forumRepository,
     ProfileRepository profileRepository,
     UserProfileService userProfileService,
+    FavoriteRepository favoriteRepository,
     ApplicationEventPublisher publisher
   ) {
     this.forumRepository = forumRepository;
     this.profileRepository = profileRepository;
     this.userProfileService = userProfileService;
+    this.favoriteRepository = favoriteRepository;
     this.publisher = publisher;
   }
 

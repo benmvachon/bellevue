@@ -2,7 +2,14 @@ import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import withAuth from '../utils/withAuth.js';
-import { addReply, getPost, getReplies, ratePost } from '../api/api.js';
+import {
+  addReply,
+  getPost,
+  getReplies,
+  ratePost,
+  favoritePost,
+  unfavoritePost
+} from '../api/api.js';
 import Rating from './Rating.js';
 import InfiniteScroll from './InfiniteScroll.js';
 
@@ -65,6 +72,14 @@ function Post({
     setSortByRelevance(!sortByRelevance);
   };
 
+  const favorite = () => {
+    favoritePost(id, refresh, setError);
+  };
+
+  const unfavorite = () => {
+    unfavoritePost(id, refresh, setError);
+  };
+
   useEffect(() => {
     if (id) refresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -101,6 +116,11 @@ function Post({
             Go to post
           </button>
         )}
+        {post.favorite ? (
+          <button onClick={unfavorite}>Unfavorite</button>
+        ) : (
+          <button onClick={favorite}>Favorite</button>
+        )}
       </div>
       <p>{post?.content}</p>
       <form
@@ -121,7 +141,9 @@ function Post({
           <button onClick={toggleSort}>
             {sortByRelevance ? 'Most recent' : 'Most relevant'}
           </button>
-          {getSelectedChild && getSelectedChild(depth, sortByRelevance)}
+          {showReplies &&
+            getSelectedChild &&
+            getSelectedChild(depth, sortByRelevance)}
           {showReplies && (
             <InfiniteScroll
               page={replies}

@@ -17,17 +17,17 @@ public class StatusConverterTest {
   public static Stream<Arguments> provideStatusForDatabaseColumn() {
     return Stream.of(
         Arguments.of(null, null),
-        Arguments.of(Status.IDLE, "idle"),
-        Arguments.of(Status.OFFLINE, "offline"),
-        Arguments.of(Status.ACTIVE, "active"));
+        Arguments.of(Status.IDLE, "IDLE"),
+        Arguments.of(Status.OFFLINE, "OFFLINE"),
+        Arguments.of(Status.ACTIVE, "ACTIVE"));
   }
 
   public static Stream<Arguments> provideStringForEntityAttribute() {
     return Stream.of(
         Arguments.of(null, null, false),
-        Arguments.of("idle", Status.IDLE, false),
-        Arguments.of("offline", Status.OFFLINE, false),
-        Arguments.of("active", Status.ACTIVE, false),
+        Arguments.of("IDLE", Status.IDLE, false),
+        Arguments.of("OFFLINE", Status.OFFLINE, false),
+        Arguments.of("ACTIVE", Status.ACTIVE, false),
         Arguments.of("invalid", null, true));
   }
 

@@ -12,6 +12,7 @@ class Post {
     children,
     rating,
     ratingCount,
+    favorite,
     _links
   ) {
     this.id = id;
@@ -23,6 +24,7 @@ class Post {
     this.children = children;
     this.rating = rating;
     this.ratingCount = ratingCount;
+    this.favorite = favorite;
     // TODO: process _links
   }
 
@@ -48,7 +50,8 @@ class Post {
       json.created,
       json.children,
       json.rating,
-      json.ratingCount
+      json.ratingCount,
+      json.favorite
     );
   }
 
@@ -62,7 +65,8 @@ class Post {
       created: this.created?.toString(),
       children: this.children,
       rating: this.rating,
-      ratingCount: this.ratingCount
+      ratingCount: this.ratingCount,
+      favorite: this.favorite
     };
   }
 }

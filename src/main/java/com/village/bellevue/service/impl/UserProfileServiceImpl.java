@@ -7,10 +7,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import static com.village.bellevue.config.security.SecurityConfig.getAuthenticatedUserId;
+
+import com.village.bellevue.entity.FavoriteEntity.FavoriteType;
 import com.village.bellevue.entity.UserProfileEntity;
+import com.village.bellevue.entity.id.FavoriteId;
 import com.village.bellevue.error.FriendshipException;
 import com.village.bellevue.model.ProfileModel;
 import com.village.bellevue.model.ProfileModelProvider;
+import com.village.bellevue.repository.FavoriteRepository;
 import com.village.bellevue.repository.ProfileRepository;
 import com.village.bellevue.repository.UserProfileRepository;
 import com.village.bellevue.service.FriendService;
@@ -23,29 +27,36 @@ public class UserProfileServiceImpl implements UserProfileService {
     @Override
     public Optional<String> getFriendshipStatus(Long user) {
       try {
-        if (getAuthenticatedUserId().equals(user)) return Optional.of("self");
+        if (getAuthenticatedUserId().equals(user)) return Optional.of("SELF");
         Optional<String> friendshipStatus = friendService.getStatus(user);
-        if (friendshipStatus.isEmpty()) return Optional.of("unset");
+        if (friendshipStatus.isEmpty()) return Optional.of("UNSET");
         return friendshipStatus;
       } catch (FriendshipException ex) {
-        return Optional.of("unset");
+        return Optional.of("UNSET");
       }
     }
     
+    @Override
+    public boolean isFavorite(Long user) {
+      return favoriteRepository.existsById(new FavoriteId(getAuthenticatedUserId(), FavoriteType.PROFILE, user));
+    }
   };
 
   private final UserProfileRepository userProfileRepository;
   private final ProfileRepository profileRepository;
   private final FriendService friendService;
+  private final FavoriteRepository favoriteRepository;
 
   public UserProfileServiceImpl(
     UserProfileRepository userProfileRepository,
     ProfileRepository profileRepository,
-    FriendService friendService
+    FriendService friendService,
+    FavoriteRepository favoriteRepository
   ) {
     this.userProfileRepository = userProfileRepository;
     this.profileRepository = profileRepository;
     this.friendService = friendService;
+    this.favoriteRepository = favoriteRepository;
   }
 
   @Override

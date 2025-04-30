@@ -5,7 +5,7 @@ import { useAuth } from '../utils/AuthContext.js';
 import { getMessages, sendMessage, markMessageRead } from '../api/api.js';
 import InfiniteScroll from './InfiniteScroll.js';
 
-function Message({ show = false, friend, onClose }) {
+function Messages({ show = false, friend, onClose }) {
   const { userId } = useAuth();
   const [messages, setMessages] = useState(null);
   const [message, setMessage] = useState('');
@@ -17,7 +17,7 @@ function Message({ show = false, friend, onClose }) {
   };
 
   useEffect(() => {
-    if (show) getMessages(friend, setMessages, setMessages);
+    if (show) getMessages(friend, setMessages, setError);
   }, [show, friend]);
 
   useEffect(() => {
@@ -47,7 +47,7 @@ function Message({ show = false, friend, onClose }) {
 
   const send = () => {
     sendMessage(friend, message, () => {
-      getMessages(friend, setMessages, setMessages);
+      getMessages(friend, setMessages, setError);
       setMessage('');
     });
   };
@@ -86,10 +86,10 @@ function Message({ show = false, friend, onClose }) {
   );
 }
 
-Message.propTypes = {
+Messages.propTypes = {
   show: PropTypes.bool,
   friend: PropTypes.number.isRequired,
   onClose: PropTypes.func.isRequired
 };
 
-export default withAuth(Message);
+export default withAuth(Messages);

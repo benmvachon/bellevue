@@ -24,22 +24,22 @@ public class ProfileModelAssembler implements RepresentationModelAssembler<Profi
         linkTo(methodOn(EquipmentController.class).readAll(0, 10, "all")).withRel("equipment")
       );
     String friendshipStatus = profile.getFriendshipStatus();
-    if (Objects.isNull(friendshipStatus)) friendshipStatus = "unset";
-    return switch (friendshipStatus.toLowerCase()) {
-      case "blocked_them", "blocked_you" -> EntityModel.of(null);
-      case "accepted" -> EntityModel.of(
+    if (Objects.isNull(friendshipStatus)) friendshipStatus = "UNSET";
+    return switch (friendshipStatus.toUpperCase()) {
+      case "BLOCKED_THEM", "BLOCKED_YOU" -> EntityModel.of(null);
+      case "ACCEPTED" -> EntityModel.of(
         profile,
         linkTo(methodOn(FriendController.class).block(profile.getId())).withRel("block"),
         linkTo(methodOn(FriendController.class).remove(profile.getId())).withRel("remove"),
         linkTo(methodOn(FriendController.class).read(profile.getId(), 0, 10)).withRel("friends"),
         linkTo(methodOn(MessageController.class).message(profile.getId(), null)).withRel("message")
       );
-      case "pending_you" -> EntityModel.of(
+      case "PENDING_YOU" -> EntityModel.of(
         profile,
         linkTo(methodOn(FriendController.class).block(profile.getId())).withRel("block"),
         linkTo(methodOn(FriendController.class).accept(profile.getId())).withRel("accept")
       );
-      case "pending_them" -> EntityModel.of(
+      case "PENDING_THEM" -> EntityModel.of(
         profile,
         linkTo(methodOn(FriendController.class).block(profile.getId())).withRel("block")
       );

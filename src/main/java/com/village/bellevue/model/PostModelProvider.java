@@ -18,4 +18,6 @@ public interface PostModelProvider {
   ProfileModel getProfile(UserProfileEntity user);
 
   ForumModel getForum(ForumEntity forum) throws AuthorizationException;
+
+  boolean isFavorite(Long post);
 }

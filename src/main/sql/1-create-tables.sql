@@ -31,7 +31,7 @@ CREATE TABLE forum(
 );
 CREATE TABLE profile(
     user            INT UNSIGNED NOT NULL UNIQUE,                                                               -- ID of the user
-    status          ENUM('offline', 'active', 'idle') NOT NULL DEFAULT 'offline',                               -- Indication of what the user is currently doing
+    status          ENUM('OFFLINE', 'ACTIVE', 'IDLE') NOT NULL DEFAULT 'OFFLINE',                               -- Indication of what the user is currently doing
     location        INT UNSIGNED,                                                                               -- Forum the user is currently in
     last_seen       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,                                                        -- Timestamp for when the user last logged out
     blackboard      VARCHAR(255),                                                                               -- Custom message written by the user
@@ -68,7 +68,7 @@ CREATE TABLE equipment(
 CREATE TABLE friend(
     user            INT UNSIGNED NOT NULL,                                                                      -- ID of the user
     friend          INT UNSIGNED NOT NULL,                                                                      -- ID of the friend
-    status          ENUM('pending_them', 'pending_you', 'accepted', 'blocked_them', 'blocked_you') NOT NULL,    -- Friendship status
+    status          ENUM('PENDING_THEM', 'PENDING_YOU', 'ACCEPTED', 'BLOCKED_THEM', 'BLOCKED_YOU') NOT NULL,    -- Friendship status
     created         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,                                                        -- Timestamp for when the friendship was first established
     updated         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,                                                        -- Timestamp for when the friendship was updated
     PRIMARY KEY     (user, friend),                                                                             -- Composite primary key to ensure unique friendships
@@ -96,7 +96,7 @@ CREATE TABLE post(
 CREATE TABLE rating(
     post            INT UNSIGNED NOT NULL,                                                                      -- ID of the post being rated
     user            INT UNSIGNED NOT NULL,                                                                      -- ID of the user who added the rating
-    rating          ENUM('one', 'two', 'three', 'four', 'five') NOT NULL DEFAULT 'five',                        -- Star rating out of five
+    rating          ENUM('ONE', 'TWO', 'THREE', 'FOUR', 'FIVE') NOT NULL DEFAULT 'FIVE',                        -- Star rating out of five
     created         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,                                                        -- Timestamp for when the rating was submitted
     updated         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,                                                        -- Timestamp for when the rating was last updated
     PRIMARY KEY     (user, post),                                                                               -- Make the ID a combination of user and post
@@ -154,13 +154,13 @@ CREATE TABLE notification(
     INDEX           (notifier, notified)                                                                        -- Index on the user pair for fast look-up
 );
 CREATE TABLE favorite(
-    id              INT UNSIGNED NOT NULL AUTO_INCREMENT,                                                       -- Unique ID for the record
     user            INT UNSIGNED NOT NULL,                                                                      -- ID of the user for whom the aggregate rating applies
-    type            VARCHAR(255) NOT NULL,                                                                      -- The name of the table / entity which is favorited
+    type            ENUM('POST', 'FORUM', 'PROFILE') NOT NULL,                                                  -- The name of the table / entity which is favorited
     entity          INT UNSIGNED NOT NULL,                                                                      -- ID of the object (post, request, rating) which is favorited
     created         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,                                                        -- Timestamp for when the item was favorited
-    PRIMARY KEY     (id),                                                                                       -- Make the ID the primary key
+    PRIMARY KEY     (user, type, entity),                                                                       -- Make a composite key of three fields
     INDEX           (user),                                                                                     -- Index on the user for fast look-up
+    INDEX           (type),                                                                                     -- Index on the type for fast look-up
     INDEX           (created)                                                                                   -- Index on the created date for fast look-up
 );
 CREATE VIEW user_profile AS

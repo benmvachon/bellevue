@@ -10,5 +10,9 @@ public interface ForumModelProvider  {
     return false;
   };
 
+  default boolean isFavorite(ForumEntity forum) {
+    return false;
+  };
+
   Optional<ProfileModel> getProfile(Long user);
 }

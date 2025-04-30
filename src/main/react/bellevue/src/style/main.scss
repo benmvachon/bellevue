@@ -149,6 +149,15 @@ html {
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
+
+        div.buttons {
+          display: flex;
+          justify-content: space-evenly;
+
+          text-area {
+            width: 100%;
+          }
+        }
       }
 
       div.notifications-container {
@@ -164,11 +173,6 @@ html {
             justify-content: space-evenly;
           }
         }
-
-        div.buttons {
-          display: flex;
-          justify-content: space-evenly;
-        }
       }
 
       div.threads-container {
@@ -183,11 +187,6 @@ html {
             display: flex;
             justify-content: space-evenly;
           }
-        }
-
-        div.buttons {
-          display: flex;
-          justify-content: space-evenly;
         }
       }
 
@@ -211,13 +210,20 @@ html {
             }
           }
         }
+      }
 
-        div.buttons {
+      div.favorites-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+
+        div.favorites {
           display: flex;
-          justify-content: space-evenly;
+          justify-content: center;
+          overflow-y: auto;
 
-          text-area {
-            width: 100%;
+          div.favorite {
+            display: flex;
           }
         }
       }

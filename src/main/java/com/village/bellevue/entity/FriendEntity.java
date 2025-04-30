@@ -47,7 +47,7 @@ public class FriendEntity {
 
     @JsonValue
     public String toValue() {
-      return this.name().toLowerCase();
+      return this.name().toUpperCase();
     }
 
     @JsonCreator
