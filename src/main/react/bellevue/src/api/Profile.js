@@ -8,7 +8,8 @@ class Profile {
     status,
     avatar,
     equipment,
-    location,
+    forumLocation,
+    profileLocation,
     lastSeen,
     blackboard,
     friendshipStatus,
@@ -21,7 +22,16 @@ class Profile {
     this.status = status;
     this.avatar = avatar;
     this.equipment = equipment;
-    this.location = location ? Forum.fromJSON(location) : null;
+    this.locationType = forumLocation
+      ? 'FORUM'
+      : profileLocation
+        ? 'PROFILE'
+        : null;
+    this.location = forumLocation
+      ? Forum.fromJSON(forumLocation)
+      : profileLocation
+        ? Profile.fromJSON(profileLocation)
+        : null;
     this.lastSeen = new Date(lastSeen);
     this.blackboard = blackboard;
     this.friendshipStatus = friendshipStatus || 'UNSET';
@@ -61,7 +71,8 @@ class Profile {
       json.status,
       json.avatar,
       json.equipment,
-      json.location,
+      json.forumLocation,
+      json.profileLocation,
       json.lastSeen?.toString(),
       json.blackboard,
       json.friendshipStatus,
@@ -70,7 +81,7 @@ class Profile {
   }
 
   toJSON() {
-    return {
+    const JSON = {
       id: this.id,
       name: this.name,
       username: this.username,
@@ -83,6 +94,12 @@ class Profile {
       friendshipStatus: this.friendshipStatus,
       favorite: this.favorite
     };
+    if (this.locationType === 'FORUM') {
+      JSON.forumLocation = this.location.toJSON();
+    } else if (this.locationType === 'PROFILE') {
+      JSON.profileLocation = this.location.toJSON();
+    }
+    return JSON;
   }
 }
 

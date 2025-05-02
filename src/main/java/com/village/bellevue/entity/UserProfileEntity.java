@@ -8,14 +8,13 @@ import org.springframework.data.annotation.Immutable;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.village.bellevue.converter.JsonToMapConverter;
+import com.village.bellevue.entity.ProfileEntity.LocationType;
 import com.village.bellevue.entity.ProfileEntity.Status;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -47,9 +46,10 @@ public class UserProfileEntity {
   @Convert(converter = JsonToMapConverter.class)
   private Map<String, String> equipment = new HashMap<>();
 
-  @ManyToOne(optional = true)
-  @JoinColumn(name = "location")
-  private ForumEntity location = null;
+  @Column(nullable = true)
+  private Long location;
+  @Column(nullable = true)
+  private LocationType locationType;
 
   private Timestamp lastSeen = new Timestamp(System.currentTimeMillis());
   private String blackboard = "";

@@ -5,7 +5,8 @@ import { useAuth } from '../utils/AuthContext.js';
 import {
   getNotificationCount,
   getMessageCount,
-  connectToAMB
+  onNotification,
+  onMessage
 } from '../api/api.js';
 import Notifications from './Notifications.js';
 import Threads from './Threads.js';
@@ -27,10 +28,10 @@ function Header() {
   useEffect(() => {
     getNotificationCount(setNotificationCount, setError);
     getMessageCount(setUnreadThreadCount, setError);
-    connectToAMB(
-      (message) => getNotificationCount(setNotificationCount, setError),
-      (message) => getMessageCount(setUnreadThreadCount, setError)
+    onNotification((message) =>
+      getNotificationCount(setNotificationCount, setError)
     );
+    onMessage((message) => getMessageCount(setUnreadThreadCount, setError));
   }, []);
 
   const openNotifications = () => {

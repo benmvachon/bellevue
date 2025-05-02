@@ -31,15 +31,15 @@ CREATE TABLE forum(
 );
 CREATE TABLE profile(
     user            INT UNSIGNED NOT NULL UNIQUE,                                                               -- ID of the user
-    status          ENUM('OFFLINE', 'ACTIVE', 'IDLE') NOT NULL DEFAULT 'OFFLINE',                               -- Indication of what the user is currently doing
-    location        INT UNSIGNED,                                                                               -- Forum the user is currently in
+    status          ENUM('OFFLINE', 'ACTIVE', 'IDLE', 'OTHER') NOT NULL DEFAULT 'OFFLINE',                      -- Indication of what the user is currently doing
+    location        INT UNSIGNED,                                                                               -- The ID of the forum / profile the user is currently viewing
+    location_type   ENUM('FORUM', 'PROFILE', 'OTHER'),                                                          -- The name of the table / entity of the location
     last_seen       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,                                                        -- Timestamp for when the user last logged out
     blackboard      VARCHAR(255),                                                                               -- Custom message written by the user
     avatar          INT UNSIGNED NOT NULL DEFAULT 0,                                                            -- Image to represent the user
     PRIMARY KEY     (user),                                                                                     -- Make the ID the primary key
     FOREIGN KEY     (user) REFERENCES user(id) ON DELETE CASCADE,                                               -- user is a reference to the user table
     FOREIGN KEY     (avatar) REFERENCES avatar(id),                                                             -- avatar is a reference to the avatar table
-    FOREIGN KEY     (location) REFERENCES forum(id),                                                            -- location is a reference to the forum table
     INDEX           (location)
 );
 CREATE TABLE item(
@@ -155,7 +155,7 @@ CREATE TABLE notification(
 );
 CREATE TABLE favorite(
     user            INT UNSIGNED NOT NULL,                                                                      -- ID of the user for whom the aggregate rating applies
-    type            ENUM('POST', 'FORUM', 'PROFILE') NOT NULL,                                                  -- The name of the table / entity which is favorited
+    type            ENUM('POST', 'FORUM', 'PROFILE', 'OTHER') NOT NULL,                                         -- The name of the table / entity which is favorited
     entity          INT UNSIGNED NOT NULL,                                                                      -- ID of the object (post, request, rating) which is favorited
     created         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,                                                        -- Timestamp for when the item was favorited
     PRIMARY KEY     (user, type, entity),                                                                       -- Make a composite key of three fields
@@ -170,6 +170,7 @@ SELECT
     u.username,
     p.status,
     p.location,
+    p.location_type,
     p.last_seen,
     p.blackboard,
     COALESCE(a.name, 'cat') AS avatar,

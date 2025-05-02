@@ -6,8 +6,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.village.bellevue.entity.ForumEntity;
 import com.village.bellevue.entity.ProfileEntity;
+import com.village.bellevue.entity.ProfileEntity.LocationType;
 
 @Repository
 public interface ProfileRepository extends JpaRepository<ProfileEntity, Long> {
@@ -19,7 +19,7 @@ public interface ProfileRepository extends JpaRepository<ProfileEntity, Long> {
 
   @Modifying
   @Transactional
-  @Query("UPDATE ProfileEntity p SET p.status = 'offline', p.location = null WHERE p.id = :user")
+  @Query("UPDATE ProfileEntity p SET p.status = 'offline', p.location = null, p.locationType = null WHERE p.id = :user")
   void setStatusOffline(Long user);
 
   @Modifying
@@ -29,8 +29,8 @@ public interface ProfileRepository extends JpaRepository<ProfileEntity, Long> {
 
   @Modifying
   @Transactional
-  @Query("UPDATE ProfileEntity p SET p.location = :location WHERE p.id = :user")
-  void setLocation(Long user, ForumEntity location);
+  @Query("UPDATE ProfileEntity p SET p.location = :location, p.locationType = :locationType WHERE p.id = :user")
+  void setLocation(Long user, Long location, LocationType locationType);
 
   @Modifying
   @Transactional

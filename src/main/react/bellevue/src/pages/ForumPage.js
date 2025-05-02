@@ -27,7 +27,7 @@ function ForumPage() {
   const refreshPosts = () =>
     getPosts(id, setPosts, setError, 0, sortByRelevance);
   const refreshAttendees = () =>
-    getFriendsInLocation(id, setAttendees, setError);
+    getFriendsInLocation(id, 'FORUM', setAttendees, setError);
 
   const loadMorePosts = (page) => {
     getPosts(
@@ -48,6 +48,7 @@ function ForumPage() {
   const loadMoreAttendees = (page) => {
     getFriendsInLocation(
       id,
+      'FORUM',
       (more) => {
         if (more) {
           more.content = attendees?.content?.concat(more?.content);

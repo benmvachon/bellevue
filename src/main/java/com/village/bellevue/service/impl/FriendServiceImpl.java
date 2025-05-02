@@ -25,14 +25,22 @@ import static com.village.bellevue.config.CacheConfig.evictKeysByPattern;
 import static com.village.bellevue.config.CacheConfig.getCacheKey;
 import static com.village.bellevue.config.CacheConfig.getUserCacheKeyPattern;
 import static com.village.bellevue.config.security.SecurityConfig.getAuthenticatedUserId;
+
+import com.village.bellevue.entity.ForumEntity;
 import com.village.bellevue.entity.FriendEntity;
+import com.village.bellevue.entity.UserProfileEntity;
+import com.village.bellevue.entity.FavoriteEntity.FavoriteType;
+import com.village.bellevue.entity.id.FavoriteId;
 import com.village.bellevue.entity.id.FriendId;
 import com.village.bellevue.error.FriendshipException;
 import com.village.bellevue.event.AcceptanceEvent;
 import com.village.bellevue.event.RequestEvent;
 import com.village.bellevue.model.ProfileModel;
 import com.village.bellevue.model.ProfileModelProvider;
+import com.village.bellevue.repository.FavoriteRepository;
+import com.village.bellevue.repository.ForumRepository;
 import com.village.bellevue.repository.FriendRepository;
+import com.village.bellevue.repository.UserProfileRepository;
 import com.village.bellevue.service.FriendService;
 
 import jakarta.persistence.EntityManager;
@@ -41,14 +49,30 @@ import jakarta.persistence.PersistenceContext;
 @Service
 public class FriendServiceImpl implements FriendService {
 
-  private final ProfileModelProvider profileModelProvider = (Long user) -> {
-    try {
-      if (getAuthenticatedUserId().equals(user)) return Optional.of("SELF");
-      Optional<String> friendshipStatus = getStatus(user);
-      if (friendshipStatus.isEmpty()) return Optional.of("UNSET");
-      return friendshipStatus;
-    } catch (FriendshipException ex) {
-      return Optional.of("UNSET");
+  private final ProfileModelProvider profileModelProvider = new ProfileModelProvider() {
+    public boolean isFavorite(Long user) {
+      return favoriteRepository.existsById(new FavoriteId(getAuthenticatedUserId(), FavoriteType.PROFILE, user));
+    };
+
+    public Optional<String> getFriendshipStatus(Long user) {
+      try {
+        if (getAuthenticatedUserId().equals(user)) return Optional.of("SELF");
+        Optional<String> friendshipStatus = getStatus(user);
+        if (friendshipStatus.isEmpty()) return Optional.of("UNSET");
+        return friendshipStatus;
+      } catch (FriendshipException ex) {
+        return Optional.of("UNSET");
+      }
+    }
+
+    @Override
+    public UserProfileEntity getProfileLocation(Long location) {
+      return userProfileRepository.getReferenceById(location);
+    }
+
+    @Override
+    public ForumEntity getForumLocation(Long location) {
+      return forumRepository.getReferenceById(location);
     }
   };
 
@@ -58,6 +82,9 @@ public class FriendServiceImpl implements FriendService {
 
   private static final Logger logger = LoggerFactory.getLogger(FriendServiceImpl.class);
   private final FriendRepository friendRepository;
+  private final FavoriteRepository favoriteRepository;
+  private final UserProfileRepository userProfileRepository;
+  private final ForumRepository forumRepository;
   private final DataSource dataSource;
   private final CacheManager cacheManager;
   private final RedisTemplate<String, Object> redisTemplate;
@@ -68,12 +95,18 @@ public class FriendServiceImpl implements FriendService {
 
   public FriendServiceImpl(
     FriendRepository friendRepository,
+    FavoriteRepository favoriteRepository,
+    UserProfileRepository userProfileRepository,
+    ForumRepository forumRepository,
     DataSource dataSource,
     CacheManager cacheManager,
     RedisTemplate<String, Object> redisTemplate,
     ApplicationEventPublisher publisher
   ) {
     this.friendRepository = friendRepository;
+    this.favoriteRepository = favoriteRepository;
+    this.userProfileRepository = userProfileRepository;
+    this.forumRepository = forumRepository;
     this.dataSource = dataSource;
     this.cacheManager = cacheManager;
     this.redisTemplate = redisTemplate;

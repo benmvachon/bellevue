@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.village.bellevue.assembler.ProfileModelAssembler;
 import com.village.bellevue.config.security.UserDetailsServiceImpl;
 import com.village.bellevue.entity.UserEntity;
+import com.village.bellevue.entity.ProfileEntity.LocationType;
 import com.village.bellevue.error.AuthorizationException;
 import com.village.bellevue.error.FriendshipException;
 import com.village.bellevue.model.ProfileModel;
@@ -88,26 +89,34 @@ public class UserController {
     return ResponseEntity.ok(pagedModel);
   }
 
-  @GetMapping("/friends/{location}")
+  @GetMapping("/friends/{locationType}/{location}")
   public ResponseEntity<PagedModel<EntityModel<ProfileModel>>> friends(
+    @PathVariable String locationType,
     @PathVariable Long location,
     @RequestParam(defaultValue = "0") int page,
     @RequestParam(defaultValue = "5") int size
   ) {
-    Page<ProfileModel> users = profileService.readFriendsByLocation(location, page, size);
+    Page<ProfileModel> users = profileService.readFriendsByLocation(location, LocationType.fromString(locationType), page, size);
     PagedModel<EntityModel<ProfileModel>> pagedModel = pagedAssembler.toModel(users, profileModelAssembler);
     return ResponseEntity.ok(pagedModel);
   }
 
-  @GetMapping("/nonfriends/{location}")
+  @GetMapping("/nonfriends/{locationType}/{location}")
   public ResponseEntity<PagedModel<EntityModel<ProfileModel>>> nonFriends(
+    @PathVariable String locationType,
     @PathVariable Long location,
     @RequestParam(defaultValue = "0") int page,
     @RequestParam(defaultValue = "5") int size
   ) {
-    Page<ProfileModel> users = profileService.readNonFriendsByLocation(location, page, size);
+    Page<ProfileModel> users = profileService.readNonFriendsByLocation(location, LocationType.fromString(locationType), page, size);
     PagedModel<EntityModel<ProfileModel>> pagedModel = pagedAssembler.toModel(users, profileModelAssembler);
     return ResponseEntity.ok(pagedModel);
+  }
+
+  @PutMapping(value = {"/location", "/location/{locationType}/{location}"})
+  public ResponseEntity<Void> setLocation(@PathVariable(required = false) String locationType, @PathVariable(required = false) Long location) {
+    profileService.setLocation(location, LocationType.fromString(locationType));
+    return ResponseEntity.status(HttpStatus.CREATED).build();
   }
 
   @DeleteMapping

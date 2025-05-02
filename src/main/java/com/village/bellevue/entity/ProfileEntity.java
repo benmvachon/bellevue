@@ -2,6 +2,7 @@ package com.village.bellevue.entity;
 
 import java.sql.Timestamp;
 import java.util.Map;
+import java.util.Objects;
 
 import org.springframework.data.annotation.Immutable;
 
@@ -46,9 +47,9 @@ public class ProfileEntity {
   @Convert(converter = JsonToMapConverter.class)
   private Map<String, String> equipment;
 
-  @ManyToOne
-  @JoinColumn(name = "location")
-  private ForumEntity location;
+  private Long location;
+
+  private LocationType locationType;
 
   private Timestamp lastSeen = new Timestamp(System.currentTimeMillis());
   private String blackboard;
@@ -66,7 +67,8 @@ public class ProfileEntity {
   public enum Status {
     OFFLINE,
     ACTIVE,
-    IDLE;
+    IDLE,
+    OTHER;
 
     @JsonValue
     public String toValue() {
@@ -76,6 +78,23 @@ public class ProfileEntity {
     @JsonCreator
     public static Status fromString(String value) {
       return Status.valueOf(value.toUpperCase());
+    }
+  }
+
+  public enum LocationType {
+    FORUM,
+    PROFILE,
+    OTHER;
+
+    @JsonValue
+    public String toValue() {
+      return this.name().toUpperCase();
+    }
+
+    @JsonCreator
+    public static LocationType fromString(String value) {
+      if (Objects.isNull(value)) return null;
+      return LocationType.valueOf(value.toUpperCase());
     }
   }
 }

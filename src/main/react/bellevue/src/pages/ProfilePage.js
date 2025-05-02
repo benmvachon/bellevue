@@ -156,6 +156,9 @@ function ProfilePage() {
         {profile?.avatar} {JSON.stringify(profile?.equipment)}
       </p>
       {self ? <p>This is you</p> : <p>{profile?.status}</p>}
+      <p>
+        {profile?.locationType} - {profile?.location?.id}
+      </p>
       {buttons}
       {self ? (
         <form onSubmit={() => updateBlackboard(blackboard, refresh, setError)}>

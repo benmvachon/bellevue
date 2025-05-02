@@ -1,7 +1,9 @@
 package com.village.bellevue.service.impl;
 
+import java.util.Objects;
 import java.util.Optional;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -9,12 +11,16 @@ import org.springframework.stereotype.Service;
 import static com.village.bellevue.config.security.SecurityConfig.getAuthenticatedUserId;
 
 import com.village.bellevue.entity.FavoriteEntity.FavoriteType;
+import com.village.bellevue.entity.ProfileEntity.LocationType;
+import com.village.bellevue.entity.ForumEntity;
 import com.village.bellevue.entity.UserProfileEntity;
 import com.village.bellevue.entity.id.FavoriteId;
 import com.village.bellevue.error.FriendshipException;
+import com.village.bellevue.event.LocationEvent;
 import com.village.bellevue.model.ProfileModel;
 import com.village.bellevue.model.ProfileModelProvider;
 import com.village.bellevue.repository.FavoriteRepository;
+import com.village.bellevue.repository.ForumRepository;
 import com.village.bellevue.repository.ProfileRepository;
 import com.village.bellevue.repository.UserProfileRepository;
 import com.village.bellevue.service.FriendService;
@@ -24,10 +30,16 @@ import com.village.bellevue.service.UserProfileService;
 public class UserProfileServiceImpl implements UserProfileService {
 
   private final ProfileModelProvider profileModelProvider = new ProfileModelProvider() {
+    public boolean isFavorite(Long user) {
+      return favoriteRepository.existsById(new FavoriteId(getAuthenticatedUserId(), FavoriteType.PROFILE, user));
+    };
+
     @Override
     public Optional<String> getFriendshipStatus(Long user) {
       try {
-        if (getAuthenticatedUserId().equals(user)) return Optional.of("SELF");
+        if (getAuthenticatedUserId().equals(user)) {
+          return Optional.of("SELF");
+        }
         Optional<String> friendshipStatus = friendService.getStatus(user);
         if (friendshipStatus.isEmpty()) return Optional.of("UNSET");
         return friendshipStatus;
@@ -35,28 +47,39 @@ public class UserProfileServiceImpl implements UserProfileService {
         return Optional.of("UNSET");
       }
     }
-    
+
     @Override
-    public boolean isFavorite(Long user) {
-      return favoriteRepository.existsById(new FavoriteId(getAuthenticatedUserId(), FavoriteType.PROFILE, user));
+    public UserProfileEntity getProfileLocation(Long location) {
+      return userProfileRepository.getReferenceById(location);
+    }
+
+    @Override
+    public ForumEntity getForumLocation(Long location) {
+      return forumRepository.getReferenceById(location);
     }
   };
 
   private final UserProfileRepository userProfileRepository;
   private final ProfileRepository profileRepository;
+  private final ForumRepository forumRepository;
   private final FriendService friendService;
   private final FavoriteRepository favoriteRepository;
+  private final ApplicationEventPublisher publisher;
 
   public UserProfileServiceImpl(
     UserProfileRepository userProfileRepository,
     ProfileRepository profileRepository,
+    ForumRepository forumRepository,
     FriendService friendService,
-    FavoriteRepository favoriteRepository
+    FavoriteRepository favoriteRepository,
+    ApplicationEventPublisher publisher
   ) {
     this.userProfileRepository = userProfileRepository;
     this.profileRepository = profileRepository;
+    this.forumRepository = forumRepository;
     this.friendService = friendService;
     this.favoriteRepository = favoriteRepository;
+    this.publisher = publisher;
   }
 
   @Override
@@ -69,16 +92,16 @@ public class UserProfileServiceImpl implements UserProfileService {
   }
 
   @Override
-  public Page<ProfileModel> readFriendsByLocation(Long forum, int page, int size) {
-    Page<UserProfileEntity> profileEntities = userProfileRepository.findAllFriendsByLocation(getAuthenticatedUserId(), forum, PageRequest.of(page, size));
+  public Page<ProfileModel> readFriendsByLocation(Long location, LocationType locationType, int page, int size) {
+    Page<UserProfileEntity> profileEntities = userProfileRepository.findAllFriendsByLocation(getAuthenticatedUserId(), location, locationType, PageRequest.of(page, size));
     return profileEntities.map(profile -> {
       return new ProfileModel(profile, profileModelProvider);
     });
   }
 
   @Override
-  public Page<ProfileModel> readNonFriendsByLocation(Long forum, int page, int size) {
-    Page<UserProfileEntity> profileEntities = userProfileRepository.findAllNonFriendsByLocation(getAuthenticatedUserId(), forum, PageRequest.of(page, size));
+  public Page<ProfileModel> readNonFriendsByLocation(Long location, LocationType locationType, int page, int size) {
+    Page<UserProfileEntity> profileEntities = userProfileRepository.findAllNonFriendsByLocation(getAuthenticatedUserId(), location, locationType, PageRequest.of(page, size));
     return profileEntities.map(profile -> {
       return new ProfileModel(profile, profileModelProvider);
     });
@@ -90,6 +113,17 @@ public class UserProfileServiceImpl implements UserProfileService {
     return profileEntities.map(profile -> {
       return new ProfileModel(profile, profileModelProvider);
     });
+  }
+
+  @Override
+  public void setLocation(Long location, LocationType locationType) {
+    UserProfileEntity profile = userProfileRepository.getReferenceById(getAuthenticatedUserId());
+    if (Objects.nonNull(profile) && Objects.nonNull(profile.getLocationType()) && Objects.nonNull(profile.getLocation())) {
+      if (profile.getLocationType().equals(locationType) && profile.getLocation().equals(location)) return;
+      publisher.publishEvent(new LocationEvent(getAuthenticatedUserId(), profile.getLocation(), profile.getLocationType(), false));
+    }
+    profileRepository.setLocation(getAuthenticatedUserId(), location, locationType);
+    publisher.publishEvent(new LocationEvent(getAuthenticatedUserId(), location, locationType, true));
   }
 
   @Override

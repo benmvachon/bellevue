@@ -2,11 +2,16 @@ package com.village.bellevue.model;
 
 import java.util.Optional;
 
-@FunctionalInterface
+import com.village.bellevue.entity.ForumEntity;
+import com.village.bellevue.entity.UserProfileEntity;
+
 public interface ProfileModelProvider {
   default boolean isFavorite(Long user) {
     return false;
   };
+
+  UserProfileEntity getProfileLocation(Long location);
+  ForumEntity getForumLocation(Long location);
 
   Optional<String> getFriendshipStatus(Long user);
 }

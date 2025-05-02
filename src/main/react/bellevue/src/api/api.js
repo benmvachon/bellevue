@@ -21,6 +21,12 @@ export const api = axios.create({
 
 export const socket = new SockJS('/ws');
 
+export const client = new Client({
+  webSocketFactory: () => socket
+});
+
+client.activate();
+
 export const login = (username, password, callback, error) => {
   const formData = new URLSearchParams();
   formData.append('username', username);
@@ -83,6 +89,20 @@ export const updateBlackboard = (blackboard, callback, error) => {
     .catch((err) => error(err));
 };
 
+export const updateLocation = (location, locationType, callback, error) => {
+  if (location && locationType) {
+    api
+      .put(`/user/location/${locationType}/${location}`)
+      .then(callback)
+      .catch((err) => error(err));
+  } else {
+    api
+      .put('/user/location')
+      .then(callback)
+      .catch((err) => error(err));
+  }
+};
+
 export const getFriends = (friend, callback, error, page = 0) => {
   api
     .get(`/friend/${friend}/friends?page=${page}`)
@@ -93,9 +113,15 @@ export const getFriends = (friend, callback, error, page = 0) => {
     .catch((err) => error(err));
 };
 
-export const getFriendsInLocation = (location, callback, error, page = 0) => {
+export const getFriendsInLocation = (
+  location,
+  locationType,
+  callback,
+  error,
+  page = 0
+) => {
   api
-    .get(`/user/friends/${location}?page=${page}`)
+    .get(`/user/friends/${locationType}/${location}?page=${page}`)
     .then((response) => {
       const page = Page.fromJSON(response.data, Profile.profileMapper);
       callback(page);
@@ -103,9 +129,15 @@ export const getFriendsInLocation = (location, callback, error, page = 0) => {
     .catch((err) => error(err));
 };
 
-export const getOthersInLocation = (location, callback, error, page = 0) => {
+export const getOthersInLocation = (
+  location,
+  locationType,
+  callback,
+  error,
+  page = 0
+) => {
   api
-    .get(`/user/nonfriends/${location}?page=${page}`)
+    .get(`/user/nonfriends/${locationType}/${location}?page=${page}`)
     .then((response) => {
       const page = Page.fromJSON(response.data, Profile.profileMapper);
       callback(page);
@@ -314,21 +346,28 @@ export const markMessageRead = (friend, message, callback, error) => {
     .catch((err) => error(err));
 };
 
-export const connectToAMB = (onNotification, onMessage) => {
-  const client = new Client({
-    webSocketFactory: () => new SockJS('/ws'),
-    onConnect: () => {
-      client.subscribe('/user/topic/notification', (message) => {
-        onNotification(JSON.parse(message.body));
-      });
-      client.subscribe('/user/topic/message', (message) => {
-        onMessage(JSON.parse(message.body));
-      });
-    }
-  });
+export const onNotification = (onNotification) => {
+  if (client && client.connected) {
+    client.subscribe('/user/topic/notification', (message) => {
+      onNotification(JSON.parse(message.body));
+    });
+  }
+};
 
-  client.activate();
-  return client;
+export const onMessage = (onMessage) => {
+  if (client && client.connected) {
+    client.subscribe('/user/topic/message', (message) => {
+      onMessage(JSON.parse(message.body));
+    });
+  }
+};
+
+export const onEntrance = (onEntrance) => {
+  if (client && client.connected) {
+    client.subscribe('/user/topic/location', (message) => {
+      onEntrance(JSON.parse(message.body));
+    });
+  }
 };
 
 export const getEquipment = (callback, error, page = 0, slot = 'all') => {

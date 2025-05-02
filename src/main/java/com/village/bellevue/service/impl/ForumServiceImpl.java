@@ -24,7 +24,6 @@ import com.village.bellevue.model.ForumModelProvider;
 import com.village.bellevue.model.ProfileModel;
 import com.village.bellevue.repository.FavoriteRepository;
 import com.village.bellevue.repository.ForumRepository;
-import com.village.bellevue.repository.ProfileRepository;
 import com.village.bellevue.service.ForumService;
 import com.village.bellevue.service.UserProfileService;
 
@@ -46,7 +45,8 @@ public class ForumServiceImpl implements ForumService {
           Optional<ProfileModel> optional = userProfileService.read(user);
           if (optional.isPresent()) {
             ProfileModel profile = optional.get();
-            profile.setLocation(null); // no locations on forum users (to avoid circular references)
+            profile.setForumLocation(null); // no locations on forum users (to avoid circular references)
+            profile.setProfileLocation(null);
             return Optional.of(profile);
           }
           return optional;
@@ -64,20 +64,17 @@ public class ForumServiceImpl implements ForumService {
   };
 
   private final ForumRepository forumRepository;
-  private final ProfileRepository profileRepository;
   private final UserProfileService userProfileService;
   private final FavoriteRepository favoriteRepository;
   private final ApplicationEventPublisher publisher;
 
   public ForumServiceImpl(
     ForumRepository forumRepository,
-    ProfileRepository profileRepository,
     UserProfileService userProfileService,
     FavoriteRepository favoriteRepository,
     ApplicationEventPublisher publisher
   ) {
     this.forumRepository = forumRepository;
-    this.profileRepository = profileRepository;
     this.userProfileService = userProfileService;
     this.favoriteRepository = favoriteRepository;
     this.publisher = publisher;
@@ -98,15 +95,9 @@ public class ForumServiceImpl implements ForumService {
   @Override
   public Optional<ForumModel> read(Long id) throws AuthorizationException {
     if (canRead(id)) {
-      try {
-        Optional<ForumEntity> optional = forumRepository.findById(id);
-        if (optional.isEmpty()) return Optional.empty();
-        return Optional.of(new ForumModel(optional.get(), forumModelProvider));
-      } finally {
-        ForumEntity forumEntity = new ForumEntity();
-        forumEntity.setId(id);
-        profileRepository.setLocation(getAuthenticatedUserId(), forumEntity);
-      }
+      Optional<ForumEntity> optional = forumRepository.findById(id);
+      if (optional.isEmpty()) return Optional.empty();
+      return Optional.of(new ForumModel(optional.get(), forumModelProvider));
     }
     throw new AuthorizationException("Currently authenticated user is not authorized to read forum");
   }
