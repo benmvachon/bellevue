@@ -89,26 +89,22 @@ public class UserController {
     return ResponseEntity.ok(pagedModel);
   }
 
-  @GetMapping("/friends/{locationType}/{location}")
+  @GetMapping("/location/friends")
   public ResponseEntity<PagedModel<EntityModel<ProfileModel>>> friends(
-    @PathVariable String locationType,
-    @PathVariable Long location,
     @RequestParam(defaultValue = "0") int page,
     @RequestParam(defaultValue = "5") int size
   ) {
-    Page<ProfileModel> users = profileService.readFriendsByLocation(location, LocationType.fromString(locationType), page, size);
+    Page<ProfileModel> users = profileService.readFriendsByLocation(page, size);
     PagedModel<EntityModel<ProfileModel>> pagedModel = pagedAssembler.toModel(users, profileModelAssembler);
     return ResponseEntity.ok(pagedModel);
   }
 
-  @GetMapping("/nonfriends/{locationType}/{location}")
+  @GetMapping("/location/nonfriends")
   public ResponseEntity<PagedModel<EntityModel<ProfileModel>>> nonFriends(
-    @PathVariable String locationType,
-    @PathVariable Long location,
     @RequestParam(defaultValue = "0") int page,
     @RequestParam(defaultValue = "5") int size
   ) {
-    Page<ProfileModel> users = profileService.readNonFriendsByLocation(location, LocationType.fromString(locationType), page, size);
+    Page<ProfileModel> users = profileService.readNonFriendsByLocation(page, size);
     PagedModel<EntityModel<ProfileModel>> pagedModel = pagedAssembler.toModel(users, profileModelAssembler);
     return ResponseEntity.ok(pagedModel);
   }

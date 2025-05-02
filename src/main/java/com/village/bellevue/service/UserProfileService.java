@@ -14,9 +14,9 @@ public interface UserProfileService {
 
   Page<ProfileModel> readByNamePrefix(String prefix, int page, int size);
 
-  Page<ProfileModel> readFriendsByLocation(Long location, LocationType locationType, int page, int size);
+  Page<ProfileModel> readFriendsByLocation(int page, int size);
 
-  Page<ProfileModel> readNonFriendsByLocation(Long location, LocationType locationType, int page, int size);
+  Page<ProfileModel> readNonFriendsByLocation(int page, int size);
 
   void setLocation(Long location, LocationType locationType);
 

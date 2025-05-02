@@ -11,8 +11,11 @@ import {
   blockUser,
   updateBlackboard,
   favoriteProfile,
-  unfavoriteProfile
+  unfavoriteProfile,
+  getFriendsInLocation,
+  onEntrance
 } from '../api/api.js';
+import { useNotifyLocationChange } from '../utils/LocationContext.js';
 import Header from '../components/Header.js';
 import Messages from '../components/Messages.js';
 import InfiniteScroll from '../components/InfiniteScroll.js';
@@ -20,10 +23,12 @@ import Equipment from '../components/Equipment.js';
 
 function ProfilePage() {
   const navigate = useNavigate();
+  const { locationId, locationType } = useNotifyLocationChange();
   const { id } = useParams();
   const { userId } = useAuth();
   const [profile, setProfile] = useState(null);
   const [friends, setFriends] = useState(null);
+  const [attendees, setAttendees] = useState(null);
   const [showMessages, setShowMessages] = useState(false);
   const [error, setError] = useState(false);
   const [blackboard, setBlackboard] = useState('');
@@ -33,6 +38,8 @@ function ProfilePage() {
 
   const refresh = () => getProfile(id, setProfile, setError);
 
+  const refreshAttendees = () => getFriendsInLocation(setAttendees, setError);
+
   const favorite = () => {
     favoriteProfile(id, refresh, setError);
   };
@@ -40,16 +47,6 @@ function ProfilePage() {
   const unfavorite = () => {
     unfavoriteProfile(id, refresh, setError);
   };
-
-  useEffect(() => {
-    refresh();
-    getFriends(id, setFriends, setError);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
-
-  useEffect(() => {
-    if (profile) setBlackboard(profile.blackboard);
-  }, [profile]);
 
   const loadMoreFriends = (page) => {
     getFriends(
@@ -65,6 +62,37 @@ function ProfilePage() {
       page
     );
   };
+
+  const loadMoreAttendees = (page) => {
+    getFriendsInLocation(
+      id,
+      'FORUM',
+      (more) => {
+        if (more) {
+          more.content = attendees?.content?.concat(more?.content);
+          setAttendees(more);
+        }
+      },
+      setError,
+      page
+    );
+  };
+
+  useEffect(() => {
+    refresh();
+    getFriends(id, setFriends, setError);
+    refreshAttendees();
+    onEntrance(refreshAttendees);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  useEffect(() => {
+    refreshAttendees();
+  }, [locationId, locationType]);
+
+  useEffect(() => {
+    if (profile) setBlackboard(profile.blackboard);
+  }, [profile]);
 
   const friendClick = (event) => {
     event.preventDefault();
@@ -173,6 +201,18 @@ function ProfilePage() {
       ) : (
         <p>{blackboard}</p>
       )}
+      <div className="attendees">
+        <h3>Attendees</h3>
+        <InfiniteScroll
+          page={attendees}
+          renderItem={(attendee) => (
+            <button onClick={() => navigate(`/profile/${attendee.id}`)}>
+              {attendee.name}
+            </button>
+          )}
+          loadMore={loadMoreAttendees}
+        />
+      </div>
       <h3>Friends</h3>
       <div>
         <InfiniteScroll

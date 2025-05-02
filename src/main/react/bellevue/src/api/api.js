@@ -113,15 +113,9 @@ export const getFriends = (friend, callback, error, page = 0) => {
     .catch((err) => error(err));
 };
 
-export const getFriendsInLocation = (
-  location,
-  locationType,
-  callback,
-  error,
-  page = 0
-) => {
+export const getFriendsInLocation = (callback, error, page = 0) => {
   api
-    .get(`/user/friends/${locationType}/${location}?page=${page}`)
+    .get(`/user/location/friends?page=${page}`)
     .then((response) => {
       const page = Page.fromJSON(response.data, Profile.profileMapper);
       callback(page);
@@ -129,15 +123,9 @@ export const getFriendsInLocation = (
     .catch((err) => error(err));
 };
 
-export const getOthersInLocation = (
-  location,
-  locationType,
-  callback,
-  error,
-  page = 0
-) => {
+export const getOthersInLocation = (callback, error, page = 0) => {
   api
-    .get(`/user/nonfriends/${locationType}/${location}?page=${page}`)
+    .get(`/user/location/nonfriends?page=${page}`)
     .then((response) => {
       const page = Page.fromJSON(response.data, Profile.profileMapper);
       callback(page);

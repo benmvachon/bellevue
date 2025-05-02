@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import withAuth from '../utils/withAuth.js';
+import { useNotifyLocationChange } from '../utils/LocationContext.js';
 import {
   getForum,
   getPosts,
   addPost,
   getFriendsInLocation,
   favoriteForum,
-  unfavoriteForum
+  unfavoriteForum,
+  onEntrance
 } from '../api/api.js';
 import Post from '../components/Post.js';
 import Header from '../components/Header.js';
@@ -15,6 +17,7 @@ import InfiniteScroll from '../components/InfiniteScroll.js';
 
 function ForumPage() {
   const navigate = useNavigate();
+  const { locationId, locationType } = useNotifyLocationChange();
   const { id } = useParams();
   const [forum, setForum] = useState(null);
   const [sortByRelevance, setSortByRelevance] = useState(true);
@@ -26,8 +29,7 @@ function ForumPage() {
   const refreshForum = () => getForum(id, setForum, setError);
   const refreshPosts = () =>
     getPosts(id, setPosts, setError, 0, sortByRelevance);
-  const refreshAttendees = () =>
-    getFriendsInLocation(id, 'FORUM', setAttendees, setError);
+  const refreshAttendees = () => getFriendsInLocation(setAttendees, setError);
 
   const loadMorePosts = (page) => {
     getPosts(
@@ -76,9 +78,14 @@ function ForumPage() {
     if (id) {
       refreshForum();
       refreshAttendees();
+      onEntrance(refreshAttendees);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  useEffect(() => {
+    refreshAttendees();
+  }, [locationId, locationType]);
 
   useEffect(() => {
     if (id) {

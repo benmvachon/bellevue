@@ -92,18 +92,28 @@ public class UserProfileServiceImpl implements UserProfileService {
   }
 
   @Override
-  public Page<ProfileModel> readFriendsByLocation(Long location, LocationType locationType, int page, int size) {
-    Page<UserProfileEntity> profileEntities = userProfileRepository.findAllFriendsByLocation(getAuthenticatedUserId(), location, locationType, PageRequest.of(page, size));
-    return profileEntities.map(profile -> {
-      return new ProfileModel(profile, profileModelProvider);
+  public Page<ProfileModel> readFriendsByLocation(int page, int size) {
+    Long user = getAuthenticatedUserId();
+    UserProfileEntity profile = userProfileRepository.getReferenceById(user);
+    if (Objects.isNull(profile) || Objects.isNull(profile.getLocationType()) || Objects.isNull(profile.getLocation())) {
+      return Page.empty();
+    }
+    Page<UserProfileEntity> profileEntities = userProfileRepository.findAllFriendsByLocation(user, profile.getLocation(), profile.getLocationType(), PageRequest.of(page, size));
+    return profileEntities.map(other -> {
+      return new ProfileModel(other, profileModelProvider);
     });
   }
 
   @Override
-  public Page<ProfileModel> readNonFriendsByLocation(Long location, LocationType locationType, int page, int size) {
-    Page<UserProfileEntity> profileEntities = userProfileRepository.findAllNonFriendsByLocation(getAuthenticatedUserId(), location, locationType, PageRequest.of(page, size));
-    return profileEntities.map(profile -> {
-      return new ProfileModel(profile, profileModelProvider);
+  public Page<ProfileModel> readNonFriendsByLocation(int page, int size) {
+    Long user = getAuthenticatedUserId();
+    UserProfileEntity profile = userProfileRepository.getReferenceById(user);
+    if (Objects.isNull(profile) || Objects.isNull(profile.getLocationType()) || Objects.isNull(profile.getLocation())) {
+      return Page.empty();
+    }
+    Page<UserProfileEntity> profileEntities = userProfileRepository.findAllNonFriendsByLocation(user, profile.getLocation(), profile.getLocationType(), PageRequest.of(page, size));
+    return profileEntities.map(other -> {
+      return new ProfileModel(other, profileModelProvider);
     });
   }
 
