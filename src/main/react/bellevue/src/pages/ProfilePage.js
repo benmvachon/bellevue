@@ -10,6 +10,7 @@ import {
   removeFriend,
   blockUser,
   updateBlackboard,
+  onProfileUpdate,
   favoriteProfile,
   unfavoriteProfile,
   getFriendsInLocation,
@@ -82,6 +83,10 @@ function ProfilePage() {
     refresh();
     getFriends(id, setFriends, setError);
     refreshAttendees();
+    onProfileUpdate(id, () => {
+      refresh();
+      getFriends(id, setFriends, setError);
+    });
     onEntrance(refreshAttendees);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);

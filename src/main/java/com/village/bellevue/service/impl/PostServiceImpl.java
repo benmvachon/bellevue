@@ -68,6 +68,11 @@ public class PostServiceImpl implements PostService {
     public ForumEntity getForumLocation(Long location) {
       return forumRepository.getReferenceById(location);
     }
+
+    @Override
+    public PostEntity getPostLocation(Long location) {
+      return postRepository.getReferenceById(location);
+    }
   };
 
   private final PostModelProvider postModelProvider = new PostModelProvider() {

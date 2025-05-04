@@ -13,11 +13,12 @@ export const LocationProvider = ({ children }) => {
   // derive locationType and locationId immediately
   const parseLocation = (path) => {
     const parts = path.split('/');
-    const section = parts[1]?.toLowerCase();
+    const type = parts[1]?.toLowerCase();
     const id = parts[2] || null;
 
-    if (section === 'forum') return { type: 'FORUM', id };
-    if (section === 'profile') return { type: 'PROFILE', id };
+    if (type === 'forum') return { type: 'FORUM', id };
+    if (type === 'profile') return { type: 'PROFILE', id };
+    if (type === 'post') return { type: 'POST', id };
     return { type: null, id: null };
   };
 

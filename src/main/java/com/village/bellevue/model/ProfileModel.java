@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.village.bellevue.entity.ForumEntity;
+import com.village.bellevue.entity.PostEntity;
 import com.village.bellevue.entity.ProfileEntity.LocationType;
 import com.village.bellevue.entity.ProfileEntity.Status;
 import com.village.bellevue.entity.UserProfileEntity;
@@ -32,6 +33,9 @@ public class ProfileModel {
 
   private ForumEntity forumLocation = null;
   private UserProfileEntity profileLocation = null;
+  private PostEntity postLocation = null;
+  private LocationType locationType;
+  private Long location;
 
   private Timestamp lastSeen = new Timestamp(System.currentTimeMillis());
   private String blackboard = "";
@@ -47,8 +51,11 @@ public class ProfileModel {
     this.status = profile.getStatus();
     this.avatar = profile.getAvatar();
     this.equipment = profile.getEquipment();
+    this.locationType = profile.getLocationType();
+    this.location = profile.getLocation();
     if (LocationType.FORUM.equals(profile.getLocationType())) this.forumLocation = helper.getForumLocation(profile.getLocation());
     if (LocationType.PROFILE.equals(profile.getLocationType())) this.profileLocation = helper.getProfileLocation(profile.getLocation());
+    if (LocationType.POST.equals(profile.getLocationType())) this.postLocation = helper.getPostLocation(profile.getLocation());
     this.lastSeen = profile.getLastSeen();
     this.blackboard = profile.getBlackboard();
 
@@ -69,5 +76,7 @@ public class ProfileModel {
     this.equipment = profile.getEquipment();
     this.lastSeen = profile.getLastSeen();
     this.blackboard = profile.getBlackboard();
+    this.locationType = profile.getLocationType();
+    this.location = profile.getLocation();
   }
 }

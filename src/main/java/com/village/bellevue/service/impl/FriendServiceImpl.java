@@ -28,6 +28,7 @@ import static com.village.bellevue.config.security.SecurityConfig.getAuthenticat
 
 import com.village.bellevue.entity.ForumEntity;
 import com.village.bellevue.entity.FriendEntity;
+import com.village.bellevue.entity.PostEntity;
 import com.village.bellevue.entity.UserProfileEntity;
 import com.village.bellevue.entity.FavoriteEntity.FavoriteType;
 import com.village.bellevue.entity.id.FavoriteId;
@@ -40,6 +41,7 @@ import com.village.bellevue.model.ProfileModelProvider;
 import com.village.bellevue.repository.FavoriteRepository;
 import com.village.bellevue.repository.ForumRepository;
 import com.village.bellevue.repository.FriendRepository;
+import com.village.bellevue.repository.PostRepository;
 import com.village.bellevue.repository.UserProfileRepository;
 import com.village.bellevue.service.FriendService;
 
@@ -74,6 +76,11 @@ public class FriendServiceImpl implements FriendService {
     public ForumEntity getForumLocation(Long location) {
       return forumRepository.getReferenceById(location);
     }
+
+    @Override
+    public PostEntity getPostLocation(Long location) {
+      return postRepository.getReferenceById(location);
+    }
   };
 
   public static final String STATUS_CACHE_KEY = "status";
@@ -85,6 +92,7 @@ public class FriendServiceImpl implements FriendService {
   private final FavoriteRepository favoriteRepository;
   private final UserProfileRepository userProfileRepository;
   private final ForumRepository forumRepository;
+  private final PostRepository postRepository;
   private final DataSource dataSource;
   private final CacheManager cacheManager;
   private final RedisTemplate<String, Object> redisTemplate;
@@ -98,6 +106,7 @@ public class FriendServiceImpl implements FriendService {
     FavoriteRepository favoriteRepository,
     UserProfileRepository userProfileRepository,
     ForumRepository forumRepository,
+    PostRepository postRepository,
     DataSource dataSource,
     CacheManager cacheManager,
     RedisTemplate<String, Object> redisTemplate,
@@ -107,6 +116,7 @@ public class FriendServiceImpl implements FriendService {
     this.favoriteRepository = favoriteRepository;
     this.userProfileRepository = userProfileRepository;
     this.forumRepository = forumRepository;
+    this.postRepository = postRepository;
     this.dataSource = dataSource;
     this.cacheManager = cacheManager;
     this.redisTemplate = redisTemplate;

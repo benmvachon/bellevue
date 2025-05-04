@@ -139,6 +139,14 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
   Long getAuthor(@Param("post") Long post, @Param("user") Long user);
 
   @Query(
+      "SELECT p.forum.id FROM PostEntity p " +
+      "JOIN FriendEntity f ON f.friend.id = p.user.id " +
+      "WHERE (p.user.id = :user OR f.user = :user) " +
+      "AND f.status = 'accepted' " +
+      "AND p.id = :post")
+  Long getForum(@Param("post") Long post, @Param("user") Long user);
+
+  @Query(
       "SELECT CASE WHEN COUNT(p) > 0 THEN true ELSE false END " +
       "FROM PostEntity p " +
       "JOIN FriendEntity f ON f.friend.id = p.user.id " +

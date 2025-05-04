@@ -7,6 +7,7 @@ import {
   getPost,
   getReplies,
   ratePost,
+  onPostUpdate,
   favoritePost,
   unfavoritePost
 } from '../api/api.js';
@@ -82,6 +83,7 @@ function Post({
 
   useEffect(() => {
     if (id) refresh();
+    onPostUpdate(id, refresh);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 

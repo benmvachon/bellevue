@@ -14,17 +14,17 @@ public interface ProfileRepository extends JpaRepository<ProfileEntity, Long> {
 
   @Modifying
   @Transactional
-  @Query("UPDATE ProfileEntity p SET p.status = 'active' WHERE p.id = :user")
+  @Query("UPDATE ProfileEntity p SET p.status = 'ACTIVE' WHERE p.id = :user")
   void setStatusOnline(Long user);
 
   @Modifying
   @Transactional
-  @Query("UPDATE ProfileEntity p SET p.status = 'offline', p.location = null, p.locationType = null WHERE p.id = :user")
+  @Query("UPDATE ProfileEntity p SET p.status = 'OFFLINE', p.location = null, p.locationType = null WHERE p.id = :user")
   void setStatusOffline(Long user);
 
   @Modifying
   @Transactional
-  @Query("UPDATE ProfileEntity p SET p.status = 'idle' WHERE p.id = :user")
+  @Query("UPDATE ProfileEntity p SET p.status = 'IDLE' WHERE p.id = :user")
   void setStatusIdle(Long user);
 
   @Modifying

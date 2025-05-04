@@ -33,7 +33,7 @@ CREATE TABLE profile(
     user            INT UNSIGNED NOT NULL UNIQUE,                                                               -- ID of the user
     status          ENUM('OFFLINE', 'ACTIVE', 'IDLE', 'OTHER') NOT NULL DEFAULT 'OFFLINE',                      -- Indication of what the user is currently doing
     location        INT UNSIGNED,                                                                               -- The ID of the forum / profile the user is currently viewing
-    location_type   ENUM('FORUM', 'PROFILE', 'OTHER'),                                                          -- The name of the table / entity of the location
+    location_type   ENUM('FORUM', 'PROFILE', 'POST', 'OTHER'),                                                  -- The name of the table / entity of the location
     last_seen       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,                                                        -- Timestamp for when the user last logged out
     blackboard      VARCHAR(255),                                                                               -- Custom message written by the user
     avatar          INT UNSIGNED NOT NULL DEFAULT 0,                                                            -- Image to represent the user
@@ -96,7 +96,7 @@ CREATE TABLE post(
 CREATE TABLE rating(
     post            INT UNSIGNED NOT NULL,                                                                      -- ID of the post being rated
     user            INT UNSIGNED NOT NULL,                                                                      -- ID of the user who added the rating
-    rating          ENUM('ONE', 'TWO', 'THREE', 'FOUR', 'FIVE') NOT NULL DEFAULT 'FIVE',                        -- Star rating out of five
+    rating          ENUM('ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'OTHER') NOT NULL DEFAULT 'FIVE',               -- Star rating out of five
     created         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,                                                        -- Timestamp for when the rating was submitted
     updated         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,                                                        -- Timestamp for when the rating was last updated
     PRIMARY KEY     (user, post),                                                                               -- Make the ID a combination of user and post

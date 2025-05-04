@@ -84,6 +84,7 @@ public class ProfileEntity {
   public enum LocationType {
     FORUM,
     PROFILE,
+    POST,
     OTHER;
 
     @JsonValue

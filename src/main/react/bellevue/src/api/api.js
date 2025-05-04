@@ -22,10 +22,28 @@ export const api = axios.create({
 export const socket = new SockJS('/ws');
 
 export const client = new Client({
-  webSocketFactory: () => socket
+  webSocketFactory: () => socket,
+  onConnect: () => {
+    console.log('WebSocket connected');
+    if (connectedPromise) connectedPromise.resolve(); // resolve the connection promise
+  }
 });
 
+// Create a promise to await connection
+export const connectedPromise = createDeferred();
 client.activate();
+
+// Helper function to create a deferred promise
+function createDeferred() {
+  let resolve;
+  const promise = new Promise((res) => {
+    resolve = res;
+  });
+  return { promise, resolve };
+}
+
+// Expose a function to wait until connected
+export const waitForConnection = () => connectedPromise?.promise;
 
 export const login = (username, password, callback, error) => {
   const formData = new URLSearchParams();
@@ -133,6 +151,15 @@ export const getOthersInLocation = (callback, error, page = 0) => {
     .catch((err) => error(err));
 };
 
+export const onProfileUpdate = async (profile, onProfileUpdate) => {
+  await waitForConnection();
+  if (client && client.connected) {
+    client.subscribe('/topic/profile/' + profile, (message) => {
+      onProfileUpdate(JSON.parse(message.body));
+    });
+  }
+};
+
 export const getCategories = (callback, error, page = 0) => {
   api
     .get(`/forum/category?page=${page}`)
@@ -165,6 +192,15 @@ export const addForum = (category, name, callback, error) => {
     .post('/forum', new Forum(undefined, category, name).toJSON())
     .then((response) => callback(Forum.fromJSON(response.data)))
     .catch((err) => error(err));
+};
+
+export const onForumUpdate = async (forum, onForumUpdate) => {
+  await waitForConnection();
+  if (client && client.connected) {
+    client.subscribe('/topic/forum/' + forum, (message) => {
+      onForumUpdate(JSON.parse(message.body));
+    });
+  }
 };
 
 export const getPosts = (
@@ -237,6 +273,15 @@ export const ratePost = (post, rating, callback, error) => {
     .put(`/rating/${post}/${rating}`)
     .then(callback)
     .catch((err) => error(err));
+};
+
+export const onPostUpdate = async (post, onPostUpdate) => {
+  await waitForConnection();
+  if (client && client.connected) {
+    client.subscribe('/topic/post/' + post, (message) => {
+      onPostUpdate(JSON.parse(message.body));
+    });
+  }
 };
 
 export const getNotificationCount = (callback, error) => {
@@ -334,7 +379,8 @@ export const markMessageRead = (friend, message, callback, error) => {
     .catch((err) => error(err));
 };
 
-export const onNotification = (onNotification) => {
+export const onNotification = async (onNotification) => {
+  await waitForConnection();
   if (client && client.connected) {
     client.subscribe('/user/topic/notification', (message) => {
       onNotification(JSON.parse(message.body));
@@ -342,7 +388,8 @@ export const onNotification = (onNotification) => {
   }
 };
 
-export const onMessage = (onMessage) => {
+export const onMessage = async (onMessage) => {
+  await waitForConnection();
   if (client && client.connected) {
     client.subscribe('/user/topic/message', (message) => {
       onMessage(JSON.parse(message.body));
@@ -350,7 +397,8 @@ export const onMessage = (onMessage) => {
   }
 };
 
-export const onEntrance = (onEntrance) => {
+export const onEntrance = async (onEntrance) => {
+  await waitForConnection();
   if (client && client.connected) {
     client.subscribe('/user/topic/location', (message) => {
       onEntrance(JSON.parse(message.body));

@@ -13,14 +13,17 @@ import static com.village.bellevue.config.security.SecurityConfig.getAuthenticat
 import com.village.bellevue.entity.FavoriteEntity.FavoriteType;
 import com.village.bellevue.entity.ProfileEntity.LocationType;
 import com.village.bellevue.entity.ForumEntity;
+import com.village.bellevue.entity.PostEntity;
 import com.village.bellevue.entity.UserProfileEntity;
 import com.village.bellevue.entity.id.FavoriteId;
 import com.village.bellevue.error.FriendshipException;
+import com.village.bellevue.event.BlackboardEvent;
 import com.village.bellevue.event.LocationEvent;
 import com.village.bellevue.model.ProfileModel;
 import com.village.bellevue.model.ProfileModelProvider;
 import com.village.bellevue.repository.FavoriteRepository;
 import com.village.bellevue.repository.ForumRepository;
+import com.village.bellevue.repository.PostRepository;
 import com.village.bellevue.repository.ProfileRepository;
 import com.village.bellevue.repository.UserProfileRepository;
 import com.village.bellevue.service.FriendService;
@@ -57,11 +60,17 @@ public class UserProfileServiceImpl implements UserProfileService {
     public ForumEntity getForumLocation(Long location) {
       return forumRepository.getReferenceById(location);
     }
+
+    @Override
+    public PostEntity getPostLocation(Long location) {
+      return postRepository.getReferenceById(location);
+    }
   };
 
   private final UserProfileRepository userProfileRepository;
   private final ProfileRepository profileRepository;
   private final ForumRepository forumRepository;
+  private final PostRepository postRepository;
   private final FriendService friendService;
   private final FavoriteRepository favoriteRepository;
   private final ApplicationEventPublisher publisher;
@@ -70,6 +79,7 @@ public class UserProfileServiceImpl implements UserProfileService {
     UserProfileRepository userProfileRepository,
     ProfileRepository profileRepository,
     ForumRepository forumRepository,
+    PostRepository postRepository,
     FriendService friendService,
     FavoriteRepository favoriteRepository,
     ApplicationEventPublisher publisher
@@ -77,6 +87,7 @@ public class UserProfileServiceImpl implements UserProfileService {
     this.userProfileRepository = userProfileRepository;
     this.profileRepository = profileRepository;
     this.forumRepository = forumRepository;
+    this.postRepository = postRepository;
     this.friendService = friendService;
     this.favoriteRepository = favoriteRepository;
     this.publisher = publisher;
@@ -139,5 +150,6 @@ public class UserProfileServiceImpl implements UserProfileService {
   @Override
   public void setBlackboard(String blackboard) {
     profileRepository.setBlackboard(getAuthenticatedUserId(), blackboard);
+    publisher.publishEvent(new BlackboardEvent(getAuthenticatedUserId(), blackboard));
   }
 }

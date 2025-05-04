@@ -7,6 +7,7 @@ import {
   getPosts,
   addPost,
   getFriendsInLocation,
+  onForumUpdate,
   favoriteForum,
   unfavoriteForum,
   onEntrance
@@ -78,6 +79,10 @@ function ForumPage() {
     if (id) {
       refreshForum();
       refreshAttendees();
+      onForumUpdate(id, () => {
+        refreshForum();
+        refreshPosts();
+      });
       onEntrance(refreshAttendees);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

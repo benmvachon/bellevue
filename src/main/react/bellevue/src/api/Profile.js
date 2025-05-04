@@ -1,4 +1,5 @@
 import Forum from './Forum';
+import Post from './Post';
 
 class Profile {
   constructor(
@@ -8,8 +9,11 @@ class Profile {
     status,
     avatar,
     equipment,
+    locationType,
     forumLocation,
     profileLocation,
+    postLocation,
+    location,
     lastSeen,
     blackboard,
     friendshipStatus,
@@ -22,16 +26,14 @@ class Profile {
     this.status = status;
     this.avatar = avatar;
     this.equipment = equipment;
-    this.locationType = forumLocation
-      ? 'FORUM'
-      : profileLocation
-        ? 'PROFILE'
-        : null;
+    this.locationType = locationType;
     this.location = forumLocation
       ? Forum.fromJSON(forumLocation)
       : profileLocation
         ? Profile.fromJSON(profileLocation)
-        : null;
+        : postLocation
+          ? Post.fromJSON(postLocation)
+          : location;
     this.lastSeen = new Date(lastSeen);
     this.blackboard = blackboard;
     this.friendshipStatus = friendshipStatus || 'UNSET';
@@ -71,8 +73,11 @@ class Profile {
       json.status,
       json.avatar,
       json.equipment,
+      json.locationType,
       json.forumLocation,
       json.profileLocation,
+      json.postLocation,
+      json.location,
       json.lastSeen?.toString(),
       json.blackboard,
       json.friendshipStatus,
@@ -81,25 +86,27 @@ class Profile {
   }
 
   toJSON() {
-    const JSON = {
+    const json = {
       id: this.id,
       name: this.name,
       username: this.username,
       status: this.status,
       avatar: this.avatar,
       equipment: this.equipment,
-      location: this.location ? this.location.toJSON() : null,
+      locationType: this.locationType,
       lastSeen: this.lastSeen,
       blackboard: this.blackboard,
       friendshipStatus: this.friendshipStatus,
       favorite: this.favorite
     };
     if (this.locationType === 'FORUM') {
-      JSON.forumLocation = this.location.toJSON();
+      json.forumLocation = this.location.toJSON();
     } else if (this.locationType === 'PROFILE') {
-      JSON.profileLocation = this.location.toJSON();
+      json.profileLocation = this.location.toJSON();
+    } else if (this.locationType === 'POST') {
+      json.postLocation = this.location.toJSON();
     }
-    return JSON;
+    return json;
   }
 }
 

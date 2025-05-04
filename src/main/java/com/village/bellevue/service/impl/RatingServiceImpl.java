@@ -41,14 +41,15 @@ public class RatingServiceImpl implements RatingService {
   @Override
   @Transactional
   public boolean rate(Long post, Star rating) throws AuthorizationException, RatingException {
-    if (!postRepository.canRead(post, getAuthenticatedUserId())) {
+    Long user = getAuthenticatedUserId();
+    if (!postRepository.canRead(post, user)) {
       throw new AuthorizationException(
           "Currently authenticated user is not authorized to rating post");
     }
     boolean success = false;
     try (Connection connection = dataSource.getConnection();
         CallableStatement stmt = connection.prepareCall("{call add_or_update_rating(?, ?, ?)}")) {
-      stmt.setLong(1, getAuthenticatedUserId());
+      stmt.setLong(1, user);
       stmt.setLong(2, post);
       stmt.setString(3, rating.toValue());
       stmt.executeUpdate();
@@ -58,7 +59,7 @@ public class RatingServiceImpl implements RatingService {
       logger.error("Error creating rating: {}", e.getMessage(), e);
       throw new RatingException("Failed to create rating. SQL command error: " + e.getMessage(), e);
     } finally {
-      if (success) publisher.publishEvent(new RatingEvent(getAuthenticatedUserId(), post, postRepository.getAuthor(post, getAuthenticatedUserId()), rating));
+      if (success) publisher.publishEvent(new RatingEvent(user, post, postRepository.getAuthor(post, user), postRepository.getForum(post, user), rating));
     }
   }
 }
