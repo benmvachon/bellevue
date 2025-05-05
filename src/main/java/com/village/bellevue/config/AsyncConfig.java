@@ -15,7 +15,7 @@ import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecu
 public class AsyncConfig implements AsyncConfigurer {
 
   @Bean(name = "taskExecutor")
-  public AsyncTaskExecutor taskExecutor() {
+  AsyncTaskExecutor taskExecutor() {
     return new DelegatingSecurityContextAsyncTaskExecutor(new SimpleAsyncTaskExecutor());
   }
 

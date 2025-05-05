@@ -114,7 +114,7 @@ public class NotificationListener {
     Long user = event.getUser();
     Long friend = event.getFriend();
     notifyFriend(user, friend, 7l, user);
-    messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/message", event);
+    messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/message", "message");
   }
 
   @Async
@@ -168,6 +168,6 @@ public class NotificationListener {
     notification.setEntity(entity);
     notification.setRead(false);
     notificationRepository.save(notification);
-    messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/notification", notification);
+    messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/notification", "notification");
   }
 }

@@ -53,7 +53,7 @@ export const subscribe = async (destination, onMessage) => {
     subscriptions.set(
       destination,
       client.subscribe(destination, (message) => {
-        onMessage(JSON.parse(message.body));
+        onMessage(message.body);
       })
     );
   }
@@ -179,6 +179,14 @@ export const onProfileUpdate = async (profile, onProfileUpdate) => {
 
 export const unsubscribeProfile = (profile) => {
   unsubscribe(`/topic/profile/${profile}`);
+};
+
+export const onFriendshipStatusUpdate = async (profile, onProfileUpdate) => {
+  subscribe(`/user/topic/friendshipStatus/${profile}`, onProfileUpdate);
+};
+
+export const unsubscribeFriendshipStatus = (profile) => {
+  unsubscribe(`/user/topic/friendshipStatus/${profile}`);
 };
 
 export const getCategories = (callback, error, page = 0) => {

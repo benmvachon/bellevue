@@ -16,7 +16,9 @@ import {
   getFriendsInLocation,
   onEntrance,
   unsubscribeProfile,
-  unsubscribeLocation
+  unsubscribeLocation,
+  onFriendshipStatusUpdate,
+  unsubscribeFriendshipStatus
 } from '../api/api.js';
 import { useNotifyLocationChange } from '../utils/LocationContext.js';
 import Header from '../components/Header.js';
@@ -40,8 +42,8 @@ function ProfilePage() {
   const self = '' + userId === '' + id;
 
   const refresh = () => getProfile(id, setProfile, setError);
-
   const refreshAttendees = () => getFriendsInLocation(setAttendees, setError);
+  const refreshFriends = () => getFriends(id, setFriends, setError);
 
   const favorite = () => {
     favoriteProfile(id, refresh, setError);
@@ -83,15 +85,22 @@ function ProfilePage() {
 
   useEffect(() => {
     refresh();
-    getFriends(id, setFriends, setError);
+    refreshFriends();
     refreshAttendees();
-    onProfileUpdate(id, () => {
-      refresh();
-      getFriends(id, setFriends, setError);
+    onProfileUpdate(id, (message) => {
+      if (
+        message === 'blackboard' ||
+        message === 'location' ||
+        message === 'status'
+      )
+        refresh();
+      if (message === 'acceptance') refreshFriends();
     });
+    onFriendshipStatusUpdate(id, refresh);
     onEntrance(refreshAttendees);
     return () => {
       unsubscribeProfile(id);
+      unsubscribeFriendshipStatus(id);
       unsubscribeLocation();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

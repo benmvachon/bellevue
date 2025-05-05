@@ -9,7 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.village.bellevue.event.AcceptanceEvent;
 import com.village.bellevue.event.BlackboardEvent;
 import com.village.bellevue.event.LocationEvent;
-import com.village.bellevue.event.UserEvent;
+import com.village.bellevue.event.RequestEvent;
+import com.village.bellevue.event.StatusEvent;
 
 @Component
 public class ProfileListener {
@@ -25,27 +26,48 @@ public class ProfileListener {
   @EventListener
   @Transactional
   public void handleEvent(LocationEvent event) {
-    pingAttendees(event);
+    pingAttendees(event.getUser(), "location");
   }
 
   @Async
   @EventListener
   @Transactional
   public void handleEvent(AcceptanceEvent event) {
-    pingAttendees(event);
+    pingAttendees(event.getUser(), "acceptance");
+    pingUsers(event.getUser(), event.getFriend(), "acceptance");
+  }
+
+  @Async
+  @EventListener
+  @Transactional
+  public void handleEvent(RequestEvent event) {
+    pingUsers(event.getUser(), event.getFriend(), "request");
   }
 
   @Async
   @EventListener
   @Transactional
   public void handleEvent(BlackboardEvent event) {
-    pingAttendees(event);
+    pingAttendees(event.getUser(), "blackboard");
+  }
+
+  @Async
+  @EventListener
+  @Transactional
+  public void handleEvent(StatusEvent event) {
+    pingAttendees(event.getUser(), "status");
   }
 
   @Async
   @Transactional
-  private void pingAttendees(UserEvent event) {
-    Long user = event.getUser();
-    messagingTemplate.convertAndSend("/topic/profile/"+user, event);
+  private void pingAttendees(Long user, String message) {
+    messagingTemplate.convertAndSend("/topic/profile/" + user, message);
+  }
+
+  @Async
+  @Transactional
+  private void pingUsers(Long user1, Long user2, String message) {
+    messagingTemplate.convertAndSendToUser(user1.toString(), "/topic/friendshipStatus/" + user2, message);
+    messagingTemplate.convertAndSendToUser(user2.toString(), "/topic/friendshipStatus/" + user1, message);
   }
 }

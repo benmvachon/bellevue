@@ -81,9 +81,10 @@ function ForumPage() {
     if (id) {
       refreshForum();
       refreshAttendees();
-      onForumUpdate(id, () => {
+      onForumUpdate(id, (message) => {
         refreshForum();
-        refreshPosts();
+        if (message === 'post') refreshPosts();
+        if (message === 'rating' && sortByRelevance) refreshPosts();
       });
       onEntrance(refreshAttendees);
     }

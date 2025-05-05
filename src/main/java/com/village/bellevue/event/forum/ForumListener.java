@@ -1,5 +1,7 @@
 package com.village.bellevue.event.forum;
 
+import java.util.Objects;
+
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
@@ -24,7 +26,8 @@ public class ForumListener {
   @Transactional
   public void handleEvent(PostEvent event) {
     Long forum = event.getPost().getForum().getId();
-    messagingTemplate.convertAndSend("/topic/forum/"+forum, event);
+    if (Objects.isNull(event.getPost().getParent()))
+      messagingTemplate.convertAndSend("/topic/forum/" + forum, "post");
   }
 
   @Async
@@ -32,6 +35,6 @@ public class ForumListener {
   @Transactional
   public void handleEvent(RatingEvent event) {
     Long forum = event.getForum();
-    messagingTemplate.convertAndSend("/topic/forum/"+forum, event);
+    messagingTemplate.convertAndSend("/topic/forum/" + forum, "rating");
   }
 }

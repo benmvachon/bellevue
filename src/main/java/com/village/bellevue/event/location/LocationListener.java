@@ -32,10 +32,11 @@ public class LocationListener {
     Long user = event.getUser();
     Long location = event.getLocation();
     LocationType locationType = event.getLocationType();
+    boolean entrance = event.isEntrance();
     try (Stream<Long> stream = userProfileRepository.streamAllUsersByLocation(user, location, locationType)) {
       stream.parallel().forEach(other -> {
         if (user.equals(other)) return;
-        messagingTemplate.convertAndSendToUser(other.toString(), "/topic/location", event);
+        messagingTemplate.convertAndSendToUser(other.toString(), "/topic/location", entrance ? "entrance" : "exit");
       });
     }
   }

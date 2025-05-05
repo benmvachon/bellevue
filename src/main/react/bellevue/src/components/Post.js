@@ -84,7 +84,10 @@ function Post({
 
   useEffect(() => {
     if (id) refresh();
-    onPostUpdate(id, refresh);
+    onPostUpdate(id, (message) => {
+      if (message === 'reply') refreshChildren();
+      if (message === 'rating') refresh();
+    });
     return () => {
       unsubscribePost(id);
     };
