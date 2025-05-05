@@ -6,7 +6,9 @@ import {
   getNotificationCount,
   getMessageCount,
   onNotification,
-  onMessage
+  onMessage,
+  unsubscribeMessage,
+  unsubscribeNotification
 } from '../api/api.js';
 import Notifications from './Notifications.js';
 import Threads from './Threads.js';
@@ -32,6 +34,11 @@ function Header() {
       getNotificationCount(setNotificationCount, setError)
     );
     onMessage((message) => getMessageCount(setUnreadThreadCount, setError));
+
+    return () => {
+      unsubscribeNotification();
+      unsubscribeMessage();
+    };
   }, []);
 
   const openNotifications = () => {

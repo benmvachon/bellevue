@@ -14,7 +14,9 @@ import {
   favoriteProfile,
   unfavoriteProfile,
   getFriendsInLocation,
-  onEntrance
+  onEntrance,
+  unsubscribeProfile,
+  unsubscribeLocation
 } from '../api/api.js';
 import { useNotifyLocationChange } from '../utils/LocationContext.js';
 import Header from '../components/Header.js';
@@ -88,6 +90,10 @@ function ProfilePage() {
       getFriends(id, setFriends, setError);
     });
     onEntrance(refreshAttendees);
+    return () => {
+      unsubscribeProfile(id);
+      unsubscribeLocation();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 

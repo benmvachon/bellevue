@@ -9,7 +9,8 @@ import {
   ratePost,
   onPostUpdate,
   favoritePost,
-  unfavoritePost
+  unfavoritePost,
+  unsubscribePost
 } from '../api/api.js';
 import Rating from './Rating.js';
 import InfiniteScroll from './InfiniteScroll.js';
@@ -84,6 +85,9 @@ function Post({
   useEffect(() => {
     if (id) refresh();
     onPostUpdate(id, refresh);
+    return () => {
+      unsubscribePost(id);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 

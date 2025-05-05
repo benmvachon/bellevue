@@ -45,6 +45,28 @@ function createDeferred() {
 // Expose a function to wait until connected
 export const waitForConnection = () => connectedPromise?.promise;
 
+export const subscriptions = new Map();
+
+export const subscribe = async (destination, onMessage) => {
+  await waitForConnection();
+  if (client && client.connected) {
+    subscriptions.set(
+      destination,
+      client.subscribe(destination, (message) => {
+        onMessage(JSON.parse(message.body));
+      })
+    );
+  }
+};
+
+export const unsubscribe = (destination) => {
+  const subscription = subscriptions.get(destination);
+  if (subscription) {
+    subscription.unsubscribe();
+    subscriptions.delete(destination);
+  }
+};
+
 export const login = (username, password, callback, error) => {
   const formData = new URLSearchParams();
   formData.append('username', username);
@@ -152,12 +174,11 @@ export const getOthersInLocation = (callback, error, page = 0) => {
 };
 
 export const onProfileUpdate = async (profile, onProfileUpdate) => {
-  await waitForConnection();
-  if (client && client.connected) {
-    client.subscribe('/topic/profile/' + profile, (message) => {
-      onProfileUpdate(JSON.parse(message.body));
-    });
-  }
+  subscribe(`/topic/profile/${profile}`, onProfileUpdate);
+};
+
+export const unsubscribeProfile = (profile) => {
+  unsubscribe(`/topic/profile/${profile}`);
 };
 
 export const getCategories = (callback, error, page = 0) => {
@@ -195,12 +216,11 @@ export const addForum = (category, name, callback, error) => {
 };
 
 export const onForumUpdate = async (forum, onForumUpdate) => {
-  await waitForConnection();
-  if (client && client.connected) {
-    client.subscribe('/topic/forum/' + forum, (message) => {
-      onForumUpdate(JSON.parse(message.body));
-    });
-  }
+  subscribe(`/topic/forum/${forum}`, onForumUpdate);
+};
+
+export const unsubscribeForum = (forum) => {
+  unsubscribe(`/topic/forum/${forum}`);
 };
 
 export const getPosts = (
@@ -276,12 +296,11 @@ export const ratePost = (post, rating, callback, error) => {
 };
 
 export const onPostUpdate = async (post, onPostUpdate) => {
-  await waitForConnection();
-  if (client && client.connected) {
-    client.subscribe('/topic/post/' + post, (message) => {
-      onPostUpdate(JSON.parse(message.body));
-    });
-  }
+  subscribe(`/topic/post/${post}`, onPostUpdate);
+};
+
+export const unsubscribePost = (post) => {
+  unsubscribe(`/topic/post/${post}`);
 };
 
 export const getNotificationCount = (callback, error) => {
@@ -379,31 +398,28 @@ export const markMessageRead = (friend, message, callback, error) => {
     .catch((err) => error(err));
 };
 
-export const onNotification = async (onNotification) => {
-  await waitForConnection();
-  if (client && client.connected) {
-    client.subscribe('/user/topic/notification', (message) => {
-      onNotification(JSON.parse(message.body));
-    });
-  }
+export const onNotification = (onNotification) => {
+  subscribe('/user/topic/notification', onNotification);
 };
 
-export const onMessage = async (onMessage) => {
-  await waitForConnection();
-  if (client && client.connected) {
-    client.subscribe('/user/topic/message', (message) => {
-      onMessage(JSON.parse(message.body));
-    });
-  }
+export const unsubscribeNotification = () => {
+  unsubscribe('/user/topic/notification');
 };
 
-export const onEntrance = async (onEntrance) => {
-  await waitForConnection();
-  if (client && client.connected) {
-    client.subscribe('/user/topic/location', (message) => {
-      onEntrance(JSON.parse(message.body));
-    });
-  }
+export const onMessage = (onMessage) => {
+  subscribe('/user/topic/message', onMessage);
+};
+
+export const unsubscribeMessage = () => {
+  unsubscribe('/user/topic/message');
+};
+
+export const onEntrance = (onEntrance) => {
+  subscribe('/user/topic/location', onEntrance);
+};
+
+export const unsubscribeLocation = () => {
+  unsubscribe('/user/topic/location');
 };
 
 export const getEquipment = (callback, error, page = 0, slot = 'all') => {

@@ -2,7 +2,12 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import withAuth from '../utils/withAuth.js';
 import { useNotifyLocationChange } from '../utils/LocationContext.js';
-import { getPost, getFriendsInLocation, onEntrance } from '../api/api.js';
+import {
+  getPost,
+  getFriendsInLocation,
+  onEntrance,
+  unsubscribeLocation
+} from '../api/api.js';
 import Post from '../components/Post.js';
 import Header from '../components/Header.js';
 import InfiniteScroll from '../components/InfiniteScroll.js';
@@ -39,6 +44,9 @@ function PostPage() {
       refreshAttendees();
       onEntrance(refreshAttendees);
     }
+    return () => {
+      unsubscribeLocation();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 

@@ -10,7 +10,9 @@ import {
   onForumUpdate,
   favoriteForum,
   unfavoriteForum,
-  onEntrance
+  onEntrance,
+  unsubscribeForum,
+  unsubscribeLocation
 } from '../api/api.js';
 import Post from '../components/Post.js';
 import Header from '../components/Header.js';
@@ -85,6 +87,11 @@ function ForumPage() {
       });
       onEntrance(refreshAttendees);
     }
+
+    return () => {
+      unsubscribeForum(id);
+      unsubscribeLocation();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
