@@ -15,7 +15,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.security.core.Authentication;
 
 import com.village.bellevue.entity.UserEntity;
-import com.village.bellevue.repository.ProfileRepository;
+import com.village.bellevue.service.ActivityService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -23,7 +23,7 @@ import jakarta.servlet.http.HttpServletResponse;
 public class LogoutSuccessHandlerTest {
 
   @InjectMocks private LogoutSuccessHandlerImpl logoutSuccessHandler;
-  @Mock private ProfileRepository profileRepository;
+  @Mock private ActivityService activityService;
   @Mock private HttpServletRequest request;
   @Mock private HttpServletResponse response;
   @Mock private Authentication authentication;
@@ -51,7 +51,7 @@ public class LogoutSuccessHandlerTest {
 
     logoutSuccessHandler.onLogoutSuccess(request, response, authentication);
 
-    verify(profileRepository).setStatusOffline(user.getId());
+    verify(activityService).markUserOffline(user.getId());
     verify(response).setStatus(HttpServletResponse.SC_OK);
   }
 
@@ -59,7 +59,7 @@ public class LogoutSuccessHandlerTest {
   public void testOnLogoutSuccess_AuthenticationIsNull() throws IOException {
     logoutSuccessHandler.onLogoutSuccess(request, response, null);
 
-    verify(profileRepository, never()).setStatusOffline(any(Long.class));
+    verify(activityService, never()).markUserOffline(any(Long.class));
     verify(response).setStatus(HttpServletResponse.SC_OK);
   }
 }

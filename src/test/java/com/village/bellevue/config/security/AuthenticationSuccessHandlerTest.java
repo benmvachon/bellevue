@@ -16,7 +16,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.security.core.Authentication;
 
 import com.village.bellevue.entity.UserEntity;
-import com.village.bellevue.repository.ProfileRepository;
+import com.village.bellevue.service.ActivityService;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,7 +25,7 @@ import jakarta.servlet.http.HttpServletResponse;
 public class AuthenticationSuccessHandlerTest {
 
   @InjectMocks private AuthenticationSuccessHandlerImpl authenticationSuccessHandler;
-  @Mock private ProfileRepository profileRepository;
+  @Mock private ActivityService activityService;
   @Mock private HttpServletRequest request;
   @Mock private HttpServletResponse response;
   @Mock private Authentication authentication;
@@ -56,7 +56,8 @@ public class AuthenticationSuccessHandlerTest {
 
     authenticationSuccessHandler.onAuthenticationSuccess(request, response, authentication);
 
-    verify(profileRepository).setStatusOnline(user.getId());
+    
+    verify(activityService).updateLastSeen(user.getId());
   }
 
   @Test
@@ -64,6 +65,6 @@ public class AuthenticationSuccessHandlerTest {
       throws IOException, ServletException {
     authenticationSuccessHandler.onAuthenticationSuccess(request, response, null);
 
-    verify(profileRepository, never()).setStatusOnline(any(Long.class));
+    verify(activityService, never()).updateLastSeen(any(Long.class));
   }
 }
