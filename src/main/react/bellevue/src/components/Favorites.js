@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import withAuth from '../utils/withAuth.js';
 import { getFavorites } from '../api/api.js';
-import InfiniteScroll from './InfiniteScroll.js';
+import Page from './Page.js';
 
 function Favorites({ show = false, onClose }) {
   const navigate = useNavigate();
@@ -14,18 +14,8 @@ function Favorites({ show = false, onClose }) {
     if (show) getFavorites(setFavorites, setError);
   }, [show]);
 
-  const loadMore = (page) => {
-    getFavorites(
-      (more) => {
-        if (more) {
-          more.content = more?.content?.concat(favorites?.content);
-          more.number = more.number + favorites?.number || 0;
-          setFavorites(more);
-        }
-      },
-      setError,
-      page
-    );
+  const loadPage = (page) => {
+    getFavorites(setFavorites, setError, page);
   };
 
   const navigateToFavorite = (favorite) => {
@@ -40,7 +30,7 @@ function Favorites({ show = false, onClose }) {
     <div className="modal-container">
       <div className="modal favorites-container">
         <div className="favorites">
-          <InfiniteScroll
+          <Page
             page={favorites}
             renderItem={(favorite) => (
               <div className="favorite" key={`favorite-${favorite.id}`}>
@@ -49,7 +39,7 @@ function Favorites({ show = false, onClose }) {
                 </button>
               </div>
             )}
-            loadMore={loadMore}
+            loadPage={loadPage}
             reverse
           />
         </div>

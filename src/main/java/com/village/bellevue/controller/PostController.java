@@ -1,11 +1,11 @@
 package com.village.bellevue.controller;
 
+import java.sql.Timestamp;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,16 +27,13 @@ public class PostController {
 
   private final PostService postService;
   private final PostModelAssembler postModelAssembler;
-  private final PagedResourcesAssembler<PostModel> pagedAssembler;
 
   public PostController(
     PostService postService,
-    PostModelAssembler postModelAssembler,
-    PagedResourcesAssembler<PostModel> pagedAssembler
+    PostModelAssembler postModelAssembler
   ) {
     this.postService = postService;
     this.postModelAssembler = postModelAssembler;
-    this.pagedAssembler = pagedAssembler;
   }
 
   @PostMapping("/{forum}")
@@ -70,49 +67,73 @@ public class PostController {
   }
 
   @GetMapping("/forum/{forum}")
-  public ResponseEntity<PagedModel<EntityModel<PostModel>>> readAllByForum(
+  public ResponseEntity<List<PostModel>> readAllByForum(
     @PathVariable Long forum,
-    @RequestParam(defaultValue = "0") int page,
-    @RequestParam(defaultValue = "10") int size,
-    @RequestParam(defaultValue = "true") boolean sortByRelevance
+    @RequestParam(required = false) Long cursor,
+    @RequestParam(defaultValue = "1") Long limit
   ) {
     try {
-      Page<PostModel> posts = postService.readAllByForum(forum, page, size, sortByRelevance);
-      PagedModel<EntityModel<PostModel>> pagedModel = pagedAssembler.toModel(posts, postModelAssembler);
-      return ResponseEntity.status(HttpStatus.OK).body(pagedModel);
+      if (Objects.isNull(cursor)) cursor = System.currentTimeMillis();
+      List<PostModel> posts = postService.readAllByForum(forum, new Timestamp(cursor), limit);
+      return ResponseEntity.status(HttpStatus.OK).body(posts);
+    } catch (AuthorizationException e) {
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+  }
+
+  @GetMapping("/forum/{forum}/count")
+  public ResponseEntity<Long> countAllByForum(@PathVariable Long forum) {
+    try {
+      return ResponseEntity.status(HttpStatus.OK).body(postService.countAllByForum(forum));
     } catch (AuthorizationException e) {
       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
   }
 
   @GetMapping("/children/{parent}")
-  public ResponseEntity<PagedModel<EntityModel<PostModel>>> readAllByParent(
+  public ResponseEntity<List<PostModel>> readAllByParent(
     @PathVariable Long parent,
-    @RequestParam(defaultValue = "0") int page,
-    @RequestParam(defaultValue = "10") int size,
-    @RequestParam(defaultValue = "true") boolean sortByRelevance
+    @RequestParam(required = false) Long cursor,
+    @RequestParam(defaultValue = "1") Long limit
   ) {
     try {
-      Page<PostModel> posts = postService.readAllByParent(parent, page, size, sortByRelevance);
-      PagedModel<EntityModel<PostModel>> pagedModel = pagedAssembler.toModel(posts, postModelAssembler);
-      return ResponseEntity.status(HttpStatus.OK).body(pagedModel);
+      if (Objects.isNull(cursor)) cursor = System.currentTimeMillis();
+      List<PostModel> posts = postService.readAllByParent(parent, new Timestamp(cursor), limit);
+      return ResponseEntity.status(HttpStatus.OK).body(posts);
+    } catch (AuthorizationException e) {
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+  }
+
+  @GetMapping("/children/{parent}/count")
+  public ResponseEntity<Long> countAllByParent(@PathVariable Long parent) {
+    try {
+      return ResponseEntity.status(HttpStatus.OK).body(postService.countAllByParent(parent));
     } catch (AuthorizationException e) {
       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
   }
 
   @GetMapping("/children/{parent}/{child}")
-  public ResponseEntity<PagedModel<EntityModel<PostModel>>> readOthersByParent(
+  public ResponseEntity<List<PostModel>> readOthersByParent(
     @PathVariable Long parent,
     @PathVariable Long child,
-    @RequestParam(defaultValue = "0") int page,
-    @RequestParam(defaultValue = "10") int size,
-    @RequestParam(defaultValue = "true") boolean sortByRelevance
+    @RequestParam(required = false) Long cursor,
+    @RequestParam(defaultValue = "1") Long limit
   ) {
     try {
-      Page<PostModel> posts = postService.readOthersByParent(parent, child, page, size, sortByRelevance);
-      PagedModel<EntityModel<PostModel>> pagedModel = pagedAssembler.toModel(posts, postModelAssembler);
-      return ResponseEntity.status(HttpStatus.OK).body(pagedModel);
+      if (Objects.isNull(cursor)) cursor = System.currentTimeMillis();
+      List<PostModel> posts = postService.readOthersByParent(parent, child, new Timestamp(cursor), limit);
+      return ResponseEntity.status(HttpStatus.OK).body(posts);
+    } catch (AuthorizationException e) {
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+  }
+
+  @GetMapping("/children/{parent}/{child}/count")
+  public ResponseEntity<Long> countOthersByParent(@PathVariable Long parent, @PathVariable Long child) {
+    try {
+      return ResponseEntity.status(HttpStatus.OK).body(postService.countOthersByParent(parent, child));
     } catch (AuthorizationException e) {
       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }

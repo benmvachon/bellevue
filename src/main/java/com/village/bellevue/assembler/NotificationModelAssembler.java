@@ -26,7 +26,7 @@ public class NotificationModelAssembler implements RepresentationModelAssembler<
     } else if (notification.getType().getId().equals(5l) || notification.getType().getId().equals(6l)) {
       entityLink = linkTo(methodOn(UserController.class).read(notification.getEntity())).withRel("entity");
     } else if (notification.getType().getId().equals(7l)) {
-      entityLink = linkTo(methodOn(MessageController.class).readAll(notification.getEntity(), 0, 10)).withRel("entity");
+      entityLink = linkTo(methodOn(MessageController.class).readAll(notification.getEntity(), null, 10l)).withRel("entity");
     }
     
     return EntityModel.of(

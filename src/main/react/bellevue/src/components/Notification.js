@@ -1,49 +1,77 @@
 import PropTypes from 'prop-types';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import withAuth from '../utils/withAuth.js';
-import { markNotificationRead } from '../api/api.js';
+import {
+  markNotificationRead,
+  getNotification,
+  onNotificationRead,
+  unsubscribeNotificationRead
+} from '../api/api.js';
 
 function Notification({ notification, onClose, openMessages }) {
   const navigate = useNavigate();
+  const [stateNotification, setNotification] = useState(notification);
+  const [error, setError] = useState(false);
 
   const markAsRead = () => {
-    markNotificationRead(notification.id);
+    markNotificationRead(stateNotification.id);
   };
 
   const profileClick = () => {
-    navigate(`/profile/${notification.notifier.id}`);
+    navigate(`/profile/${stateNotification.notifier.id}`);
     onClose();
   };
 
   const notificationClick = () => {
-    switch (notification.typeName) {
+    switch (stateNotification.typeName) {
       case 'reply':
       case 'rating':
-        navigate(`/post/${notification.entity}`);
+        navigate(`/post/${stateNotification.entity}`);
         break;
       case 'request':
       case 'acceptance':
-        navigate(`/profile/${notification.entity}`);
+        navigate(`/profile/${stateNotification.entity}`);
         break;
       case 'message':
-        openMessages(notification.entity);
+        openMessages(stateNotification.entity);
         break;
       case 'equipment':
-        navigate(`/profile/${notification.notified}`);
+        navigate(`/profile/${stateNotification.notified}`);
         break;
       default:
-        navigate(`/${notification.typeName}/${notification.entity}`);
+        navigate(`/${stateNotification.typeName}/${stateNotification.entity}`);
         break;
     }
     onClose();
     markAsRead();
   };
 
+  useEffect(() => {
+    if (notification) setNotification(notification);
+  }, [notification]);
+
+  useEffect(() => {
+    if (stateNotification) {
+      onNotificationRead(stateNotification.id, () =>
+        getNotification(stateNotification.id, setNotification, setError)
+      );
+      return () => {
+        unsubscribeNotificationRead(stateNotification.id);
+      };
+    }
+  }, [stateNotification]);
+
+  if (error) return JSON.stringify(error);
+  if (!stateNotification) return;
+
   return (
     <div className="notification">
-      <button onClick={profileClick}>{notification.notifier.name}</button>
-      <button onClick={notificationClick}>{notification.typeName}</button>
-      <button onClick={markAsRead}>Mark as read</button>
+      <button onClick={profileClick}>{stateNotification.notifier.name}</button>
+      <button onClick={notificationClick}>{stateNotification.typeName}</button>
+      {!stateNotification.read && (
+        <button onClick={markAsRead}>Mark as read</button>
+      )}
     </div>
   );
 }

@@ -1,69 +1,26 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import withAuth from '../utils/withAuth.js';
-import { useNotifyLocationChange } from '../utils/LocationContext.js';
-import {
-  getPost,
-  getFriendsInLocation,
-  onEntrance,
-  unsubscribeLocation
-} from '../api/api.js';
+import { getPost } from '../api/api.js';
 import Post from '../components/Post.js';
 import Header from '../components/Header.js';
-import InfiniteScroll from '../components/InfiniteScroll.js';
+import Attendees from '../components/Attendees.js';
 
 function PostPage() {
   const navigate = useNavigate();
-  const { locationId, locationType } = useNotifyLocationChange();
   const { id } = useParams();
   const [post, setPost] = useState(null);
-  const [attendees, setAttendees] = useState(null);
   const [error, setError] = useState(false);
 
-  const refreshPost = () => getPost(id, setPost, setError);
-  const refreshAttendees = () => getFriendsInLocation(setAttendees, setError);
-
-  const loadMoreAttendees = (page) => {
-    getFriendsInLocation(
-      id,
-      'POST',
-      (more) => {
-        if (more) {
-          more.content = attendees?.content?.concat(more?.content);
-          setAttendees(more);
-        }
-      },
-      setError,
-      page
-    );
-  };
-
   useEffect(() => {
-    if (id) {
-      refreshPost();
-      refreshAttendees();
-      onEntrance(refreshAttendees);
-    }
-    return () => {
-      unsubscribeLocation();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (id) getPost(id, setPost, setError);
   }, [id]);
-
-  useEffect(() => {
-    refreshAttendees();
-  }, [locationId, locationType]);
 
   if (error) return JSON.stringify(error);
   if (!post) return;
 
-  const getPostElement = (depth, sortByRelevance) => (
-    <Post
-      id={post.id}
-      depth={depth}
-      parentSortedByRelevance={sortByRelevance}
-      selected
-    />
+  const getPostElement = (depth) => (
+    <Post id={post.id} depth={depth} selected />
   );
   let parent = post.parent;
   let previousParent = post;
@@ -73,11 +30,10 @@ function PostPage() {
     const id = Number.parseInt('' + parent.id);
     const previousId = Number.parseInt('' + previousParent.id);
     const pointer = Number.parseInt('' + i);
-    parentFuncs[pointer] = (depth, sortByRelevance) => (
+    parentFuncs[pointer] = (depth) => (
       <Post
         id={id}
         depth={depth}
-        parentSortedByRelevance={sortByRelevance}
         selectedChildId={previousId}
         getSelectedChild={
           pointer < 1 ? getPostElement : parentFuncs[pointer - 1]
@@ -97,18 +53,7 @@ function PostPage() {
         Back to forum
       </button>
       <div className="contents">
-        <div className="attendees">
-          <h3>Attendees</h3>
-          <InfiniteScroll
-            page={attendees}
-            renderItem={(attendee) => (
-              <button onClick={() => navigate(`/profile/${attendee.id}`)}>
-                {attendee.name}
-              </button>
-            )}
-            loadMore={loadMoreAttendees}
-          />
-        </div>
+        <Attendees />
         <div className="posts">
           <h3>Posts</h3>
           {i > 0 ? parentFuncs[i - 1](0, true) : getPostElement(0, true)}

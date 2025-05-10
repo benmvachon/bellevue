@@ -1,11 +1,12 @@
 package com.village.bellevue.service.impl;
 
+import java.sql.Timestamp;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -205,77 +206,78 @@ public class PostServiceImpl implements PostService {
   }
 
   @Override
-  public Page<PostModel> readAllByForum(Long forum, int page, int size, boolean sortByRelevance) throws AuthorizationException {
+  public List<PostModel> readAllByForum(Long forum, Timestamp cursor, Long limit) throws AuthorizationException {
     Long user = getAuthenticatedUserId();
     if (!forumRepository.canRead(forum, user)) throw new AuthorizationException("User not authorized");
-    Page<PostEntity> postEntities = sortByRelevance ?
-      postRepository.findRelevantTopLevelByForum(
+    List<PostEntity> postEntities = postRepository.findRecentTopLevelByForum(
         user,
         forum,
-        PageRequest.of(page, size)
-      ) : 
-      postRepository.findRecentTopLevelByForum(
-        user,
-        forum,
-        PageRequest.of(page, size)
+        cursor,
+        limit
       );
-    return postEntities.map(post -> {
+    return postEntities.stream().map(post -> {
       try {
         return new PostModel(post, postModelProvider);
       } catch (AuthorizationException e) {
         return null;
       }
-    });
+    }).collect(Collectors.toList());
   }
 
   @Override
-  public Page<PostModel> readAllByParent(Long parent, int page, int size, boolean sortByRelevance) throws AuthorizationException {
+  public Long countAllByForum(Long forum) throws AuthorizationException {
     Long user = getAuthenticatedUserId();
-    if (!canRead(parent)) throw new AuthorizationException("User not authorized");
-    Page<PostEntity> postEntities = sortByRelevance ?
-      postRepository.findRelevantChildren(
-        user,
-        parent,
-        PageRequest.of(page, size)
-      ) :
-      postRepository.findRecentChildren(
-        user,
-        parent,
-        PageRequest.of(page, size)
-      );
-    return postEntities.map(post -> {
-      try {
-        return new PostModel(post, postModelProvider);
-      } catch (AuthorizationException e) {
-        return null;
-      }
-    });
+    if (!forumRepository.canRead(forum, user)) throw new AuthorizationException("User not authorized");
+    return postRepository.countTopLevelByForum(user, forum);
   }
 
   @Override
-  public Page<PostModel> readOthersByParent(Long parent, Long child, int page, int size, boolean sortByRelevance) throws AuthorizationException {
-    Long user = getAuthenticatedUserId();
+  public List<PostModel> readAllByParent(Long parent, Timestamp cursor, Long limit) throws AuthorizationException {
     if (!canRead(parent)) throw new AuthorizationException("User not authorized");
-    Page<PostEntity> postEntities = sortByRelevance ?
-      postRepository.findRelevantOtherChildren(
-        user,
-        parent,
-        child,
-        PageRequest.of(page, size)
-      ) :
-      postRepository.findRecentOtherChildren(
-        user,
-        parent,
-        child,
-        PageRequest.of(page, size)
-      );
-    return postEntities.map(post -> {
+    List<PostEntity> postEntities = postRepository.findRecentChildren(
+      getAuthenticatedUserId(),
+      parent,
+      cursor,
+      limit
+    );
+    return postEntities.stream().map(post -> {
       try {
         return new PostModel(post, postModelProvider);
       } catch (AuthorizationException e) {
         return null;
       }
-    });
+    }).collect(Collectors.toList());
+  }
+
+  @Override
+  public Long countAllByParent(Long parent) throws AuthorizationException {
+    if (!canRead(parent)) throw new AuthorizationException("User not authorized");
+    return postRepository.countChildren(getAuthenticatedUserId(), parent);
+  }
+
+  @Override
+  public List<PostModel> readOthersByParent(Long parent, Long child, Timestamp cursor, Long limit) throws AuthorizationException {
+    if (!canRead(parent)) throw new AuthorizationException("User not authorized");
+    List<PostEntity> postEntities = postRepository.findRecentOtherChildren(
+      getAuthenticatedUserId(),
+      parent,
+      child,
+      cursor,
+      limit
+    );
+    return postEntities.stream().map(post -> {
+      try {
+        return new PostModel(post, postModelProvider);
+      } catch (AuthorizationException e) {
+        return null;
+      }
+    }).collect(Collectors.toList());
+  }
+
+  @Override
+  public Long countOthersByParent(Long parent, Long child) throws AuthorizationException {
+    if (!canRead(parent)) throw new AuthorizationException("User not authorized");
+    return postRepository.countOtherChildren(getAuthenticatedUserId(), parent, child);
   }
 
   @Override

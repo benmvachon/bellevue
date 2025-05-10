@@ -13,95 +13,95 @@ import {
   unsubscribePost
 } from '../api/api.js';
 import Rating from './Rating.js';
-import InfiniteScroll from './InfiniteScroll.js';
+import ScrollLoader from './ScrollLoader.js';
 
 function Post({
   id,
   selected = false,
   selectedChildId,
   getSelectedChild,
-  parentSortedByRelevance = true,
   depth = 0
 }) {
   const navigate = useNavigate();
   const [post, setPost] = useState(null);
-  const [sortByRelevance, setSortByRelevance] = useState(
-    parentSortedByRelevance
-  );
-  const [replies, setReplies] = useState(null);
+  const [replies, setReplies] = useState([]);
   const [reply, setReply] = useState(null);
   const [showReplies, setShowReplies] = useState(depth < 2);
   const [error, setError] = useState(false);
 
-  const pageSize = depth < 1 ? 10 : depth < 2 ? 5 : 2;
-
-  const refresh = () => {
-    getPost(id, setPost, setError);
+  const submitReply = (event) => {
+    event.preventDefault();
+    addReply(
+      post?.forum?.id,
+      post?.id,
+      reply,
+      (reply) => {
+        setReply('');
+        getPost(
+          id,
+          (post) => {
+            setPost(post);
+            setReplies([reply].concat(replies));
+          },
+          setError
+        );
+      },
+      setError
+    );
   };
 
-  const refreshChildren = () => {
-    showReplies &&
-      getReplies(
-        id,
-        setReplies,
-        setError,
-        0,
-        sortByRelevance,
-        pageSize,
-        selectedChildId
-      );
-  };
-
-  const loadMore = (page) => {
+  const loadMore = () => {
+    const cursor = replies[replies.length - 1].created.getTime();
     getReplies(
       id,
       (more) => {
         if (more) {
-          more.content = replies?.content?.concat(more?.content);
-          more.number = more.number + replies?.number || 0;
-          setReplies(more);
+          setReplies(replies.concat(more));
         }
       },
       setError,
-      page,
-      sortByRelevance,
-      pageSize,
+      cursor,
+      1,
       selectedChildId
     );
   };
 
-  const toggleSort = () => {
-    setSortByRelevance(!sortByRelevance);
-  };
-
   const favorite = () => {
-    favoritePost(id, refresh, setError);
+    favoritePost(id, () => getPost(id, setPost, setError), setError);
   };
 
   const unfavorite = () => {
-    unfavoritePost(id, refresh, setError);
+    unfavoritePost(id, () => getPost(id, setPost, setError), setError);
   };
 
   useEffect(() => {
-    if (id) refresh();
-    onPostUpdate(id, (message) => {
-      if (message === 'reply') refreshChildren();
-      if (message === 'rating') refresh();
-    });
-    return () => {
-      unsubscribePost(id);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (id) {
+      getPost(id, setPost, setError);
+    }
   }, [id]);
 
   useEffect(() => {
-    setSortByRelevance(parentSortedByRelevance);
-  }, [parentSortedByRelevance]);
+    if (id) {
+      onPostUpdate(id, (event) => {
+        getPost(
+          id,
+          (post) => {
+            setPost(post);
+            if (!event.rating) setReplies([event.post].concat(replies));
+          },
+          setError
+        );
+      });
+      return () => {
+        unsubscribePost(id);
+      };
+    }
+  }, [id, replies]);
 
   useEffect(() => {
-    if (post && post.children > 0) refreshChildren();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [post, sortByRelevance, showReplies, selectedChildId]);
+    if (post && post.children > 0 && showReplies)
+      getReplies(post.id, setReplies, setError, null, 1, selectedChildId);
+  }, [post, showReplies, selectedChildId]);
 
   if (error) return JSON.stringify(error);
   if (!post) return;
@@ -117,7 +117,12 @@ function Post({
           rating={post?.rating}
           ratingCount={post?.ratingCount}
           onClick={(rating) => {
-            ratePost(post?.id, rating, refresh, refresh);
+            ratePost(
+              post?.id,
+              rating,
+              () => getPost(id, setPost, setError),
+              setError
+            );
           }}
         />
         {selected ? undefined : (
@@ -132,11 +137,7 @@ function Post({
         )}
       </div>
       <p>{post?.content}</p>
-      <form
-        onSubmit={() => {
-          addReply(post?.forum?.id, post?.id, reply, refreshChildren);
-        }}
-      >
+      <form onSubmit={submitReply}>
         <textarea value={reply} onChange={(e) => setReply(e.target.value)} />
         <button type="submit">Reply</button>
       </form>
@@ -147,25 +148,13 @@ function Post({
               ? `Hide (${post.children}) replies`
               : `Show (${post.children}) replies`}
           </button>
-          <button onClick={toggleSort}>
-            {sortByRelevance ? 'Most recent' : 'Most relevant'}
-          </button>
-          {showReplies &&
-            getSelectedChild &&
-            getSelectedChild(depth, sortByRelevance)}
+          {showReplies && getSelectedChild && getSelectedChild(depth)}
           {showReplies && (
-            <InfiniteScroll
-              page={replies}
-              renderItem={(reply) => (
-                <Post
-                  key={`post-${reply.id}`}
-                  id={reply.id}
-                  depth={depth + 1}
-                  parentSortedByRelevance={sortByRelevance}
-                />
-              )}
-              loadMore={loadMore}
-            />
+            <ScrollLoader total={post.children} loadMore={loadMore}>
+              {replies?.map((post) => (
+                <Post key={`post-${post.id}`} id={post.id} depth={depth + 1} />
+              ))}
+            </ScrollLoader>
           )}
         </div>
       )}
@@ -178,7 +167,6 @@ Post.propTypes = {
   selected: PropTypes.bool,
   selectedChildId: PropTypes.number,
   getSelectedChild: PropTypes.func,
-  parentSortedByRelevance: PropTypes.bool,
   depth: PropTypes.number
 };
 

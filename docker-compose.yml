@@ -5,6 +5,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: bellevue_dev
+      TZ: America/New_York
     volumes:
       - ./src/main/sql:/docker-entrypoint-initdb.d
     ports:

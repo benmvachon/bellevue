@@ -1,111 +1,102 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import withAuth from '../utils/withAuth.js';
-import { useNotifyLocationChange } from '../utils/LocationContext.js';
 import {
   getForum,
   getPosts,
+  getTotalPosts,
   addPost,
-  getFriendsInLocation,
   onForumUpdate,
   favoriteForum,
   unfavoriteForum,
-  onEntrance,
-  unsubscribeForum,
-  unsubscribeLocation
+  unsubscribeForum
 } from '../api/api.js';
 import Post from '../components/Post.js';
 import Header from '../components/Header.js';
-import InfiniteScroll from '../components/InfiniteScroll.js';
+import Attendees from '../components/Attendees.js';
+import ScrollLoader from '../components/ScrollLoader.js';
 
 function ForumPage() {
   const navigate = useNavigate();
-  const { locationId, locationType } = useNotifyLocationChange();
   const { id } = useParams();
   const [forum, setForum] = useState(null);
-  const [sortByRelevance, setSortByRelevance] = useState(true);
-  const [posts, setPosts] = useState(null);
-  const [attendees, setAttendees] = useState(null);
+  const [posts, setPosts] = useState([]);
+  const [totalPosts, setTotalPosts] = useState(0);
   const [newPost, setNewPost] = useState(null);
   const [error, setError] = useState(false);
 
-  const refreshForum = () => getForum(id, setForum, setError);
-  const refreshPosts = () =>
-    getPosts(id, setPosts, setError, 0, sortByRelevance);
-  const refreshAttendees = () => getFriendsInLocation(setAttendees, setError);
-
-  const loadMorePosts = (page) => {
-    getPosts(
+  const submitPost = (event) => {
+    event.preventDefault();
+    addPost(
       id,
-      (more) => {
-        if (more) {
-          more.content = posts?.content?.concat(more?.content);
-          more.number = more.number + posts?.number || 0;
-          setPosts(more);
-        }
+      newPost,
+      (newPost) => {
+        setNewPost('');
+        setPosts([newPost].concat(posts));
       },
-      setError,
-      page,
-      sortByRelevance
+      setError
     );
   };
 
-  const loadMoreAttendees = (page) => {
-    getFriendsInLocation(
+  const loadMore = () => {
+    const cursor = posts[posts.length - 1].created.getTime();
+    getTotalPosts(
       id,
-      'FORUM',
-      (more) => {
-        if (more) {
-          more.content = attendees?.content?.concat(more?.content);
-          setAttendees(more);
-        }
+      (totalPosts) => {
+        getPosts(
+          id,
+          (more) => {
+            setTotalPosts(totalPosts);
+            if (more) {
+              setPosts(posts?.concat(more));
+            }
+          },
+          setError,
+          cursor,
+          5
+        );
       },
-      setError,
-      page
+      setError
     );
-  };
-
-  const toggleSort = () => {
-    setSortByRelevance(!sortByRelevance);
   };
 
   const favorite = () => {
-    favoriteForum(id, refreshForum, setError);
+    favoriteForum(id, () => getForum(id, setForum, setError), setError);
   };
 
   const unfavorite = () => {
-    unfavoriteForum(id, refreshForum, setError);
+    unfavoriteForum(id, () => getForum(id, setForum, setError), setError);
   };
 
   useEffect(() => {
     if (id) {
-      refreshForum();
-      refreshAttendees();
-      onForumUpdate(id, (message) => {
-        refreshForum();
-        if (message === 'post') refreshPosts();
-        if (message === 'rating' && sortByRelevance) refreshPosts();
-      });
-      onEntrance(refreshAttendees);
+      getForum(id, setForum, setError);
     }
-
-    return () => {
-      unsubscribeForum(id);
-      unsubscribeLocation();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   useEffect(() => {
-    refreshAttendees();
-  }, [locationId, locationType]);
+    if (id) {
+      onForumUpdate(id, (event) => {
+        setPosts([event.post].concat(posts));
+      });
+      return () => {
+        unsubscribeForum(id);
+      };
+    }
+  }, [id, posts]);
 
   useEffect(() => {
     if (id) {
-      refreshPosts();
+      getTotalPosts(
+        id,
+        (totalPosts) => {
+          setTotalPosts(totalPosts);
+          getPosts(id, setPosts, setError, null, 5);
+        },
+        setError
+      );
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, sortByRelevance]);
+  }, [id]);
 
   if (error) return JSON.stringify(error);
   if (!forum) return;
@@ -123,46 +114,21 @@ function ForumPage() {
         <button onClick={favorite}>Favorite</button>
       )}
       <div className="contents">
-        <div className="attendees">
-          <h3>Attendees</h3>
-          <InfiniteScroll
-            page={attendees}
-            renderItem={(attendee) => (
-              <button onClick={() => navigate(`/profile/${attendee.id}`)}>
-                {attendee.name}
-              </button>
-            )}
-            loadMore={loadMoreAttendees}
-          />
-        </div>
+        <Attendees />
         <div className="posts">
           <h3>Posts</h3>
-          <button onClick={toggleSort}>
-            {sortByRelevance ? 'Most recent' : 'Most relevant'}
-          </button>
-          <form
-            onSubmit={() => {
-              addPost(id, newPost, refreshPosts);
-            }}
-          >
+          <form onSubmit={submitPost}>
             <textarea
               value={newPost}
               onChange={(e) => setNewPost(e.target.value)}
             />
             <button type="submit">Post</button>
           </form>
-          <InfiniteScroll
-            page={posts}
-            renderItem={(post) => (
-              <Post
-                key={`post-${post.id}`}
-                id={post.id}
-                depth={0}
-                parentSortedByRelevance={sortByRelevance}
-              />
-            )}
-            loadMore={loadMorePosts}
-          />
+          <ScrollLoader total={totalPosts} loadMore={loadMore}>
+            {posts?.map((post) => (
+              <Post key={`post-${post.id}`} id={post.id} depth={0} />
+            ))}
+          </ScrollLoader>
         </div>
       </div>
     </div>

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import withAuth from '../utils/withAuth.js';
 import { getEquipment, equipItem, unequipItem } from '../api/api.js';
-import InfiniteScroll from './InfiniteScroll.js';
+import Page from './Page.js';
 
 function Equipment({ show = false, onClose, refreshProfile }) {
   const [slot, setSlot] = useState('all');
@@ -16,19 +16,8 @@ function Equipment({ show = false, onClose, refreshProfile }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [show, slot]);
 
-  const loadMore = (page) => {
-    getEquipment(
-      (more) => {
-        if (more) {
-          more.content = equipment?.content?.concat(more?.content);
-          more.number = more.number + equipment?.number || 0;
-          setEquipment(more);
-        }
-      },
-      setError,
-      page,
-      slot
-    );
+  const loadPage = (page) => {
+    getEquipment(setEquipment, setError, page, slot);
   };
 
   const equip = (item) => {
@@ -63,7 +52,7 @@ function Equipment({ show = false, onClose, refreshProfile }) {
           <button onClick={() => setSlot('all')}>Show all</button>
         </div>
         <div className="threads">
-          <InfiniteScroll
+          <Page
             page={equipment}
             renderItem={(item) => (
               <div className="thread" key={`thread-${item.id}`}>
@@ -76,7 +65,7 @@ function Equipment({ show = false, onClose, refreshProfile }) {
                 )}
               </div>
             )}
-            loadMore={loadMore}
+            loadPage={loadPage}
           />
         </div>
         <div className="buttons">

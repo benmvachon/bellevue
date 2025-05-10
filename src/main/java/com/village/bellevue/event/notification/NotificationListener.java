@@ -19,6 +19,8 @@ import com.village.bellevue.event.AcceptanceEvent;
 import com.village.bellevue.event.EquipmentEvent;
 import com.village.bellevue.event.ForumEvent;
 import com.village.bellevue.event.MessageEvent;
+import com.village.bellevue.event.NotificationReadEvent;
+import com.village.bellevue.event.NotificationsReadEvent;
 import com.village.bellevue.event.PostEvent;
 import com.village.bellevue.event.RatingEvent;
 import com.village.bellevue.event.RequestEvent;
@@ -26,20 +28,28 @@ import com.village.bellevue.model.ForumModel;
 import com.village.bellevue.model.PostModel;
 import com.village.bellevue.repository.FriendRepository;
 import com.village.bellevue.repository.NotificationRepository;
+import com.village.bellevue.repository.NotificationTypeRepository;
+import com.village.bellevue.repository.UserProfileRepository;
 
 @Component
 public class NotificationListener {
   private final NotificationRepository notificationRepository;
   private final FriendRepository friendRepository;
+  private final UserProfileRepository userProfileRepository;
+  private final NotificationTypeRepository notificationTypeRepository;
   private final SimpMessagingTemplate messagingTemplate;
 
   public NotificationListener(
     NotificationRepository notificationRepository,
     FriendRepository friendRepository,
+    UserProfileRepository userProfileRepository,
+    NotificationTypeRepository notificationTypeRepository,
     SimpMessagingTemplate messagingTemplate
   ) {
     this.notificationRepository = notificationRepository;
     this.friendRepository = friendRepository;
+    this.userProfileRepository = userProfileRepository;
+    this.notificationTypeRepository = notificationTypeRepository;
     this.messagingTemplate = messagingTemplate;
   }
 
@@ -114,7 +124,6 @@ public class NotificationListener {
     Long user = event.getUser();
     Long friend = event.getFriend();
     notifyFriend(user, friend, 7l, user);
-    messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/message", "message");
   }
 
   @Async
@@ -124,6 +133,23 @@ public class NotificationListener {
     Long user = event.getUser();
     Long item = event.getEquipment().getItem().getId();
     notifyFriend(user, user, 8l, item);
+  }
+
+  @Async
+  @EventListener
+  public void handleNotificationReadEvent(NotificationReadEvent event) {
+    Long user = event.getUser();
+    Long notification = event.getNotification();
+    messagingTemplate.convertAndSendToUser(user.toString(), "/topic/notification/unread", "update");
+    messagingTemplate.convertAndSendToUser(user.toString(), "/topic/notification/unread/" + notification, "update");
+  }
+
+  @Async
+  @EventListener
+  public void handleNotificationsReadEvent(NotificationsReadEvent event) {
+    Long user = event.getUser();
+    messagingTemplate.convertAndSendToUser(user.toString(), "/topic/notification/unread", "update");
+    messagingTemplate.convertAndSendToUser(user.toString(), "/topic/notification/all", "read");
   }
 
   @Async
@@ -158,8 +184,8 @@ public class NotificationListener {
   @Transactional
   @Modifying
   private void notifyFriend(Long user, Long friend, Long type, Long entity) {
-    UserProfileEntity notifier = new UserProfileEntity(user);
-    NotificationTypeEntity notificationType = new NotificationTypeEntity(type);
+    UserProfileEntity notifier = userProfileRepository.findById(user).orElseThrow(() -> new IllegalStateException("Not found"));
+    NotificationTypeEntity notificationType = notificationTypeRepository.findById(type).orElseThrow(() -> new IllegalStateException("Not found"));
 
     NotificationEntity notification = new NotificationEntity();
     notification.setNotifier(notifier);
@@ -167,7 +193,8 @@ public class NotificationListener {
     notification.setType(notificationType);
     notification.setEntity(entity);
     notification.setRead(false);
-    notificationRepository.save(notification);
-    messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/notification", "notification");
+    notification = notificationRepository.save(notification);
+    messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/notification/unread", "update");
+    messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/notification", notification);
   }
 }

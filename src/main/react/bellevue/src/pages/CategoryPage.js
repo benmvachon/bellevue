@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import withAuth from '../utils/withAuth.js';
 import { getForums, addForum } from '../api/api.js';
 import Header from '../components/Header.js';
-import InfiniteScroll from '../components/InfiniteScroll.js';
+import Page from '../components/Page.js';
 
 function CategoryPage() {
   const navigate = useNavigate();
@@ -22,18 +22,8 @@ function CategoryPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [category, setForums]);
 
-  const loadMore = (page) => {
-    getForums(
-      (more) => {
-        if (more) {
-          more.content = forums?.content?.concat(more?.content);
-          more.number = more.number + forums?.number || 0;
-          setForums(more);
-        }
-      },
-      setError,
-      page
-    );
+  const loadPage = (page) => {
+    getForums(setForums, setError, page);
   };
 
   const forumClick = (event) => {
@@ -48,7 +38,7 @@ function CategoryPage() {
       <Header />
       <h2>{category}</h2>
       <div>
-        <InfiniteScroll
+        <Page
           page={forums}
           renderItem={(forum) => (
             <div key={`forum-${forum.id}`}>
@@ -57,7 +47,7 @@ function CategoryPage() {
               </button>
             </div>
           )}
-          loadMore={loadMore}
+          loadPage={loadPage}
         />
       </div>
       <form onSubmit={() => addForum(category, newForumName, refresh)}>

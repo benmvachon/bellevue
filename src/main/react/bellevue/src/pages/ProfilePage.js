@@ -13,27 +13,22 @@ import {
   onProfileUpdate,
   favoriteProfile,
   unfavoriteProfile,
-  getFriendsInLocation,
-  onEntrance,
   unsubscribeProfile,
-  unsubscribeLocation,
   onFriendshipStatusUpdate,
   unsubscribeFriendshipStatus
 } from '../api/api.js';
-import { useNotifyLocationChange } from '../utils/LocationContext.js';
 import Header from '../components/Header.js';
 import Messages from '../components/Messages.js';
-import InfiniteScroll from '../components/InfiniteScroll.js';
 import Equipment from '../components/Equipment.js';
+import Attendees from '../components/Attendees.js';
+import Page from '../components/Page.js';
 
 function ProfilePage() {
   const navigate = useNavigate();
-  const { locationId, locationType } = useNotifyLocationChange();
   const { id } = useParams();
   const { userId } = useAuth();
   const [profile, setProfile] = useState(null);
   const [friends, setFriends] = useState(null);
-  const [attendees, setAttendees] = useState(null);
   const [showMessages, setShowMessages] = useState(false);
   const [error, setError] = useState(false);
   const [blackboard, setBlackboard] = useState('');
@@ -42,8 +37,6 @@ function ProfilePage() {
   const self = '' + userId === '' + id;
 
   const refresh = () => getProfile(id, setProfile, setError);
-  const refreshAttendees = () => getFriendsInLocation(setAttendees, setError);
-  const refreshFriends = () => getFriends(id, setFriends, setError);
 
   const favorite = () => {
     favoriteProfile(id, refresh, setError);
@@ -53,62 +46,27 @@ function ProfilePage() {
     unfavoriteProfile(id, refresh, setError);
   };
 
-  const loadMoreFriends = (page) => {
-    getFriends(
-      id,
-      (more) => {
-        if (more) {
-          more.content = friends?.content?.concat(more.content);
-          more.number = more.number + friends?.number || 0;
-          setFriends(more);
-        }
-      },
-      setError,
-      page
-    );
-  };
-
-  const loadMoreAttendees = (page) => {
-    getFriendsInLocation(
-      id,
-      'FORUM',
-      (more) => {
-        if (more) {
-          more.content = attendees?.content?.concat(more?.content);
-          setAttendees(more);
-        }
-      },
-      setError,
-      page
-    );
+  const loadFriendsPage = (page) => {
+    getFriends(id, setFriends, setError, page);
   };
 
   useEffect(() => {
-    refresh();
-    refreshFriends();
-    refreshAttendees();
+    getProfile(id, setProfile, setError);
+    getFriends(id, setFriends, setError);
     onProfileUpdate(id, (message) => {
       if (
         message === 'blackboard' ||
         message === 'location' ||
         message === 'status'
       )
-        refresh();
-      if (message === 'acceptance') refreshFriends();
+        getProfile(id, setProfile, setError);
     });
-    onFriendshipStatusUpdate(id, refresh);
-    onEntrance(refreshAttendees);
+    onFriendshipStatusUpdate(id, getProfile(id, setProfile, setError));
     return () => {
       unsubscribeProfile(id);
       unsubscribeFriendshipStatus(id);
-      unsubscribeLocation();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
-
-  useEffect(() => {
-    refreshAttendees();
-  }, [locationId, locationType]);
 
   useEffect(() => {
     if (profile) setBlackboard(profile.blackboard);
@@ -221,21 +179,10 @@ function ProfilePage() {
       ) : (
         <p>{blackboard}</p>
       )}
-      <div className="attendees">
-        <h3>Attendees</h3>
-        <InfiniteScroll
-          page={attendees}
-          renderItem={(attendee) => (
-            <button onClick={() => navigate(`/profile/${attendee.id}`)}>
-              {attendee.name}
-            </button>
-          )}
-          loadMore={loadMoreAttendees}
-        />
-      </div>
+      <Attendees />
       <h3>Friends</h3>
       <div>
-        <InfiniteScroll
+        <Page
           page={friends}
           renderItem={(friend) => (
             <div key={`friend-${friend.id}`}>
@@ -244,7 +191,7 @@ function ProfilePage() {
               </button>
             </div>
           )}
-          loadMore={loadMoreFriends}
+          loadPage={loadFriendsPage}
         />
       </div>
       <Messages show={showMessages} onClose={closeMessages} friend={id} />

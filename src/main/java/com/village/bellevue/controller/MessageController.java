@@ -1,9 +1,9 @@
 package com.village.bellevue.controller;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.web.PagedResourcesAssembler;
-import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.PagedModel;
+import java.sql.Timestamp;
+import java.util.List;
+import java.util.Objects;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,10 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.village.bellevue.assembler.MessageModelAssembler;
-import com.village.bellevue.assembler.ThreadModelAssembler;
 import com.village.bellevue.entity.MessageEntity;
-import com.village.bellevue.entity.UserProfileEntity;
 import com.village.bellevue.error.AuthorizationException;
 import com.village.bellevue.service.MessageService;
 
@@ -27,23 +24,9 @@ import com.village.bellevue.service.MessageService;
 public class MessageController {
 
   private final MessageService messageService;
-  private final MessageModelAssembler messageModelAssembler;
-  private final ThreadModelAssembler threadModelAssembler;
-  private final PagedResourcesAssembler<MessageEntity> pagedMessageAssembler;
-  private final PagedResourcesAssembler<UserProfileEntity> pagedProfileAssembler;
 
-  public MessageController(
-    MessageService messageService,
-    MessageModelAssembler messageModelAssembler,
-    ThreadModelAssembler threadModelAssembler,
-    PagedResourcesAssembler<MessageEntity> pagedMessageAssembler,
-    PagedResourcesAssembler<UserProfileEntity> pagedProfileAssembler
-  ) {
+  public MessageController(MessageService messageService) {
     this.messageService = messageService;
-    this.messageModelAssembler = messageModelAssembler;
-    this.threadModelAssembler = threadModelAssembler;
-    this.pagedMessageAssembler = pagedMessageAssembler;
-    this.pagedProfileAssembler = pagedProfileAssembler;
   }
 
   @PostMapping("/{friend}")
@@ -59,14 +42,33 @@ public class MessageController {
     }
   }
 
-  @GetMapping
-  public ResponseEntity<PagedModel<EntityModel<UserProfileEntity>>> readThreads(
-    @RequestParam(defaultValue = "0") int page,
-    @RequestParam(defaultValue = "10") int size
+  @GetMapping("/{message}")
+  public ResponseEntity<MessageEntity> read(@PathVariable Long message) {
+    return ResponseEntity.status(HttpStatus.OK).body(messageService.read(message));
+  }
+
+  @GetMapping("/threads")
+  public ResponseEntity<List<MessageEntity>> readThreads(
+    @RequestParam(required = false) Long cursor,
+    @RequestParam(defaultValue = "1") Long limit
   ) {
-    Page<UserProfileEntity> threads = messageService.readThreads(page, size);
-    PagedModel<EntityModel<UserProfileEntity>> pagedModel = pagedProfileAssembler.toModel(threads, threadModelAssembler);
-    return ResponseEntity.status(HttpStatus.OK).body(pagedModel);
+    if (Objects.isNull(cursor)) cursor = System.currentTimeMillis();
+    List<MessageEntity> threads = messageService.readThreads(new Timestamp(cursor), limit);
+    return ResponseEntity.status(HttpStatus.OK).body(threads);
+  }
+
+  @GetMapping("/threads/refresh")
+  public ResponseEntity<List<MessageEntity>> refreshThreads(
+    @RequestParam(required = false) Long cursor
+  ) {
+    if (Objects.isNull(cursor)) cursor = System.currentTimeMillis();
+    List<MessageEntity> threads = messageService.refreshThreads(new Timestamp(cursor));
+    return ResponseEntity.status(HttpStatus.OK).body(threads);
+  }
+
+  @GetMapping("/total")
+  public ResponseEntity<Long> countThreads() {
+    return ResponseEntity.status(HttpStatus.OK).body(messageService.countThreads());
   }
 
   @GetMapping("/unread")
@@ -74,15 +76,20 @@ public class MessageController {
     return ResponseEntity.status(HttpStatus.OK).body(messageService.countUnreadThreads());
   }
 
-  @GetMapping("/{friend}")
-  public ResponseEntity<PagedModel<EntityModel<MessageEntity>>> readAll(
+  @GetMapping("/{friend}/all")
+  public ResponseEntity<List<MessageEntity>> readAll(
     @PathVariable Long friend,
-    @RequestParam(defaultValue = "0") int page,
-    @RequestParam(defaultValue = "10") int size
+    @RequestParam(required = false) Long cursor,
+    @RequestParam(defaultValue = "1") Long limit
   ) {
-    Page<MessageEntity> messages = messageService.readAll(friend, page, size);
-    PagedModel<EntityModel<MessageEntity>> pagedModel = pagedMessageAssembler.toModel(messages, messageModelAssembler);
-    return ResponseEntity.status(HttpStatus.OK).body(pagedModel);
+    if (Objects.isNull(cursor)) cursor = System.currentTimeMillis();
+    List<MessageEntity> messages = messageService.readAll(friend, new Timestamp(cursor), limit);
+    return ResponseEntity.status(HttpStatus.OK).body(messages);
+  }
+
+  @GetMapping("/{friend}/total")
+  public ResponseEntity<Long> countAll(@PathVariable Long friend) {
+    return ResponseEntity.status(HttpStatus.OK).body(messageService.countAll(friend));
   }
 
   @PutMapping("/read")
@@ -102,7 +109,7 @@ public class MessageController {
     @PathVariable Long friend,
     @PathVariable Long message
   ) {
-    messageService.markAsRead(message);
+    messageService.markAsRead(friend, message);
     return ResponseEntity.status(HttpStatus.OK).build();
   }
 }

@@ -4,9 +4,9 @@ import withAuth from '../utils/withAuth.js';
 import { useAuth } from '../utils/AuthContext.js';
 import {
   getNotificationCount,
-  getMessageCount,
-  onNotification,
-  onMessage,
+  getUnreadCount,
+  onNotificationCount,
+  onThreadsCount,
   unsubscribeMessage,
   unsubscribeNotification
 } from '../api/api.js';
@@ -29,11 +29,11 @@ function Header() {
 
   useEffect(() => {
     getNotificationCount(setNotificationCount, setError);
-    getMessageCount(setUnreadThreadCount, setError);
-    onNotification((message) =>
+    getUnreadCount(setUnreadThreadCount, setError);
+    onNotificationCount(() =>
       getNotificationCount(setNotificationCount, setError)
     );
-    onMessage((message) => getMessageCount(setUnreadThreadCount, setError));
+    onThreadsCount(() => getUnreadCount(setUnreadThreadCount, setError));
 
     return () => {
       unsubscribeNotification();
@@ -56,11 +56,11 @@ function Header() {
 
   const closeThreads = () => {
     setShowThreads(false);
-    getMessageCount(setUnreadThreadCount, setError);
+    getUnreadCount(setUnreadThreadCount, setError);
   };
 
   const openMessages = (friend) => {
-    setFriend(friend);
+    setFriend(Number.parseInt(friend));
     setShowMessages(true);
   };
 

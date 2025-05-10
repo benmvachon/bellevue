@@ -1,46 +1,98 @@
 import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { useNavigate } from 'react-router-dom';
 import withAuth from '../utils/withAuth.js';
-import { getThreads, markThreadRead, markThreadsRead } from '../api/api.js';
-import InfiniteScroll from './InfiniteScroll.js';
+import { useAuth } from '../utils/AuthContext.js';
+import {
+  getThreadCount,
+  getThreads,
+  onThread,
+  markThreadsRead,
+  unsubscribeThread,
+  onThreadsRead,
+  refreshThreads,
+  unsubscribeThreadsRead
+} from '../api/api.js';
+import Thread from './Thread.js';
+import ScrollLoader from './ScrollLoader.js';
 
 function Threads({ show = false, onClose, openMessages }) {
-  const navigate = useNavigate();
+  const { userId } = useAuth();
   const [threads, setThreads] = useState(null);
+  const [totalThreads, setTotalThreads] = useState(0);
   const [error, setError] = useState(false);
 
-  useEffect(() => {
-    if (show) getThreads(setThreads, setError);
-  }, [show]);
-
-  const loadMore = (page) => {
-    getThreads(
-      (more) => {
-        if (more) {
-          more.content = threads?.content?.concat(more?.content);
-          more.number = more.number + threads?.number || 0;
-          setThreads(more);
-        }
-      },
-      setError,
-      page
-    );
-  };
-
-  const markAsRead = (thread) => {
-    markThreadRead(thread, undefined, setError);
-  };
-
-  const profileClick = (thread) => {
-    navigate(`/profile/${thread}`);
-    onClose();
+  const loadMore = () => {
+    const cursor = threads[threads.length - 1].created.getTime();
+    getThreadCount((totalThreads) => {
+      getThreads(
+        (more) => {
+          setTotalThreads(totalThreads);
+          if (more) {
+            setThreads(threads?.concat(more));
+          }
+        },
+        setError,
+        cursor,
+        5
+      );
+    }, setError);
   };
 
   const threadClick = (thread) => {
-    openMessages(thread);
+    const otherUser = getOtherUser(thread).id;
+    openMessages(otherUser);
     onClose();
   };
+
+  const getOtherUser = (thread) => {
+    if ('' + thread.receiver.id === '' + userId) return thread.sender;
+    return thread.receiver;
+  };
+
+  useEffect(() => {
+    if (show) {
+      getThreadCount((totalThreads) => {
+        setTotalThreads(totalThreads);
+        getThreads(setThreads, setError);
+      }, setError);
+    }
+  }, [show]);
+
+  useEffect(() => {
+    if (show) {
+      const getOtherUser = (thread) => {
+        if ('' + thread.receiver.id === '' + userId) return thread.sender;
+        return thread.receiver;
+      };
+      onThread((event) => {
+        const newThread = event.message;
+        const friend = getOtherUser(newThread);
+        getThreadCount((totalThreads) => {
+          const index = threads?.findIndex(
+            (thread) => friend.id === getOtherUser(thread).id
+          );
+          if (index > -1) {
+            threads[index] = newThread;
+            setThreads(threads);
+          } else {
+            setThreads([newThread].concat(threads));
+          }
+          setTotalThreads(totalThreads);
+        }, setError);
+      });
+      return () => unsubscribeThread();
+    }
+  }, [show, threads, userId]);
+
+  useEffect(() => {
+    if (show) {
+      if (threads && threads.length) {
+        const cursor = threads[threads.length - 1].created.getTime();
+        onThreadsRead(() => refreshThreads(setThreads, setError, cursor));
+      }
+      return unsubscribeThreadsRead;
+    }
+  }, [show, threads]);
 
   if (error) return JSON.stringify(error);
   if (!show) return;
@@ -48,21 +100,19 @@ function Threads({ show = false, onClose, openMessages }) {
   return (
     <div className="modal-container">
       <div className="modal threads-container">
-        <div className="threads">
-          <InfiniteScroll
-            page={threads}
-            renderItem={(thread) => (
-              <div className="thread" key={`thread-${thread.id}`}>
-                <button onClick={() => profileClick(thread.id)}>
-                  {thread.name}
-                </button>
-                <button onClick={() => threadClick(thread.id)}>Message</button>
-                <button onClick={() => markAsRead(thread.id)}>Mark read</button>
-              </div>
-            )}
-            loadMore={loadMore}
-          />
-        </div>
+        <ScrollLoader
+          total={totalThreads}
+          loadMore={loadMore}
+          className="threads"
+        >
+          {threads?.map((thread) => (
+            <Thread
+              key={`thread-${thread.id}`}
+              thread={thread}
+              onClick={threadClick}
+            />
+          ))}
+        </ScrollLoader>
         <div className="buttons">
           <button onClick={onClose}>Close</button>
           <button onClick={() => markThreadsRead(onClose, setError)}>

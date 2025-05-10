@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.village.bellevue.event.PostEvent;
-import com.village.bellevue.event.RatingEvent;
 
 @Component
 public class ForumListener {
@@ -27,14 +26,6 @@ public class ForumListener {
   public void handleEvent(PostEvent event) {
     Long forum = event.getPost().getForum().getId();
     if (Objects.isNull(event.getPost().getParent()))
-      messagingTemplate.convertAndSend("/topic/forum/" + forum, "post");
-  }
-
-  @Async
-  @EventListener
-  @Transactional
-  public void handleEvent(RatingEvent event) {
-    Long forum = event.getForum();
-    messagingTemplate.convertAndSend("/topic/forum/" + forum, "rating");
+      messagingTemplate.convertAndSend("/topic/forum/" + forum, event);
   }
 }

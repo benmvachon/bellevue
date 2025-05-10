@@ -2,12 +2,20 @@ import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import withAuth from '../utils/withAuth.js';
 import { useAuth } from '../utils/AuthContext.js';
-import { getMessages, sendMessage, markMessageRead } from '../api/api.js';
-import InfiniteScroll from './InfiniteScroll.js';
+import {
+  getMessages,
+  onMessage,
+  unsubscribeMessage,
+  getMessageCount,
+  sendMessage,
+  markMessageRead
+} from '../api/api.js';
+import ScrollLoader from './ScrollLoader.js';
 
 function Messages({ show = false, friend, onClose }) {
   const { userId } = useAuth();
-  const [messages, setMessages] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [totalMessages, setTotalMessages] = useState(0);
   const [message, setMessage] = useState('');
   const [error, setError] = useState(false);
 
@@ -16,41 +24,73 @@ function Messages({ show = false, friend, onClose }) {
     return 'sent';
   };
 
-  useEffect(() => {
-    if (show) getMessages(friend, setMessages, setError);
-  }, [show, friend]);
-
-  useEffect(() => {
-    if (messages && messages.content && messages.content.length) {
-      messages.content.forEach((message) => {
-        if ('received' === sentOrReceived(message) && !message.read)
-          markMessageRead(friend, message.id);
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [friend, messages]);
-
-  const loadMore = (page) => {
-    getMessages(
+  const loadMore = () => {
+    if (totalMessages <= messages.length) return;
+    const cursor = messages[0].created.getTime();
+    getMessageCount(
       friend,
-      (more) => {
-        if (more) {
-          more.content = more?.content?.concat(messages?.content);
-          more.number = more.number + messages?.number || 0;
-          setMessages(more);
-        }
+      (totalMessages) => {
+        getMessages(
+          friend,
+          (more) => {
+            setTotalMessages(totalMessages);
+            if (more) {
+              setMessages(more.reverse().concat(messages));
+            }
+          },
+          setError,
+          cursor,
+          5
+        );
       },
-      setError,
-      page
+      setError
     );
   };
 
   const send = () => {
     sendMessage(friend, message, () => {
-      getMessages(friend, setMessages, setError);
       setMessage('');
     });
   };
+
+  useEffect(() => {
+    const sentOrReceived = (message) => {
+      if ('' + message.receiver.id === '' + userId) return 'received';
+      return 'sent';
+    };
+    messages?.forEach((message) => {
+      if ('received' === sentOrReceived(message) && !message.read)
+        markMessageRead(friend, message.id);
+    });
+  }, [friend, messages, userId]);
+
+  useEffect(() => {
+    onMessage(friend, (event) => {
+      setMessages(messages.concat([event.message]));
+    });
+    return () => {
+      unsubscribeMessage(friend);
+    };
+  }, [friend, messages]);
+
+  useEffect(() => {
+    if (show) {
+      getMessageCount(
+        friend,
+        (totalMessages) => {
+          getMessages(
+            friend,
+            (messages) => {
+              setTotalMessages(totalMessages);
+              setMessages(messages ? messages.reverse() : []);
+            },
+            setError
+          );
+        },
+        setError
+      );
+    }
+  }, [show, friend]);
 
   if (!show) return;
   if (error) return JSON.stringify(error);
@@ -58,21 +98,21 @@ function Messages({ show = false, friend, onClose }) {
   return (
     <div className="modal-container">
       <div className="modal messages-container">
-        <div className="messages">
-          <InfiniteScroll
-            page={messages}
-            renderItem={(message) => (
-              <div
-                className={`message ${sentOrReceived(message)}`}
-                key={`message-${message.id}`}
-              >
-                <p>{message.message}</p>
-              </div>
-            )}
-            loadMore={loadMore}
-            reverse
-          />
-        </div>
+        <ScrollLoader
+          total={totalMessages}
+          loadMore={loadMore}
+          className="messages"
+          topLoad
+        >
+          {messages.map((message) => (
+            <div
+              className={`message ${sentOrReceived(message)}`}
+              key={`message-${message.id}`}
+            >
+              <p>{message.message}</p>
+            </div>
+          ))}
+        </ScrollLoader>
         <div className="buttons">
           <textarea
             value={message}

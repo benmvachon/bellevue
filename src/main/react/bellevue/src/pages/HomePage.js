@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import withAuth from '../utils/withAuth.js';
 import { getCategories } from '../api/api.js';
 import Header from '../components/Header.js';
-import InfiniteScroll from '../components/InfiniteScroll.js';
+import Page from '../components/Page.js';
 
 function HomePage() {
   const navigate = useNavigate();
@@ -14,18 +14,8 @@ function HomePage() {
     getCategories(setCategories, setError);
   }, [setCategories]);
 
-  const loadMore = (page) => {
-    getCategories(
-      (more) => {
-        if (more) {
-          more.content = categories?.content?.concat(more?.content);
-          more.number = more.number + categories?.number || 0;
-          setCategories(more);
-        }
-      },
-      setError,
-      page
-    );
+  const loadPage = (page) => {
+    getCategories(setCategories, setError, page);
   };
 
   const categoryClick = (event) => {
@@ -40,7 +30,7 @@ function HomePage() {
       <Header />
       <h2>Categories</h2>
       <div>
-        <InfiniteScroll
+        <Page
           page={categories}
           renderItem={(category) => (
             <div key={`category-${category.name}`}>
@@ -49,7 +39,7 @@ function HomePage() {
               </button>
             </div>
           )}
-          loadMore={loadMore}
+          loadPage={loadPage}
         />
       </div>
     </div>
