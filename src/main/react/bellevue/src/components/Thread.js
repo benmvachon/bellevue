@@ -17,6 +17,7 @@ function Thread({ thread, onClick }) {
   const { userId } = useAuth();
   const [stateThread, setThread] = useState(thread);
   const [friend, setFriend] = useState(null);
+  const [received, setReceived] = useState(false);
   const [error, setError] = useState(false);
 
   const markAsRead = () => {
@@ -37,9 +38,13 @@ function Thread({ thread, onClick }) {
 
   useEffect(() => {
     if (stateThread) {
-      if ('' + stateThread.receiver.id === '' + userId)
+      if ('' + stateThread.receiver.id === '' + userId) {
         setFriend(stateThread.sender);
-      else setFriend(stateThread.receiver);
+        setReceived(true);
+      } else {
+        setFriend(stateThread.receiver);
+        setReceived(false);
+      }
     }
   }, [stateThread, userId]);
 
@@ -72,7 +77,9 @@ function Thread({ thread, onClick }) {
       <button onClick={threadClick}>
         {friend?.name} - {stateThread.message}
       </button>
-      {!stateThread.read && <button onClick={markAsRead}>Mark read</button>}
+      {received && !stateThread.read && (
+        <button onClick={markAsRead}>Mark read</button>
+      )}
     </div>
   );
 }

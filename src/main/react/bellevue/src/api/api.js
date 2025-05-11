@@ -19,28 +19,10 @@ export const api = axios.create({
   withCredentials: true
 });
 
-export const socket = new SockJS('/ws');
-
-export const client = new Client({
-  webSocketFactory: () => socket,
-  onConnect: () => connectedPromise && connectedPromise.resolve(),
-  onDisconnect: tryReconnect,
-  onWebSocketClose: tryReconnect,
-  onWebSocketError: (event) => {
-    console.error('[STOMP] WebSocket error', event);
-    tryReconnect();
-  },
-  onStompError: (frame) => {
-    console.error('[STOMP] Broker error', frame);
-    tryReconnect();
-  }
-});
-
 export let reconnectTimeout = null;
 
 // Create a promise to await connection
 export let connectedPromise = createDeferred();
-client.activate();
 
 // Helper function to create a deferred promise
 function createDeferred() {
@@ -54,6 +36,7 @@ function resetConnectedPromise() {
 }
 
 function tryReconnect() {
+  const client = getClient();
   if (client.connected || reconnectTimeout) return;
 
   reconnectTimeout = setTimeout(() => {
@@ -65,12 +48,38 @@ function tryReconnect() {
   }, 3000);
 }
 
-// Expose a function to wait until connected
 export const waitForConnection = () => connectedPromise?.promise;
+
+let client;
+
+export const newClient = () => {
+  const socket = new SockJS('/ws');
+  return new Client({
+    webSocketFactory: () => socket,
+    onConnect: () => connectedPromise && connectedPromise.resolve(),
+    onDisconnect: tryReconnect,
+    onWebSocketClose: tryReconnect,
+    onWebSocketError: (event) => {
+      console.error('[STOMP] WebSocket error', event);
+      tryReconnect();
+    },
+    onStompError: (frame) => {
+      console.error('[STOMP] Broker error', frame);
+      tryReconnect();
+    }
+  });
+};
+
+export const getClient = () => {
+  if (!client || !client.connected) client = newClient();
+  client.activate();
+  return client;
+};
 
 export const subscriptions = new Map();
 
 export const subscribe = async (destination, onMessage) => {
+  const client = getClient();
   unsubscribe(destination);
   await waitForConnection();
   if (client && client.connected) {

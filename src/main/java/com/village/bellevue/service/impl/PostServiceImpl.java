@@ -210,11 +210,30 @@ public class PostServiceImpl implements PostService {
     Long user = getAuthenticatedUserId();
     if (!forumRepository.canRead(forum, user)) throw new AuthorizationException("User not authorized");
     List<PostEntity> postEntities = postRepository.findRecentTopLevelByForum(
-        user,
-        forum,
-        cursor,
-        limit
-      );
+      user,
+      forum,
+      cursor,
+      limit
+    );
+    return postEntities.stream().map(post -> {
+      try {
+        return new PostModel(post, postModelProvider);
+      } catch (AuthorizationException e) {
+        return null;
+      }
+    }).collect(Collectors.toList());
+  }
+
+  @Override
+  public List<PostModel> readAllByForum(Long forum, Long offset, Long limit) throws AuthorizationException {
+    Long user = getAuthenticatedUserId();
+    if (!forumRepository.canRead(forum, user)) throw new AuthorizationException("User not authorized");
+    List<PostEntity> postEntities = postRepository.findPopularTopLevelByForum(
+      user,
+      forum,
+      offset,
+      limit
+    );
     return postEntities.stream().map(post -> {
       try {
         return new PostModel(post, postModelProvider);
@@ -250,6 +269,24 @@ public class PostServiceImpl implements PostService {
   }
 
   @Override
+  public List<PostModel> readAllByParent(Long parent, Long offset, Long limit) throws AuthorizationException {
+    if (!canRead(parent)) throw new AuthorizationException("User not authorized");
+    List<PostEntity> postEntities = postRepository.findPopularChildren(
+      getAuthenticatedUserId(),
+      parent,
+      offset,
+      limit
+    );
+    return postEntities.stream().map(post -> {
+      try {
+        return new PostModel(post, postModelProvider);
+      } catch (AuthorizationException e) {
+        return null;
+      }
+    }).collect(Collectors.toList());
+  }
+
+  @Override
   public Long countAllByParent(Long parent) throws AuthorizationException {
     if (!canRead(parent)) throw new AuthorizationException("User not authorized");
     return postRepository.countChildren(getAuthenticatedUserId(), parent);
@@ -263,6 +300,25 @@ public class PostServiceImpl implements PostService {
       parent,
       child,
       cursor,
+      limit
+    );
+    return postEntities.stream().map(post -> {
+      try {
+        return new PostModel(post, postModelProvider);
+      } catch (AuthorizationException e) {
+        return null;
+      }
+    }).collect(Collectors.toList());
+  }
+
+  @Override
+  public List<PostModel> readOthersByParent(Long parent, Long child, Long offset, Long limit) throws AuthorizationException {
+    if (!canRead(parent)) throw new AuthorizationException("User not authorized");
+    List<PostEntity> postEntities = postRepository.findPopularOtherChildren(
+      getAuthenticatedUserId(),
+      parent,
+      child,
+      offset,
       limit
     );
     return postEntities.stream().map(post -> {

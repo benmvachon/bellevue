@@ -17,13 +17,19 @@ public interface PostService {
 
   public List<PostModel> readAllByForum(Long forum, Timestamp cursor, Long limit) throws AuthorizationException;
 
+  public List<PostModel> readAllByForum(Long forum, Long offset, Long limit) throws AuthorizationException;
+
   public Long countAllByForum(Long forum) throws AuthorizationException;
 
   public List<PostModel> readAllByParent(Long parent, Timestamp cursor, Long limit) throws AuthorizationException;
 
+  public List<PostModel> readAllByParent(Long parent, Long offset, Long limit) throws AuthorizationException;
+
   public Long countAllByParent(Long parent) throws AuthorizationException;
 
   public List<PostModel> readOthersByParent(Long parent, Long child, Timestamp cursor, Long limit) throws AuthorizationException;
+
+  public List<PostModel> readOthersByParent(Long parent, Long child, Long offset, Long limit) throws AuthorizationException;
 
   public Long countOthersByParent(Long parent, Long child) throws AuthorizationException;
 
