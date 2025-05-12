@@ -257,11 +257,9 @@ export const addForum = (category, name, callback, error) => {
 };
 
 export const onForumUpdate = async (forum, onForumUpdate) => {
-  subscribe(`/topic/forum/${forum}`, (message) => {
-    const event = JSON.parse(message);
-    event.post = Post.fromJSON(event.post);
-    onForumUpdate(event);
-  });
+  subscribe(`/topic/forum/${forum}`, (post) =>
+    onForumUpdate(Number.parseInt(post))
+  );
 };
 
 export const unsubscribeForum = (forum) => {
@@ -271,6 +269,34 @@ export const unsubscribeForum = (forum) => {
 export const getPosts = (forum, callback, error, cursor, limit = 1) => {
   let uri = `/post/forum/${forum}?limit=${limit}`;
   if (cursor) uri += `&cursor=${cursor}`;
+  api
+    .get(uri)
+    .then((response) => {
+      callback && callback(response.data.map((post) => Post.fromJSON(post)));
+    })
+    .catch((err) => error(err));
+};
+
+export const getRecentPosts = (forum, callback, error, cursor, limit = 1) => {
+  let uri = `/post/forum/${forum}/recent?limit=${limit}`;
+  if (cursor) uri += `&cursor=${cursor}`;
+  api
+    .get(uri)
+    .then((response) => {
+      callback && callback(response.data.map((post) => Post.fromJSON(post)));
+    })
+    .catch((err) => error(err));
+};
+
+export const getPopularPosts = (
+  forum,
+  callback,
+  error,
+  offset = 0,
+  limit = 1
+) => {
+  let uri = `/post/forum/${forum}/popular?limit=${limit}`;
+  if (offset) uri += `&offset=${offset}`;
   api
     .get(uri)
     .then((response) => {
@@ -300,6 +326,46 @@ export const getReplies = (
   if (selectedChildId)
     uri = `/post/children/${post}/${selectedChildId}?limit=${limit}`;
   if (cursor) uri += `&cursor=${cursor}`;
+  api
+    .get(uri)
+    .then((response) => {
+      callback && callback(response.data.map((post) => Post.fromJSON(post)));
+    })
+    .catch((err) => error(err));
+};
+
+export const getRecentReplies = (
+  post,
+  callback,
+  error,
+  cursor,
+  limit = 1,
+  selectedChildId
+) => {
+  let uri = `/post/children/${post}/recent?limit=${limit}`;
+  if (selectedChildId)
+    uri = `/post/children/${post}/${selectedChildId}/recent?limit=${limit}`;
+  if (cursor) uri += `&cursor=${cursor}`;
+  api
+    .get(uri)
+    .then((response) => {
+      callback && callback(response.data.map((post) => Post.fromJSON(post)));
+    })
+    .catch((err) => error(err));
+};
+
+export const getPopularReplies = (
+  post,
+  callback,
+  error,
+  offset = 0,
+  limit = 1,
+  selectedChildId
+) => {
+  let uri = `/post/children/${post}/popular?limit=${limit}`;
+  if (selectedChildId)
+    uri = `/post/children/${post}/${selectedChildId}/popular?limit=${limit}`;
+  if (offset) uri += `&offset=${offset}`;
   api
     .get(uri)
     .then((response) => {
@@ -353,9 +419,8 @@ export const ratePost = (post, rating, callback, error) => {
 
 export const onPostUpdate = async (post, onPostUpdate) => {
   subscribe(`/topic/post/${post}`, (message) => {
-    const event = JSON.parse(message);
-    if (!event.rating) event.post = Post.fromJSON(event.post);
-    onPostUpdate(event);
+    if (message === 'rating') onPostUpdate(message);
+    else onPostUpdate(Number.parseInt(message));
   });
 };
 

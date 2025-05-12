@@ -25,7 +25,8 @@ public class ForumListener {
   @Transactional
   public void handleEvent(PostEvent event) {
     Long forum = event.getPost().getForum().getId();
+    Long id = event.getPost().getId();
     if (Objects.isNull(event.getPost().getParent()))
-      messagingTemplate.convertAndSend("/topic/forum/" + forum, event);
+      messagingTemplate.convertAndSend("/topic/forum/" + forum, id);
   }
 }

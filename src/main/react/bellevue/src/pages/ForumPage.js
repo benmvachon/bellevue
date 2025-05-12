@@ -3,13 +3,15 @@ import { useNavigate, useParams } from 'react-router-dom';
 import withAuth from '../utils/withAuth.js';
 import {
   getForum,
-  getPosts,
   getTotalPosts,
   addPost,
   onForumUpdate,
   favoriteForum,
   unfavoriteForum,
-  unsubscribeForum
+  unsubscribeForum,
+  getPost,
+  getPopularPosts,
+  getRecentPosts
 } from '../api/api.js';
 import Post from '../components/Post.js';
 import Header from '../components/Header.js';
@@ -20,6 +22,7 @@ function ForumPage() {
   const navigate = useNavigate();
   const { id } = useParams();
   const [forum, setForum] = useState(null);
+  const [sortByPopular, setSortByPopular] = useState(false);
   const [posts, setPosts] = useState([]);
   const [totalPosts, setTotalPosts] = useState(0);
   const [newPost, setNewPost] = useState(null);
@@ -27,15 +30,7 @@ function ForumPage() {
 
   const submitPost = (event) => {
     event.preventDefault();
-    addPost(
-      id,
-      newPost,
-      (newPost) => {
-        setNewPost('');
-        setPosts([newPost].concat(posts));
-      },
-      setError
-    );
+    addPost(id, newPost, () => setNewPost(''), setError);
   };
 
   const loadMore = () => {
@@ -43,7 +38,9 @@ function ForumPage() {
     getTotalPosts(
       id,
       (totalPosts) => {
-        getPosts(
+        let request = getRecentPosts;
+        if (sortByPopular) request = getPopularPosts;
+        request(
           id,
           (more) => {
             setTotalPosts(totalPosts);
@@ -52,12 +49,16 @@ function ForumPage() {
             }
           },
           setError,
-          cursor,
+          sortByPopular ? posts.length : cursor,
           5
         );
       },
       setError
     );
+  };
+
+  const toggleSort = () => {
+    setSortByPopular(!sortByPopular);
   };
 
   const favorite = () => {
@@ -76,27 +77,37 @@ function ForumPage() {
 
   useEffect(() => {
     if (id) {
-      onForumUpdate(id, (event) => {
-        setPosts([event.post].concat(posts));
+      onForumUpdate(id, (postId) => {
+        if (!sortByPopular) {
+          getPost(
+            postId,
+            (post) => {
+              if (post) setPosts([post].concat(posts));
+            },
+            () => {}
+          );
+        }
       });
       return () => {
         unsubscribeForum(id);
       };
     }
-  }, [id, posts]);
+  }, [id, sortByPopular, posts]);
 
   useEffect(() => {
     if (id) {
       getTotalPosts(
         id,
         (totalPosts) => {
+          let request = getRecentPosts;
+          if (sortByPopular) request = getPopularPosts;
           setTotalPosts(totalPosts);
-          getPosts(id, setPosts, setError, null, 5);
+          request(id, setPosts, setError, null, 5);
         },
         setError
       );
     }
-  }, [id]);
+  }, [id, sortByPopular]);
 
   if (error) return JSON.stringify(error);
   if (!forum) return;
@@ -117,6 +128,9 @@ function ForumPage() {
         <Attendees />
         <div className="posts">
           <h3>Posts</h3>
+          <button onClick={toggleSort}>
+            {sortByPopular ? 'Most recent' : 'Most popular'}
+          </button>
           <form onSubmit={submitPost}>
             <textarea
               value={newPost}
@@ -126,7 +140,12 @@ function ForumPage() {
           </form>
           <ScrollLoader total={totalPosts} loadMore={loadMore}>
             {posts?.map((post) => (
-              <Post key={`post-${post.id}`} id={post.id} depth={0} />
+              <Post
+                key={`post-${post.id}`}
+                id={post.id}
+                postProp={post}
+                depth={0}
+              />
             ))}
           </ScrollLoader>
         </div>

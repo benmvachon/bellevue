@@ -48,7 +48,8 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
         AND p.parent IS NULL
         AND (f.user IS NULL OR f.user = :user OR ff.status = 'accepted')
         AND (p.user = :user OR pf.status = 'accepted')
-      ORDER BY IFNULL(child_counts.child_count, 0) + IFNULL(ar.rating_count, 0) DESC
+      ORDER BY IFNULL(child_counts.child_count, 0) + IFNULL(ar.rating_count, 0) DESC,
+      p.created DESC
       LIMIT :limit OFFSET :offset
       """,
     nativeQuery = true
@@ -96,7 +97,8 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
       LEFT JOIN aggregate_rating ar ON ar.post = p.id AND ar.user = :user
       WHERE p.parent = :post
       AND (p.user = :user OR f.status = 'accepted')
-      ORDER BY IFNULL(child_counts.child_count, 0) + IFNULL(ar.rating_count, 0) DESC
+      ORDER BY IFNULL(child_counts.child_count, 0) + IFNULL(ar.rating_count, 0) DESC,
+      p.created DESC
       LIMIT :limit OFFSET :offset
       """,
     nativeQuery = true
@@ -145,7 +147,8 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
       WHERE p.parent = :post
       AND p.id != :child
       AND (p.user = :user OR f.status = 'accepted')
-      ORDER BY IFNULL(child_counts.child_count, 0) + IFNULL(ar.rating_count, 0) DESC
+      ORDER BY IFNULL(child_counts.child_count, 0) + IFNULL(ar.rating_count, 0) DESC,
+      p.created DESC
       LIMIT :limit OFFSET :offset
       """,
     nativeQuery = true
