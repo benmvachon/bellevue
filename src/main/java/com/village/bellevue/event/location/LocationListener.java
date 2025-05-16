@@ -1,6 +1,6 @@
 package com.village.bellevue.event.location;
 
-import java.util.stream.Stream;
+import java.util.List;
 
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -27,17 +27,16 @@ public class LocationListener {
 
   @Async
   @EventListener
-  @Transactional
+  @Transactional(value = "asyncTransactionManager", timeout = 300)
   public void handleEvent(LocationEvent event) {
     Long user = event.getUser();
     Long location = event.getLocation();
     LocationType locationType = event.getLocationType();
     boolean entrance = event.isEntrance();
-    try (Stream<Long> stream = userProfileRepository.streamAllUsersByLocation(user, location, locationType)) {
-      stream.parallel().forEach(other -> {
-        if (user.equals(other)) return;
-        messagingTemplate.convertAndSendToUser(other.toString(), "/topic/location", entrance ? "entrance" : "exit");
-      });
+    List<Long> users = userProfileRepository.findAllUsersByLocation(user, location, locationType);
+    for (Long other : users) {
+      if (user.equals(other)) return;
+      messagingTemplate.convertAndSendToUser(other.toString(), "/topic/location", entrance ? "entrance" : "exit");
     }
   }
 }

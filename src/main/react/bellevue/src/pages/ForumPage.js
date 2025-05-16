@@ -11,7 +11,8 @@ import {
   unsubscribeForum,
   getPost,
   getPopularPosts,
-  getRecentPosts
+  getRecentPosts,
+  onForumPopularityUpdate
 } from '../api/api.js';
 import Post from '../components/Post.js';
 import Header from '../components/Header.js';
@@ -34,7 +35,10 @@ function ForumPage() {
   };
 
   const loadMore = () => {
-    const cursor = posts[posts.length - 1].created.getTime();
+    const cursor1 = sortByPopular
+      ? posts[posts.length - 1].popularity
+      : posts[posts.length - 1].created.getTime();
+    const cursor2 = posts[posts.length - 1].id;
     getTotalPosts(
       id,
       (totalPosts) => {
@@ -49,7 +53,8 @@ function ForumPage() {
             }
           },
           setError,
-          sortByPopular ? posts.length : cursor,
+          cursor1,
+          cursor2,
           5
         );
       },
@@ -88,6 +93,23 @@ function ForumPage() {
           );
         }
       });
+      if (sortByPopular)
+        onForumPopularityUpdate(id, (message) => {
+          const messagePost = message.post;
+          const popularity = message.popularity;
+          if (
+            posts &&
+            posts.length &&
+            popularity >= posts[posts.length - 1].popularity &&
+            posts.findIndex((post) => post.id === messagePost) < 0
+          ) {
+            getPost(messagePost, (post) => {
+              setPosts(
+                posts.concat([post]).sort((a, b) => a.popularity - b.popularity)
+              );
+            });
+          }
+        });
       return () => {
         unsubscribeForum(id);
       };
@@ -102,7 +124,7 @@ function ForumPage() {
           let request = getRecentPosts;
           if (sortByPopular) request = getPopularPosts;
           setTotalPosts(totalPosts);
-          request(id, setPosts, setError, null, 5);
+          request(id, setPosts, setError, null, null, 5);
         },
         setError
       );
@@ -145,6 +167,7 @@ function ForumPage() {
                 id={post.id}
                 postProp={post}
                 depth={0}
+                sortByPopularParent={sortByPopular}
               />
             ))}
           </ScrollLoader>

@@ -19,12 +19,11 @@ export const api = axios.create({
   withCredentials: true
 });
 
-export let reconnectTimeout = null;
+let reconnectTimeout = null;
+let isCreatingClient = false;
 
-// Create a promise to await connection
 export let connectedPromise = createDeferred();
 
-// Helper function to create a deferred promise
 function createDeferred() {
   let resolve;
   const promise = new Promise((res) => (resolve = res));
@@ -36,27 +35,41 @@ function resetConnectedPromise() {
 }
 
 function tryReconnect() {
-  const client = getClient();
-  if (client.connected || reconnectTimeout) return;
+  if (reconnectTimeout) return;
 
   reconnectTimeout = setTimeout(() => {
     console.log('[STOMP] Attempting to reconnect...');
-    client.deactivate().then(() => {
+    client?.deactivate().then(() => {
+      reconnectTimeout = null;
       resetConnectedPromise();
-      client.activate();
+      getClient(true); // Force reactivation
     });
   }, 3000);
 }
 
 export const waitForConnection = () => connectedPromise?.promise;
 
-let client;
+let client = null;
 
-export const newClient = () => {
-  const socket = new SockJS('/ws');
-  return new Client({
-    webSocketFactory: () => socket,
-    onConnect: () => connectedPromise && connectedPromise.resolve(),
+// Async-safe client creation
+export const getClient = async (force = false) => {
+  if (client && client.connected && !force) {
+    return client;
+  }
+
+  if (isCreatingClient) {
+    await waitForConnection(); // Wait for existing connection attempt
+    return client;
+  }
+
+  isCreatingClient = true;
+
+  client = new Client({
+    webSocketFactory: () => new SockJS('/ws'),
+    onConnect: () => {
+      isCreatingClient = false;
+      connectedPromise.resolve();
+    },
     onDisconnect: tryReconnect,
     onWebSocketClose: tryReconnect,
     onWebSocketError: (event) => {
@@ -68,28 +81,25 @@ export const newClient = () => {
       tryReconnect();
     }
   });
-};
 
-export const getClient = () => {
-  if (!client || !client.connected) client = newClient();
+  resetConnectedPromise();
   client.activate();
+
+  await waitForConnection();
   return client;
 };
 
 export const subscriptions = new Map();
 
 export const subscribe = async (destination, onMessage) => {
-  const client = getClient();
   unsubscribe(destination);
-  await waitForConnection();
-  if (client && client.connected) {
-    subscriptions.set(
-      destination,
-      client.subscribe(destination, (message) => {
-        onMessage(message.body);
-      })
-    );
-  }
+  const client = await getClient();
+  subscriptions.set(
+    destination,
+    client.subscribe(destination, (message) => {
+      onMessage(message.body);
+    })
+  );
 };
 
 export const unsubscribe = (destination) => {
@@ -266,9 +276,18 @@ export const unsubscribeForum = (forum) => {
   unsubscribe(`/topic/forum/${forum}`);
 };
 
-export const getPosts = (forum, callback, error, cursor, limit = 1) => {
+export const onForumPopularityUpdate = async (forum, onForumUpdate) => {
+  subscribe(`/user/topic/forum/${forum}/popularity`, (message) => {
+    onForumUpdate(JSON.parse(message));
+  });
+};
+
+export const unsubscribeForumPopularity = (forum) => {
+  unsubscribe(`/user/topic/forum/${forum}/popularity`);
+};
+
+export const getPosts = (forum, callback, error, limit = 1) => {
   let uri = `/post/forum/${forum}?limit=${limit}`;
-  if (cursor) uri += `&cursor=${cursor}`;
   api
     .get(uri)
     .then((response) => {
@@ -277,9 +296,17 @@ export const getPosts = (forum, callback, error, cursor, limit = 1) => {
     .catch((err) => error(err));
 };
 
-export const getRecentPosts = (forum, callback, error, cursor, limit = 1) => {
+export const getRecentPosts = (
+  forum,
+  callback,
+  error,
+  createdCursor,
+  idCursor,
+  limit = 1
+) => {
   let uri = `/post/forum/${forum}/recent?limit=${limit}`;
-  if (cursor) uri += `&cursor=${cursor}`;
+  if (createdCursor) uri += `&createdCursor=${createdCursor}`;
+  if (idCursor) uri += `&idCursor=${idCursor}`;
   api
     .get(uri)
     .then((response) => {
@@ -292,11 +319,13 @@ export const getPopularPosts = (
   forum,
   callback,
   error,
-  offset = 0,
+  popularityCursor,
+  idCursor,
   limit = 1
 ) => {
   let uri = `/post/forum/${forum}/popular?limit=${limit}`;
-  if (offset) uri += `&offset=${offset}`;
+  if (popularityCursor) uri += `&popularityCursor=${popularityCursor}`;
+  if (idCursor) uri += `&idCursor=${idCursor}`;
   api
     .get(uri)
     .then((response) => {
@@ -318,14 +347,12 @@ export const getReplies = (
   post,
   callback,
   error,
-  cursor,
   limit = 1,
   selectedChildId
 ) => {
   let uri = `/post/children/${post}?limit=${limit}`;
   if (selectedChildId)
     uri = `/post/children/${post}/${selectedChildId}?limit=${limit}`;
-  if (cursor) uri += `&cursor=${cursor}`;
   api
     .get(uri)
     .then((response) => {
@@ -338,14 +365,16 @@ export const getRecentReplies = (
   post,
   callback,
   error,
-  cursor,
+  createdCursor,
+  idCursor,
   limit = 1,
   selectedChildId
 ) => {
   let uri = `/post/children/${post}/recent?limit=${limit}`;
   if (selectedChildId)
     uri = `/post/children/${post}/${selectedChildId}/recent?limit=${limit}`;
-  if (cursor) uri += `&cursor=${cursor}`;
+  if (createdCursor) uri += `&createdCursor=${createdCursor}`;
+  if (idCursor) uri += `&idCursor=${idCursor}`;
   api
     .get(uri)
     .then((response) => {
@@ -358,14 +387,16 @@ export const getPopularReplies = (
   post,
   callback,
   error,
-  offset = 0,
+  popularityCursor,
+  idCursor,
   limit = 1,
   selectedChildId
 ) => {
   let uri = `/post/children/${post}/popular?limit=${limit}`;
   if (selectedChildId)
     uri = `/post/children/${post}/${selectedChildId}/popular?limit=${limit}`;
-  if (offset) uri += `&offset=${offset}`;
+  if (popularityCursor) uri += `&popularityCursor=${popularityCursor}`;
+  if (idCursor) uri += `&idCursor=${idCursor}`;
   api
     .get(uri)
     .then((response) => {
@@ -426,6 +457,16 @@ export const onPostUpdate = async (post, onPostUpdate) => {
 
 export const unsubscribePost = (post) => {
   unsubscribe(`/topic/post/${post}`);
+};
+
+export const onPostPopularityUpdate = async (post, onPostUpdate) => {
+  subscribe(`/user/topic/post/${post}/popularity`, (message) => {
+    onPostUpdate(JSON.parse(message));
+  });
+};
+
+export const unsubscribePostPopularity = (post) => {
+  unsubscribe(`/user/topic/post/${post}/popularity`);
 };
 
 export const getNotification = (notification, callback, error) => {

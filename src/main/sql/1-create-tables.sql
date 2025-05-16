@@ -109,6 +109,7 @@ CREATE TABLE aggregate_rating(
     post            INT UNSIGNED NOT NULL,                                                                      -- ID of the post being rated
     rating          DECIMAL(3,2),                                                                               -- The star rating aggregated from ratings visible to the user
     rating_count    INT UNSIGNED,                                                                               -- The number of ratings which were used to calculate the aggregate
+    popularity      INT UNSIGNED,                                                                               -- The number of ratings plus the popularity value of all child posts
     updated         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,                                                        -- Timestamp for when the aggregate was last updated
     PRIMARY KEY     (user, post),                                                                               -- The primary key is a combination of the two foreign keys
     FOREIGN KEY     (user) REFERENCES user(id) ON DELETE CASCADE,                                               -- user is a reference to the user table

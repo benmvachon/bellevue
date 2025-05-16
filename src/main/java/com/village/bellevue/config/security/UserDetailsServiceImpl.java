@@ -44,7 +44,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     return new UserDetailsImpl(user);
   }
 
-  @Transactional
+  @Transactional(timeout = 30)
   public ProfileModel create(UserEntity user) throws AuthorizationException {
     user.setPassword(passwordEncoder.encode(user.getPassword()));
     if (getAuthenticatedUserId() == null) {
@@ -88,7 +88,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
   }
   
 
-  @Transactional
+  @Transactional(timeout = 30)
   public void delete() throws AuthorizationException {
     Long user = getAuthenticatedUserId();
     try (Connection connection = dataSource.getConnection();

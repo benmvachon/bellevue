@@ -8,6 +8,7 @@ services:
       TZ: America/New_York
     volumes:
       - ./src/main/sql:/docker-entrypoint-initdb.d
+      - ./mysql.cnf:/etc/mysql/conf.d/custom.cnf
     ports:
       - "3306:3306"
     networks:

@@ -1,14 +1,11 @@
 package com.village.bellevue.event.notification;
 
-import java.util.stream.Stream;
+import java.util.List;
 
 import org.springframework.context.event.EventListener;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.security.concurrent.DelegatingSecurityContextRunnable;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,7 +52,6 @@ public class NotificationListener {
 
   @Async
   @EventListener
-  @Transactional
   public void handleForumEvent(ForumEvent event) {
     Long user = event.getUser();
     ForumModel forum = event.getForum();
@@ -66,7 +62,6 @@ public class NotificationListener {
 
   @Async
   @EventListener
-  @Transactional
   public void handlePostEvent(PostEvent event) {
     Long user = event.getUser();
     PostModel post = event.getPost();
@@ -90,7 +85,6 @@ public class NotificationListener {
 
   @Async
   @EventListener
-  @Transactional
   public void handleRatingEvent(RatingEvent event) {
     Long user = event.getUser();
     Long post = event.getPost();
@@ -101,7 +95,6 @@ public class NotificationListener {
 
   @Async
   @EventListener
-  @Transactional
   public void handleRequestEvent(RequestEvent event) {
     Long user = event.getUser();
     Long friend = event.getFriend();
@@ -110,7 +103,6 @@ public class NotificationListener {
 
   @Async
   @EventListener
-  @Transactional
   public void handleAcceptanceEvent(AcceptanceEvent event) {
     Long user = event.getUser();
     Long friend = event.getFriend();
@@ -119,7 +111,6 @@ public class NotificationListener {
 
   @Async
   @EventListener
-  @Transactional
   public void handleMessageEvent(MessageEvent event) {
     Long user = event.getUser();
     Long friend = event.getFriend();
@@ -128,7 +119,6 @@ public class NotificationListener {
 
   @Async
   @EventListener
-  @Transactional
   public void handleEquipmentEvent(EquipmentEvent event) {
     Long user = event.getUser();
     Long item = event.getEquipment().getItem().getId();
@@ -153,35 +143,25 @@ public class NotificationListener {
   }
 
   @Async
-  @Transactional
+  @Transactional(value = "asyncTransactionManager", timeout = 300)
   public void notifyFriends(Long user, Long type, Long entity) {
-    try (Stream<Long> friendStream = friendRepository.streamFriends(user)) {
-      SecurityContext context = SecurityContextHolder.getContext();
-      friendStream.parallel().forEach(friend -> {
-        if (user.equals(friend)) return;
-        Runnable task = () -> notifyFriend(user, friend, type, entity);
-        DelegatingSecurityContextRunnable securedTask = new DelegatingSecurityContextRunnable(task, context);
-        securedTask.run();
-      });
+    List<Long> friends = friendRepository.findFriends(user);
+    for (Long friend : friends) {
+      notifyFriend(user, friend, type, entity);
     }
   }
 
   @Async
-  @Transactional
+  @Transactional(value = "asyncTransactionManager", timeout = 300)
   public void notifyMutualFriends(Long user, Long friend, Long type, Long entity) {
-    try (Stream<Long> friendStream = friendRepository.streamMutualFriends(user, friend)) {
-      SecurityContext context = SecurityContextHolder.getContext();
-      friendStream.parallel().forEach(mutual -> {
-        if (user.equals(mutual)) return;
-        Runnable task = () -> notifyFriend(user, mutual, type, entity);
-        DelegatingSecurityContextRunnable securedTask = new DelegatingSecurityContextRunnable(task, context);
-        securedTask.run();
-      });
+    List<Long> friends = friendRepository.findMutualFriends(user, friend);
+    for (Long mutual : friends) {
+      notifyFriend(user, mutual, type, entity);
     }
   }
 
   @Async
-  @Transactional
+  @Transactional(value = "asyncTransactionManager", timeout = 300)
   @Modifying
   private void notifyFriend(Long user, Long friend, Long type, Long entity) {
     UserProfileEntity notifier = userProfileRepository.findById(user).orElseThrow(() -> new IllegalStateException("Not found"));

@@ -11,7 +11,9 @@ import {
   unfavoritePost,
   unsubscribePost,
   getRecentReplies,
-  getPopularReplies
+  getPopularReplies,
+  unsubscribePostPopularity,
+  onPostPopularityUpdate
 } from '../api/api.js';
 import Rating from './Rating.js';
 import ScrollLoader from './ScrollLoader.js';
@@ -22,11 +24,12 @@ function Post({
   selected = false,
   selectedChildId,
   getSelectedChild,
+  sortByPopularParent = false,
   depth = 0
 }) {
   const navigate = useNavigate();
   const [post, setPost] = useState(postProp);
-  const [sortByPopular, setSortByPopular] = useState(false);
+  const [sortByPopular, setSortByPopular] = useState(sortByPopularParent);
   const [replies, setReplies] = useState([]);
   const [reply, setReply] = useState(null);
   const [showReplies, setShowReplies] = useState(depth < 2);
@@ -38,7 +41,10 @@ function Post({
   };
 
   const loadMore = () => {
-    const cursor = replies[replies.length - 1].created.getTime();
+    const cursor1 = sortByPopular
+      ? replies[replies.length - 1].popularity
+      : replies[replies.length - 1].created.getTime();
+    const cursor2 = replies[replies.length - 1].id;
     getPost(
       id,
       (post) => {
@@ -53,7 +59,8 @@ function Post({
             }
           },
           setError,
-          sortByPopular ? replies.length : cursor,
+          cursor1,
+          cursor2,
           5,
           selectedChildId
         );
@@ -103,35 +110,44 @@ function Post({
           setError
         );
       });
+      if (sortByPopular)
+        onPostPopularityUpdate(id, (message) => {
+          const post = message.post;
+          const popularity = message.popularity;
+          if (
+            replies &&
+            replies.length &&
+            popularity >= replies[replies.length - 1].popularity &&
+            replies.findIndex((reply) => reply.id === post) < 0
+          ) {
+            getPost(post, (post) => {
+              setReplies(
+                replies
+                  .concat([post])
+                  .sort((a, b) => a.popularity - b.popularity)
+              );
+            });
+          }
+        });
       return () => {
         unsubscribePost(id);
+        unsubscribePostPopularity(id);
       };
     }
   }, [id, sortByPopular, replies]);
 
   useEffect(() => {
     if (post?.children > 0 && showReplies) {
-      if (sortByPopular)
-        getPopularReplies(
-          post.id,
-          setReplies,
-          setError,
-          null,
-          5,
-          selectedChildId
-        );
-      else
-        getRecentReplies(
-          post.id,
-          setReplies,
-          setError,
-          null,
-          5,
-          selectedChildId
-        );
+      let request = getRecentReplies;
+      if (sortByPopular) request = getPopularReplies;
+      request(post.id, setReplies, setError, null, null, 5, selectedChildId);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [post?.id, showReplies, sortByPopular, selectedChildId]);
+
+  useEffect(() => {
+    setSortByPopular(sortByPopularParent);
+  }, [sortByPopularParent]);
 
   if (error) return JSON.stringify(error);
   if (!post) return;
@@ -185,6 +201,7 @@ function Post({
                   id={post.id}
                   postProp={post}
                   depth={depth + 1}
+                  sortByPopularParent={sortByPopular}
                 />
               ))}
             </ScrollLoader>
@@ -201,6 +218,7 @@ Post.propTypes = {
   selected: PropTypes.bool,
   selectedChildId: PropTypes.number,
   getSelectedChild: PropTypes.func,
+  sortByPopularParent: PropTypes.bool,
   depth: PropTypes.number
 };
 

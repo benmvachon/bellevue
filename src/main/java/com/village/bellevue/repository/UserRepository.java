@@ -15,12 +15,12 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
   UserEntity findByUsername(String username);
 
   @Modifying
-  @Transactional
   @Query("UPDATE UserEntity u SET u.name = :name WHERE u.id = :user")
-  void changeName(@Param("user") Long user, @Param("name") String name);
+  @Transactional
+  int changeName(@Param("user") Long user, @Param("name") String name);
 
   @Modifying
-  @Transactional
   @Query("UPDATE UserEntity u SET u.password = :password WHERE u.id = :user")
-  void changePassword(@Param("user") Long user, @Param("password") String password);
+  @Transactional
+  int changePassword(@Param("user") Long user, @Param("password") String password);
 }

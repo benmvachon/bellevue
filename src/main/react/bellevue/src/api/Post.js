@@ -12,6 +12,7 @@ class Post {
     children,
     rating,
     ratingCount,
+    popularity,
     favorite,
     _links
   ) {
@@ -24,6 +25,7 @@ class Post {
     this.children = children;
     this.rating = rating;
     this.ratingCount = ratingCount;
+    this.popularity = popularity;
     this.favorite = favorite;
     // TODO: process _links
   }
@@ -51,6 +53,7 @@ class Post {
       json.children,
       json.rating,
       json.ratingCount,
+      json.popularity,
       json.favorite
     );
   }
@@ -66,6 +69,7 @@ class Post {
       children: this.children,
       rating: this.rating,
       ratingCount: this.ratingCount,
+      popularity: this.popularity,
       favorite: this.favorite
     };
   }

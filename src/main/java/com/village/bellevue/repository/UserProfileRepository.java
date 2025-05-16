@@ -1,6 +1,6 @@
 package com.village.bellevue.repository;
 
-import java.util.stream.Stream;
+import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.village.bellevue.entity.UserProfileEntity;
 import com.village.bellevue.entity.ProfileEntity.LocationType;
@@ -27,6 +28,7 @@ public interface UserProfileRepository extends JpaRepository<UserProfileEntity, 
     "   WHERE f.friend.id = :user AND f.status = 'BLOCKED_YOU'" +
     ")"
   )
+  @Transactional(readOnly = true)
   Page<UserProfileEntity> findByNameOrUsernameStartsWith(@Param("user") Long user, @Param("prefix") String prefix, Pageable pageable);
 
   @Query(
@@ -39,7 +41,8 @@ public interface UserProfileRepository extends JpaRepository<UserProfileEntity, 
     "AND f.status != 'BLOCKED_YOU' " +
     "ORDER BY u.lastSeen DESC"
   )
-  Stream<Long> streamAllUsersByLocation(@Param("user") Long user, @Param("location") Long location, @Param("location_type") LocationType locationType);
+  @Transactional(readOnly = true)
+  List<Long> findAllUsersByLocation(@Param("user") Long user, @Param("location") Long location, @Param("location_type") LocationType locationType);
 
   @Query(
     "SELECT u FROM UserProfileEntity u " +
@@ -50,6 +53,7 @@ public interface UserProfileRepository extends JpaRepository<UserProfileEntity, 
     "AND f.status = 'ACCEPTED' " +
     "ORDER BY u.lastSeen DESC"
   )
+  @Transactional(readOnly = true)
   Page<UserProfileEntity> findAllFriendsByLocation(@Param("user") Long user, @Param("location") Long location, @Param("location_type") LocationType locationType, Pageable pageable);
 
   @Query(
@@ -63,5 +67,6 @@ public interface UserProfileRepository extends JpaRepository<UserProfileEntity, 
     "AND f.status != 'BLOCKED_YOU' " +
     "ORDER BY u.lastSeen DESC"
   )
+  @Transactional(readOnly = true)
   Page<UserProfileEntity> findAllNonFriendsByLocation(@Param("user") Long user, @Param("location") Long location, @Param("location_type") LocationType locationType, Pageable pageable);
 }

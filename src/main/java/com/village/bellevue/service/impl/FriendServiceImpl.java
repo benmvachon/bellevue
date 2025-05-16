@@ -9,6 +9,7 @@ import javax.sql.DataSource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
@@ -16,6 +17,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -94,6 +96,7 @@ public class FriendServiceImpl implements FriendService {
   private final ForumRepository forumRepository;
   private final PostRepository postRepository;
   private final DataSource dataSource;
+  private final DataSource asyncDataSource;
   private final CacheManager cacheManager;
   private final RedisTemplate<String, Object> redisTemplate;
   private final ApplicationEventPublisher publisher;
@@ -107,7 +110,8 @@ public class FriendServiceImpl implements FriendService {
     UserProfileRepository userProfileRepository,
     ForumRepository forumRepository,
     PostRepository postRepository,
-    DataSource dataSource,
+    @Qualifier("dataSource") DataSource dataSource,
+    @Qualifier("asyncDataSource") DataSource asyncDataSource,
     CacheManager cacheManager,
     RedisTemplate<String, Object> redisTemplate,
     ApplicationEventPublisher publisher
@@ -118,13 +122,14 @@ public class FriendServiceImpl implements FriendService {
     this.forumRepository = forumRepository;
     this.postRepository = postRepository;
     this.dataSource = dataSource;
+    this.asyncDataSource = asyncDataSource;
     this.cacheManager = cacheManager;
     this.redisTemplate = redisTemplate;
     this.publisher = publisher;
   }
 
   @Override
-  @Transactional
+  @Transactional(timeout = 30)
   public void request(Long user) throws FriendshipException {
     if (isBlockedBy(user)) {
       return;
@@ -204,11 +209,12 @@ public class FriendServiceImpl implements FriendService {
     });
   }
 
+  @Async
   @Override
-  @Transactional
+  @Transactional(value = "asyncTransactionManager", timeout = 300)
   public void accept(Long user) throws FriendshipException {
     boolean success = false;
-    try (Connection connection = dataSource.getConnection(); CallableStatement stmt = connection.prepareCall("{call accept_friend(?, ?)}")) {
+    try (Connection connection = asyncDataSource.getConnection(); CallableStatement stmt = connection.prepareCall("{call accept_friend(?, ?)}")) {
       stmt.setLong(1, getAuthenticatedUserId());
       stmt.setLong(2, user);
       stmt.executeUpdate();
@@ -223,10 +229,11 @@ public class FriendServiceImpl implements FriendService {
     }
   }
 
+  @Async
   @Override
-  @Transactional
+  @Transactional(value = "asyncTransactionManager", timeout = 300)
   public void block(Long user) throws FriendshipException {
-    try (Connection connection = dataSource.getConnection(); CallableStatement stmt = connection.prepareCall("{call block_friend(?, ?)}")) {
+    try (Connection connection = asyncDataSource.getConnection(); CallableStatement stmt = connection.prepareCall("{call block_friend(?, ?)}")) {
       stmt.setLong(1, getAuthenticatedUserId());
       stmt.setLong(2, user);
       stmt.executeUpdate();
@@ -241,10 +248,11 @@ public class FriendServiceImpl implements FriendService {
     }
   }
 
+  @Async
   @Override
-  @Transactional
+  @Transactional(value = "asyncTransactionManager", timeout = 300)
   public void remove(Long user) throws FriendshipException {
-    try (Connection connection = dataSource.getConnection(); CallableStatement stmt = connection.prepareCall("{call remove_friend(?, ?)}")) {
+    try (Connection connection = asyncDataSource.getConnection(); CallableStatement stmt = connection.prepareCall("{call remove_friend(?, ?)}")) {
       stmt.setLong(1, getAuthenticatedUserId());
       stmt.setLong(2, user);
       stmt.executeUpdate();

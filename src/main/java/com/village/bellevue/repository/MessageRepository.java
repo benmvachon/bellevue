@@ -18,7 +18,9 @@ public interface MessageRepository extends JpaRepository<MessageEntity, Long> {
   @Query("SELECT m FROM MessageEntity m " +
     "LEFT JOIN FriendEntity f ON (m.receiver.id = f.friend.id OR m.sender.id = f.friend.id) AND f.status = 'accepted' AND f.user = :user " +
     "WHERE (m.receiver.id = :user OR m.sender.id = :user) " +
-    "AND m.id = :id")
+    "AND m.id = :id"
+  )
+  @Transactional(readOnly = true)
   public MessageEntity find(@Param("user") Long user, @Param("id") Long id);
 
   @Query(value = """
@@ -42,7 +44,9 @@ public interface MessageRepository extends JpaRepository<MessageEntity, Long> {
     WHERE m.created < :cursor
     ORDER BY m.created DESC
     LIMIT :limit
-    """, nativeQuery = true)
+    """, nativeQuery = true
+  )
+  @Transactional(readOnly = true)
   List<MessageEntity> findThreads(@Param("user") Long user, @Param("cursor") Timestamp cursor, @Param("limit") Long limit);
 
   @Query(value = """
@@ -65,10 +69,13 @@ public interface MessageRepository extends JpaRepository<MessageEntity, Long> {
     )
     WHERE m.created >= :cursor
     ORDER BY m.created DESC
-    """, nativeQuery = true)
+    """, nativeQuery = true
+  )
+  @Transactional(readOnly = true)
   List<MessageEntity> refreshThreads(@Param("user") Long user, @Param("cursor") Timestamp cursor);
 
   @Query("SELECT COUNT(DISTINCT(m.sender)) FROM MessageEntity m WHERE m.receiver.id = :user AND m.read = false")
+  @Transactional(readOnly = true)
   Long countUnreadThreads(@Param("user") Long user);
 
   @Query(value = """
@@ -82,7 +89,9 @@ public interface MessageRepository extends JpaRepository<MessageEntity, Long> {
       WHERE sender = :user OR receiver = :user
       GROUP BY other_user
     ) AS conversations
-    """, nativeQuery = true)
+    """, nativeQuery = true
+  )
+  @Transactional(readOnly = true)
   Long countThreads(@Param("user") Long user);
 
   @Query("SELECT m FROM MessageEntity m " +
@@ -90,26 +99,30 @@ public interface MessageRepository extends JpaRepository<MessageEntity, Long> {
     "OR (m.receiver.id = :friend AND m.sender.id = :user)) " +
     "AND m.created < :cursor " +
     "ORDER BY m.created DESC " +
-    "LIMIT :limit")
+    "LIMIT :limit"
+  )
+  @Transactional(readOnly = true)
   List<MessageEntity> findAll(@Param("user") Long user, @Param("friend") Long friend, @Param("cursor") Timestamp cursor, @Param("limit") Long limit);
 
   @Query("SELECT COUNT(DISTINCT(m)) FROM MessageEntity m " +
     "WHERE (m.receiver.id = :user AND m.sender.id = :friend) " +
-    "OR (m.receiver.id = :friend AND m.sender.id = :user)")
+    "OR (m.receiver.id = :friend AND m.sender.id = :user)"
+  )
+  @Transactional(readOnly = true)
   Long countAll(@Param("user") Long user, @Param("friend") Long friend);
 
   @Modifying
-  @Transactional
   @Query("UPDATE MessageEntity m SET m.read = true WHERE m.receiver.id = :user AND m.read = false")
-  void markAllAsRead(@Param("user") Long user);
+  @Transactional
+  int markAllAsRead(@Param("user") Long user);
 
   @Modifying
-  @Transactional
   @Query("UPDATE MessageEntity m SET m.read = true WHERE m.receiver.id = :user AND m.sender.id = :friend AND m.read = false")
-  void markThreadAsRead(@Param("user") Long user, @Param("friend") Long friend);
+  @Transactional
+  int markThreadAsRead(@Param("user") Long user, @Param("friend") Long friend);
 
   @Modifying
-  @Transactional
   @Query("UPDATE MessageEntity m SET m.read = true WHERE m.receiver.id = :user AND m.id = :id AND m.read = false")
-  void markAsRead(@Param("user") Long user, @Param("id") Long id);
+  @Transactional
+  int markAsRead(@Param("user") Long user, @Param("id") Long id);
 }

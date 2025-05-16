@@ -6,7 +6,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.village.bellevue.event.PostEvent;
 
@@ -22,7 +21,6 @@ public class ForumListener {
 
   @Async
   @EventListener
-  @Transactional
   public void handleEvent(PostEvent event) {
     Long forum = event.getPost().getForum().getId();
     Long id = event.getPost().getId();

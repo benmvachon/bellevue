@@ -4,6 +4,7 @@ import java.util.Objects;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.village.bellevue.entity.RatingEntity.Star;
 import com.village.bellevue.error.EquipmentException;
@@ -12,8 +13,6 @@ import com.village.bellevue.event.equipment.AbstractEquipmentListener;
 import com.village.bellevue.repository.EquipmentRepository;
 import com.village.bellevue.repository.ItemRepository;
 import com.village.bellevue.repository.RatingRepository;
-
-import jakarta.transaction.Transactional;
 
 public abstract class AbstractEquipmentRatingEventListener extends AbstractEquipmentListener<RatingEvent> {
 
@@ -35,7 +34,7 @@ public abstract class AbstractEquipmentRatingEventListener extends AbstractEquip
   protected abstract boolean isForRater();
 
   @EventListener
-  @Transactional
+  @Transactional("asyncTransactionManager")
   public void handleEvent(RatingEvent event) throws EquipmentException {
     super.handleEvent(event);
   }

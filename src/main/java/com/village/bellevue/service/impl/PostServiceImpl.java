@@ -1,14 +1,23 @@
 package com.village.bellevue.service.impl;
 
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.sql.Types;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import javax.sql.DataSource;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import static com.village.bellevue.config.CacheConfig.POST_SECURITY_CACHE_NAME;
 import static com.village.bellevue.config.security.SecurityConfig.getAuthenticatedUserId;
@@ -17,10 +26,14 @@ import com.village.bellevue.entity.ForumEntity;
 import com.village.bellevue.entity.PostEntity;
 import com.village.bellevue.entity.UserProfileEntity;
 import com.village.bellevue.entity.FavoriteEntity.FavoriteType;
+import com.village.bellevue.entity.RatingEntity.Star;
 import com.village.bellevue.entity.id.AggregateRatingId;
 import com.village.bellevue.entity.id.FavoriteId;
 import com.village.bellevue.error.AuthorizationException;
 import com.village.bellevue.error.FriendshipException;
+import com.village.bellevue.error.PostException;
+import com.village.bellevue.error.RatingException;
+import com.village.bellevue.event.PopularityEvent;
 import com.village.bellevue.event.PostEvent;
 import com.village.bellevue.model.ForumModel;
 import com.village.bellevue.model.ForumModelProvider;
@@ -35,11 +48,13 @@ import com.village.bellevue.repository.PostRepository;
 import com.village.bellevue.repository.UserProfileRepository;
 import com.village.bellevue.service.FriendService;
 import com.village.bellevue.service.PostService;
+import com.village.bellevue.service.RatingService;
 
 @Service
 public class PostServiceImpl implements PostService {
 
   public static final String CAN_READ_CACHE_KEY = "canRead";
+  private static final Logger logger = LoggerFactory.getLogger(PostServiceImpl.class);
 
   private final ProfileModelProvider profileModelProvider = new ProfileModelProvider() {
     public boolean isFavorite(Long user) {
@@ -134,6 +149,8 @@ public class PostServiceImpl implements PostService {
   private final ForumRepository forumRepository;
   private final UserProfileRepository userProfileRepository;
   private final FriendService friendService;
+  private final RatingService ratingService;
+  private final DataSource dataSource;
   private final ApplicationEventPublisher publisher;
 
   public PostServiceImpl(
@@ -143,6 +160,8 @@ public class PostServiceImpl implements PostService {
     ForumRepository forumRepository,
     UserProfileRepository userProfileRepository,
     FriendService friendService,
+    RatingService ratingService,
+    DataSource dataSource,
     ApplicationEventPublisher publisher
   ) {
     this.postRepository = postRepository;
@@ -151,12 +170,13 @@ public class PostServiceImpl implements PostService {
     this.forumRepository = forumRepository;
     this.userProfileRepository = userProfileRepository;
     this.friendService = friendService;
+    this.ratingService = ratingService;
+    this.dataSource = dataSource;
     this.publisher = publisher;
   }
 
   @Override
-  @Transactional
-  public PostModel post(Long forum, String content) throws AuthorizationException {
+  public PostModel post(Long forum, String content) throws AuthorizationException, PostException {
     PostModel model = null;
     try {
       PostEntity post = new PostEntity();
@@ -168,26 +188,55 @@ public class PostServiceImpl implements PostService {
     } finally {
       if (model != null) {
         publisher.publishEvent(new PostEvent(getAuthenticatedUserId(), model));
+        try {
+          ratingService.rate(model.getId(), Star.FIVE);
+        } catch (RatingException e) {
+          throw new PostException("Could not rate new post");
+        }
       }
     }
   }
 
   @Override
-  @Transactional
-  public PostModel reply(Long forum, Long parent, String content) throws AuthorizationException {
+  public PostModel reply(Long forum, Long parent, String content) throws AuthorizationException, PostException {
+    Long user = getAuthenticatedUserId();
+    int depth = 1;
+    PostModel post = read(parent).orElseThrow(() -> new AuthorizationException("Cannot reply to " + parent));
+    List<PopularityEvent> events = new ArrayList<>();
+    while (Objects.nonNull(post)) {
+      if (!canRead(post.getId())) throw new AuthorizationException("Cannot reply to " + parent);
+      PostModel parentPost = post.getParent();
+      events.add(new PopularityEvent(user, post.getId(), Objects.nonNull(parentPost) ? parentPost.getId() : null, post.getForum().getId()));
+      depth ++;
+      post = parentPost;
+    }
+    if (depth >= 9) throw new PostException("Post too deep for replies");
     PostModel model = null;
-    try {
-      PostEntity post = new PostEntity();
-      ForumEntity forumEntity = forumRepository.getReferenceById(forum);
-      PostEntity parentEntity = postRepository.getReferenceById(parent);
-      post.setForum(forumEntity);
-      post.setParent(parentEntity);
-      post.setContent(content);
-      model = new PostModel(save(post), postModelProvider);
+    logger.info("Starting reply procedure for {} by {} at {}", parent, user, System.currentTimeMillis());
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement stmt = connection.prepareCall("{call add_reply(?, ?, ?, ?, ?)}")) {
+      stmt.setLong(1, user);
+      stmt.setLong(2, parent);
+      stmt.setLong(3, forum);
+      stmt.setString(4, content);
+      stmt.registerOutParameter(5, Types.INTEGER);
+      stmt.executeUpdate();
+      Long reply = stmt.getLong(5);
+      model = new PostModel(postRepository.getReferenceById(reply), postModelProvider);
+      logger.info("Finished reply procedure for {} by {} at {}", parent, user, System.currentTimeMillis());
       return model;
+    } catch (SQLException e) {
+      logger.error("Error adding reply: {}", e.getMessage(), e);
+      throw new PostException("Failed to create reply. SQL command error: " + e.getMessage(), e);
     } finally {
       if (model != null) {
-        publisher.publishEvent(new PostEvent(getAuthenticatedUserId(), model));
+        publisher.publishEvent(new PostEvent(user, model));
+        for (PopularityEvent event : events) publisher.publishEvent(event);
+        try {
+          ratingService.rate(model.getId(), Star.FIVE);
+        } catch (RatingException e) {
+          throw new PostException("Could not rate new reply");
+        }
       }
     }
   }
@@ -206,13 +255,14 @@ public class PostServiceImpl implements PostService {
   }
 
   @Override
-  public List<PostModel> readAllByForum(Long forum, Timestamp cursor, Long limit) throws AuthorizationException {
+  public List<PostModel> readAllByForum(Long forum, Timestamp createdCursor, Long idCursor, Long limit) throws AuthorizationException {
     Long user = getAuthenticatedUserId();
     if (!forumRepository.canRead(forum, user)) throw new AuthorizationException("User not authorized");
     List<PostEntity> postEntities = postRepository.findRecentTopLevelByForum(
       user,
       forum,
-      cursor,
+      createdCursor,
+      idCursor,
       limit
     );
     return postEntities.stream().map(post -> {
@@ -225,13 +275,14 @@ public class PostServiceImpl implements PostService {
   }
 
   @Override
-  public List<PostModel> readAllByForum(Long forum, Long offset, Long limit) throws AuthorizationException {
+  public List<PostModel> readAllByForum(Long forum, Long popularityCursor, Long idCursor, Long limit) throws AuthorizationException {
     Long user = getAuthenticatedUserId();
     if (!forumRepository.canRead(forum, user)) throw new AuthorizationException("User not authorized");
     List<PostEntity> postEntities = postRepository.findPopularTopLevelByForum(
       user,
       forum,
-      offset,
+      popularityCursor,
+      idCursor,
       limit
     );
     return postEntities.stream().map(post -> {
@@ -251,12 +302,13 @@ public class PostServiceImpl implements PostService {
   }
 
   @Override
-  public List<PostModel> readAllByParent(Long parent, Timestamp cursor, Long limit) throws AuthorizationException {
+  public List<PostModel> readAllByParent(Long parent, Timestamp createdCursor, Long idCursor, Long limit) throws AuthorizationException {
     if (!canRead(parent)) throw new AuthorizationException("User not authorized");
     List<PostEntity> postEntities = postRepository.findRecentChildren(
       getAuthenticatedUserId(),
       parent,
-      cursor,
+      createdCursor,
+      idCursor,
       limit
     );
     return postEntities.stream().map(post -> {
@@ -269,12 +321,13 @@ public class PostServiceImpl implements PostService {
   }
 
   @Override
-  public List<PostModel> readAllByParent(Long parent, Long offset, Long limit) throws AuthorizationException {
+  public List<PostModel> readAllByParent(Long parent, Long popularityCursor, Long idCursor, Long limit) throws AuthorizationException {
     if (!canRead(parent)) throw new AuthorizationException("User not authorized");
     List<PostEntity> postEntities = postRepository.findPopularChildren(
       getAuthenticatedUserId(),
       parent,
-      offset,
+      popularityCursor,
+      idCursor,
       limit
     );
     return postEntities.stream().map(post -> {
@@ -293,13 +346,14 @@ public class PostServiceImpl implements PostService {
   }
 
   @Override
-  public List<PostModel> readOthersByParent(Long parent, Long child, Timestamp cursor, Long limit) throws AuthorizationException {
+  public List<PostModel> readOthersByParent(Long parent, Long child, Timestamp createdCursor, Long idCursor, Long limit) throws AuthorizationException {
     if (!canRead(parent)) throw new AuthorizationException("User not authorized");
     List<PostEntity> postEntities = postRepository.findRecentOtherChildren(
       getAuthenticatedUserId(),
       parent,
       child,
-      cursor,
+      createdCursor,
+      idCursor,
       limit
     );
     return postEntities.stream().map(post -> {
@@ -312,13 +366,14 @@ public class PostServiceImpl implements PostService {
   }
 
   @Override
-  public List<PostModel> readOthersByParent(Long parent, Long child, Long offset, Long limit) throws AuthorizationException {
+  public List<PostModel> readOthersByParent(Long parent, Long child, Long popularityCursor, Long idCursor, Long limit) throws AuthorizationException {
     if (!canRead(parent)) throw new AuthorizationException("User not authorized");
     List<PostEntity> postEntities = postRepository.findPopularOtherChildren(
       getAuthenticatedUserId(),
       parent,
       child,
-      offset,
+      popularityCursor,
+      idCursor,
       limit
     );
     return postEntities.stream().map(post -> {
@@ -337,7 +392,6 @@ public class PostServiceImpl implements PostService {
   }
 
   @Override
-  @Transactional
   public boolean delete(Long id) throws AuthorizationException {
     Optional<PostModel> post = read(id);
     if (post.isEmpty()) return false;
@@ -356,7 +410,8 @@ public class PostServiceImpl implements PostService {
     post.setForum(forum);
     post.setUser(user);
 
-    return postRepository.save(post);
+    post = postRepository.saveAndFlush(post);
+    return post;
   }
 
   private Long getChildren(Long parent) {

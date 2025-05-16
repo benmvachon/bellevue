@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.village.bellevue.entity.RatingEntity;
 import com.village.bellevue.entity.RatingEntity.Star;
@@ -20,6 +21,7 @@ public interface RatingRepository extends JpaRepository<RatingEntity, RatingId> 
     "WHERE ((f.status = 'accepted' AND f.user = :user) OR r.user = :user) " +
     "AND r.post = :post"
   )
+  @Transactional(readOnly = true)
   Integer countByPost(@Param("post") Long post, @Param("user") Long user);
 
   @Query(
@@ -28,12 +30,15 @@ public interface RatingRepository extends JpaRepository<RatingEntity, RatingId> 
     "WHERE ((f.status = 'accepted' AND f.user = :user) OR r.user = :user) " +
     "AND r.post = :post AND r.rating = :rating"
   )
+  @Transactional(readOnly = true)
   Integer countByRatingAndPost(@Param("post") Long post, @Param("rating") Star rating, @Param("user") Long user);
 
   @Query("SELECT COUNT(DISTINCT(r)) FROM RatingEntity r WHERE r.user = :user")
+  @Transactional(readOnly = true)
   Integer countByUser(@Param("user") Long user);
 
   @Query("SELECT COUNT(DISTINCT(r)) FROM RatingEntity r WHERE r.user = :user AND r.rating = :rating")
+  @Transactional(readOnly = true)
   Integer countByUserAndRating(@Param("rating") Star rating, @Param("user") Long user);
 
   @Query(
@@ -43,6 +48,7 @@ public interface RatingRepository extends JpaRepository<RatingEntity, RatingId> 
     "AND r.post = :post " +
     "ORDER BY r.updated DESC"
   )
+  @Transactional(readOnly = true)
   Page<RatingEntity> findByPost(@Param("post") Long post, @Param("user") Long user, Pageable pageable);
 
   @Query(
@@ -52,6 +58,7 @@ public interface RatingRepository extends JpaRepository<RatingEntity, RatingId> 
     "AND r.user = :friend " +
     "ORDER BY r.updated DESC"
   )
+  @Transactional(readOnly = true)
   Page<RatingEntity> findByFriend(@Param("friend") Long friend, @Param("user") Long user, Pageable pageable);
 
   @Query(
@@ -60,6 +67,7 @@ public interface RatingRepository extends JpaRepository<RatingEntity, RatingId> 
     "WHERE ((f.status = 'accepted' AND f.user = :user) OR r.user = :user) " +
     "ORDER BY r.updated DESC"
   )
+  @Transactional(readOnly = true)
   Page<RatingEntity> findAll(@Param("user") Long user, Pageable pageable);
 
   @Query(
@@ -74,5 +82,6 @@ public interface RatingRepository extends JpaRepository<RatingEntity, RatingId> 
     ") AND " +
     "r.post = :post AND r.user = :friend"
   )
+  @Transactional(readOnly = true)
   Boolean canRead(@Param("post") Long post, @Param("friend") Long friend, @Param("user") Long user);
 }

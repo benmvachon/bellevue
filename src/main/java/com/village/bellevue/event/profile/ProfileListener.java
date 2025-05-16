@@ -4,7 +4,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.village.bellevue.event.AcceptanceEvent;
 import com.village.bellevue.event.BlackboardEvent;
@@ -24,14 +23,12 @@ public class ProfileListener {
 
   @Async
   @EventListener
-  @Transactional
   public void handleEvent(LocationEvent event) {
     pingAttendees(event.getUser(), "location");
   }
 
   @Async
   @EventListener
-  @Transactional
   public void handleEvent(AcceptanceEvent event) {
     pingAttendees(event.getUser(), "acceptance");
     pingUsers(event.getUser(), event.getFriend(), "acceptance");
@@ -39,33 +36,28 @@ public class ProfileListener {
 
   @Async
   @EventListener
-  @Transactional
   public void handleEvent(RequestEvent event) {
     pingUsers(event.getUser(), event.getFriend(), "request");
   }
 
   @Async
   @EventListener
-  @Transactional
   public void handleEvent(BlackboardEvent event) {
     pingAttendees(event.getUser(), "blackboard");
   }
 
   @Async
   @EventListener
-  @Transactional
   public void handleEvent(StatusEvent event) {
     pingAttendees(event.getUser(), "status");
   }
 
   @Async
-  @Transactional
   private void pingAttendees(Long user, String message) {
     messagingTemplate.convertAndSend("/topic/profile/" + user, message);
   }
 
   @Async
-  @Transactional
   private void pingUsers(Long user1, Long user2, String message) {
     messagingTemplate.convertAndSendToUser(user1.toString(), "/topic/friendshipStatus/" + user2, message);
     messagingTemplate.convertAndSendToUser(user2.toString(), "/topic/friendshipStatus/" + user1, message);

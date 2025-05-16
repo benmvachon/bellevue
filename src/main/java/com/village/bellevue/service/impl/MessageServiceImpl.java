@@ -3,6 +3,7 @@ package com.village.bellevue.service.impl;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import static com.village.bellevue.config.security.SecurityConfig.getAuthenticatedUserId;
 
@@ -19,8 +20,6 @@ import com.village.bellevue.repository.FriendRepository;
 import com.village.bellevue.repository.MessageRepository;
 import com.village.bellevue.repository.UserProfileRepository;
 import com.village.bellevue.service.MessageService;
-
-import jakarta.transaction.Transactional;
 
 @Service
 public class MessageServiceImpl implements MessageService {
@@ -43,7 +42,7 @@ public class MessageServiceImpl implements MessageService {
   }
 
   @Override
-  @Transactional
+  @Transactional(timeout = 30)
   public void message(Long friend, String message) throws AuthorizationException {
     MessageEntity messageEntity = new MessageEntity();
     messageEntity.setMessage(message);
@@ -94,7 +93,7 @@ public class MessageServiceImpl implements MessageService {
 
   @Override
   @Async
-  @Transactional
+  @Transactional(value = "asyncTransactionManager", timeout = 300)
   public void markAllAsRead() {
     try {
       messageRepository.markAllAsRead(getAuthenticatedUserId());
@@ -105,7 +104,7 @@ public class MessageServiceImpl implements MessageService {
 
   @Override
   @Async
-  @Transactional
+  @Transactional(value = "asyncTransactionManager", timeout = 300)
   public void markThreadAsRead(Long friend) {
     try {
       messageRepository.markThreadAsRead(getAuthenticatedUserId(), friend);
@@ -116,7 +115,7 @@ public class MessageServiceImpl implements MessageService {
 
   @Override
   @Async
-  @Transactional
+  @Transactional(value = "asyncTransactionManager", timeout = 300)
   public void markAsRead(Long friend, Long id) {
     try {
       messageRepository.markAsRead(getAuthenticatedUserId(), id);
@@ -125,7 +124,7 @@ public class MessageServiceImpl implements MessageService {
     }
   }
 
-  @Transactional
+  @Transactional(timeout = 30)
   private MessageEntity save(MessageEntity message) throws AuthorizationException {
     Long user = getAuthenticatedUserId();
     if (!friendRepository.areFriends(message.getReceiver().getUser(), user)) throw new AuthorizationException("Not authorized to message user");

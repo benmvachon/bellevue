@@ -81,7 +81,7 @@ public class ForumServiceImpl implements ForumService {
   }
 
   @Override
-  @Transactional
+  @Transactional(timeout = 30)
   public ForumModel create(ForumEntity forum) throws AuthorizationException {
     ForumModel model = null;
     try {
@@ -132,7 +132,7 @@ public class ForumServiceImpl implements ForumService {
   }
 
   @Override
-  @Transactional
+  @Transactional(timeout = 30)
   public boolean delete(Long id) throws AuthorizationException {
     Optional<ForumModel> forum = read(id);
     if (forum.isEmpty()) return false;

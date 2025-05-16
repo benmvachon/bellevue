@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.village.bellevue.entity.EquipmentEntity;
 import com.village.bellevue.entity.ItemEntity;
@@ -15,8 +16,6 @@ import com.village.bellevue.event.EquipmentEvent;
 import com.village.bellevue.event.UserEvent;
 import com.village.bellevue.repository.EquipmentRepository;
 import com.village.bellevue.repository.ItemRepository;
-
-import jakarta.transaction.Transactional;
 
 public abstract class AbstractEquipmentListener<T extends UserEvent> {
   private final EquipmentRepository equipmentRepository;
@@ -57,7 +56,7 @@ public abstract class AbstractEquipmentListener<T extends UserEvent> {
   }
 
   @Async
-  @Transactional
+  @Transactional(value = "asyncTransactionManager", timeout = 300)
   public void handleEvent(T event) throws EquipmentException {
     if (!(event instanceof T)) return;
     if (equipmentRepository.existsById(new EquipmentId(getUser(event), itemRepository.getReferenceById(getItem())))) return;
@@ -65,7 +64,7 @@ public abstract class AbstractEquipmentListener<T extends UserEvent> {
   }
 
   @Async
-  @Transactional
+  @Transactional(value = "asyncTransactionManager", timeout = 300)
   protected void unlock(T event) throws EquipmentException {
     Long user = getUser(event);
     ItemEntity item = itemRepository.findById(getItem()).orElseThrow(() -> new EquipmentException("Failed to find item to unlock for user"));

@@ -28,6 +28,7 @@ public class PostModel {
   private Long children = 0L;
   private Double rating = 0.0;
   private Integer ratingCount = 0;
+  private Integer popularity = 0;
 
   private boolean favorite = false;
 
@@ -49,6 +50,7 @@ public class PostModel {
     if (ratingOption.isPresent()) {
       this.rating = ratingOption.get().getRating();
       this.ratingCount = ratingOption.get().getRatingCount();
+      this.popularity = ratingOption.get().getPopularity();
     }
 
     if (post.getParent() != null) {

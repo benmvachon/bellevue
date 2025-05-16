@@ -1,7 +1,7 @@
 package com.village.bellevue.repository;
 
 import java.sql.Timestamp;
-import java.util.stream.Stream;
+import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -16,38 +16,40 @@ import com.village.bellevue.entity.ProfileEntity.LocationType;
 public interface ProfileRepository extends JpaRepository<ProfileEntity, Long> {
 
   @Modifying
-  @Transactional
   @Query("UPDATE ProfileEntity p SET p.status = 'ACTIVE' WHERE p.id = :user AND p.status != 'ACTIVE'")
+  @Transactional
   int setStatusOnline(Long user);
 
   @Modifying
-  @Transactional
   @Query("UPDATE ProfileEntity p SET p.status = 'OFFLINE', p.location = null, p.locationType = null WHERE p.id = :user AND p.status != 'OFFLINE'")
+  @Transactional
   int setStatusOffline(Long user);
 
   @Modifying
-  @Transactional
   @Query("UPDATE ProfileEntity p SET p.status = 'IDLE' WHERE p.id = :user AND p.status != 'IDLE'")
+  @Transactional
   int setStatusIdle(Long user);
 
   @Modifying
-  @Transactional
   @Query("UPDATE ProfileEntity p SET p.lastSeen = :lastSeen WHERE p.id = :user")
-  void setLastSeen(Long user, Timestamp lastSeen);
+  @Transactional
+  int setLastSeen(Long user, Timestamp lastSeen);
 
   @Query("SELECT p.lastSeen FROM ProfileEntity p WHERE p.id = :user")
+  @Transactional(readOnly = true)
   Timestamp getLastSeen(Long user);
 
   @Query("SELECT p.user FROM ProfileEntity p WHERE p.lastSeen < :lastSeen AND p.status = 'ACTIVE'")
-  Stream<Long> getUsersToMarkIdle(Timestamp lastSeen);
+  @Transactional(readOnly = true)
+  List<Long> getUsersToMarkIdle(Timestamp lastSeen);
 
   @Modifying
-  @Transactional
   @Query("UPDATE ProfileEntity p SET p.location = :location, p.locationType = :locationType WHERE p.id = :user")
-  void setLocation(Long user, Long location, LocationType locationType);
+  @Transactional(readOnly = true)
+  int setLocation(Long user, Long location, LocationType locationType);
 
   @Modifying
-  @Transactional
   @Query("UPDATE ProfileEntity p SET p.blackboard = :blackboard WHERE p.id = :user")
-  void setBlackboard(Long user, String blackboard);
+  @Transactional(readOnly = true)
+  int setBlackboard(Long user, String blackboard);
 }

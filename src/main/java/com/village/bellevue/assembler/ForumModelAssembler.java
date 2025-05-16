@@ -17,14 +17,14 @@ public class ForumModelAssembler implements RepresentationModelAssembler<ForumMo
     if (forum.getUser() != null) {
       return EntityModel.of(
         forum,
-        linkTo(methodOn(PostController.class).readAllByForum(forum.getId(), null, 1l)).withRel("posts"),
+        linkTo(methodOn(PostController.class).readAllByForum(forum.getId(), null, null, 1l)).withRel("posts"),
         linkTo(methodOn(PostController.class).post(forum.getId(), null)).withRel("post"),
         linkTo(methodOn(UserController.class).read(forum.getUser().getId())).withRel("user")
       );
     }
     return EntityModel.of(
       forum,
-      linkTo(methodOn(PostController.class).readAllByForum(forum.getId(), null, 1l)).withRel("posts"),
+      linkTo(methodOn(PostController.class).readAllByForum(forum.getId(), null, null, 1l)).withRel("posts"),
       linkTo(methodOn(PostController.class).post(forum.getId(), null)).withRel("post")
     );
   }

@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.village.bellevue.assembler.PostModelAssembler;
 import com.village.bellevue.error.AuthorizationException;
+import com.village.bellevue.error.PostException;
 import com.village.bellevue.model.PostModel;
 import com.village.bellevue.service.PostService;
 
@@ -47,6 +48,8 @@ public class PostController {
       return ResponseEntity.status(HttpStatus.CREATED).body(entityModel);
     } catch (AuthorizationException e) {
       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    } catch (PostException e) {
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
   }
 
@@ -63,18 +66,22 @@ public class PostController {
       return ResponseEntity.status(HttpStatus.CREATED).body(entityModel);
     } catch (AuthorizationException e) {
       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    } catch (PostException e) {
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
   }
 
   @GetMapping("/forum/{forum}")
   public ResponseEntity<List<PostModel>> readAllByForum(
     @PathVariable Long forum,
-    @RequestParam(required = false) Long cursor,
+    @RequestParam(required = false) Long createdCursor,
+    @RequestParam(required = false) Long idCursor,
     @RequestParam(defaultValue = "1") Long limit
   ) {
     try {
-      if (Objects.isNull(cursor)) cursor = System.currentTimeMillis();
-      List<PostModel> posts = postService.readAllByForum(forum, new Timestamp(cursor), limit);
+      if (Objects.isNull(createdCursor)) createdCursor = System.currentTimeMillis();
+      if (Objects.isNull(idCursor)) idCursor = Long.valueOf(Integer.MAX_VALUE);
+      List<PostModel> posts = postService.readAllByForum(forum, new Timestamp(createdCursor), idCursor, limit);
       return ResponseEntity.status(HttpStatus.OK).body(posts);
     } catch (AuthorizationException e) {
       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -84,12 +91,14 @@ public class PostController {
   @GetMapping("/forum/{forum}/recent")
   public ResponseEntity<List<PostModel>> readRecentByForum(
     @PathVariable Long forum,
-    @RequestParam(required = false) Long cursor,
+    @RequestParam(required = false) Long createdCursor,
+    @RequestParam(required = false) Long idCursor,
     @RequestParam(defaultValue = "1") Long limit
   ) {
     try {
-      if (Objects.isNull(cursor)) cursor = System.currentTimeMillis();
-      List<PostModel> posts = postService.readAllByForum(forum, new Timestamp(cursor), limit);
+      if (Objects.isNull(createdCursor)) createdCursor = System.currentTimeMillis();
+      if (Objects.isNull(idCursor)) idCursor = Long.valueOf(Integer.MAX_VALUE);
+      List<PostModel> posts = postService.readAllByForum(forum, new Timestamp(createdCursor), idCursor, limit);
       return ResponseEntity.status(HttpStatus.OK).body(posts);
     } catch (AuthorizationException e) {
       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -99,12 +108,14 @@ public class PostController {
   @GetMapping("/forum/{forum}/popular")
   public ResponseEntity<List<PostModel>> readPopularByForum(
     @PathVariable Long forum,
-    @RequestParam(required = false) Long offset,
+    @RequestParam(required = false) Long popularityCursor,
+    @RequestParam(required = false) Long idCursor,
     @RequestParam(defaultValue = "1") Long limit
   ) {
     try {
-      if (Objects.isNull(offset)) offset = 0l;
-      List<PostModel> posts = postService.readAllByForum(forum, offset, limit);
+      if (Objects.isNull(popularityCursor)) popularityCursor = Long.valueOf(Integer.MAX_VALUE);
+      if (Objects.isNull(idCursor)) idCursor = Long.valueOf(Integer.MAX_VALUE);
+      List<PostModel> posts = postService.readAllByForum(forum, popularityCursor, idCursor, limit);
       return ResponseEntity.status(HttpStatus.OK).body(posts);
     } catch (AuthorizationException e) {
       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -123,12 +134,14 @@ public class PostController {
   @GetMapping("/children/{parent}")
   public ResponseEntity<List<PostModel>> readAllByParent(
     @PathVariable Long parent,
-    @RequestParam(required = false) Long cursor,
+    @RequestParam(required = false) Long createdCursor,
+    @RequestParam(required = false) Long idCursor,
     @RequestParam(defaultValue = "1") Long limit
   ) {
     try {
-      if (Objects.isNull(cursor)) cursor = System.currentTimeMillis();
-      List<PostModel> posts = postService.readAllByParent(parent, new Timestamp(cursor), limit);
+      if (Objects.isNull(createdCursor)) createdCursor = System.currentTimeMillis();
+      if (Objects.isNull(idCursor)) idCursor = Long.valueOf(Integer.MAX_VALUE);
+      List<PostModel> posts = postService.readAllByParent(parent, new Timestamp(createdCursor), idCursor, limit);
       return ResponseEntity.status(HttpStatus.OK).body(posts);
     } catch (AuthorizationException e) {
       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -138,12 +151,14 @@ public class PostController {
   @GetMapping("/children/{parent}/recent")
   public ResponseEntity<List<PostModel>> readRecentByParent(
     @PathVariable Long parent,
-    @RequestParam(required = false) Long cursor,
+    @RequestParam(required = false) Long createdCursor,
+    @RequestParam(required = false) Long idCursor,
     @RequestParam(defaultValue = "1") Long limit
   ) {
     try {
-      if (Objects.isNull(cursor)) cursor = System.currentTimeMillis();
-      List<PostModel> posts = postService.readAllByParent(parent, new Timestamp(cursor), limit);
+      if (Objects.isNull(createdCursor)) createdCursor = System.currentTimeMillis();
+      if (Objects.isNull(idCursor)) idCursor = Long.valueOf(Integer.MAX_VALUE);
+      List<PostModel> posts = postService.readAllByParent(parent, new Timestamp(createdCursor), idCursor, limit);
       return ResponseEntity.status(HttpStatus.OK).body(posts);
     } catch (AuthorizationException e) {
       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -153,12 +168,14 @@ public class PostController {
   @GetMapping("/children/{parent}/popular")
   public ResponseEntity<List<PostModel>> readPopularByParent(
     @PathVariable Long parent,
-    @RequestParam(required = false) Long offset,
+    @RequestParam(required = false) Long popularityCursor,
+    @RequestParam(required = false) Long idCursor,
     @RequestParam(defaultValue = "1") Long limit
   ) {
     try {
-      if (Objects.isNull(offset)) offset = 0l;
-      List<PostModel> posts = postService.readAllByParent(parent, offset, limit);
+      if (Objects.isNull(popularityCursor)) popularityCursor = Long.valueOf(Integer.MAX_VALUE);
+      if (Objects.isNull(idCursor)) idCursor = Long.valueOf(Integer.MAX_VALUE);
+      List<PostModel> posts = postService.readAllByParent(parent, popularityCursor, idCursor, limit);
       return ResponseEntity.status(HttpStatus.OK).body(posts);
     } catch (AuthorizationException e) {
       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -178,12 +195,14 @@ public class PostController {
   public ResponseEntity<List<PostModel>> readOthersByParent(
     @PathVariable Long parent,
     @PathVariable Long child,
-    @RequestParam(required = false) Long cursor,
+    @RequestParam(required = false) Long createdCursor,
+    @RequestParam(required = false) Long idCursor,
     @RequestParam(defaultValue = "1") Long limit
   ) {
     try {
-      if (Objects.isNull(cursor)) cursor = System.currentTimeMillis();
-      List<PostModel> posts = postService.readOthersByParent(parent, child, new Timestamp(cursor), limit);
+      if (Objects.isNull(createdCursor)) createdCursor = System.currentTimeMillis();
+      if (Objects.isNull(idCursor)) idCursor = Long.valueOf(Integer.MAX_VALUE);
+      List<PostModel> posts = postService.readOthersByParent(parent, child, new Timestamp(createdCursor), idCursor, limit);
       return ResponseEntity.status(HttpStatus.OK).body(posts);
     } catch (AuthorizationException e) {
       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -194,12 +213,14 @@ public class PostController {
   public ResponseEntity<List<PostModel>> readRecentOthersByParent(
     @PathVariable Long parent,
     @PathVariable Long child,
-    @RequestParam(required = false) Long cursor,
+    @RequestParam(required = false) Long createdCursor,
+    @RequestParam(required = false) Long idCursor,
     @RequestParam(defaultValue = "1") Long limit
   ) {
     try {
-      if (Objects.isNull(cursor)) cursor = System.currentTimeMillis();
-      List<PostModel> posts = postService.readOthersByParent(parent, child, new Timestamp(cursor), limit);
+      if (Objects.isNull(createdCursor)) createdCursor = System.currentTimeMillis();
+      if (Objects.isNull(idCursor)) idCursor = Long.valueOf(Integer.MAX_VALUE);
+      List<PostModel> posts = postService.readOthersByParent(parent, child, new Timestamp(createdCursor), idCursor, limit);
       return ResponseEntity.status(HttpStatus.OK).body(posts);
     } catch (AuthorizationException e) {
       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -210,12 +231,14 @@ public class PostController {
   public ResponseEntity<List<PostModel>> readPopularOthersByParent(
     @PathVariable Long parent,
     @PathVariable Long child,
-    @RequestParam(required = false) Long offset,
+    @RequestParam(required = false) Long popularityCursor,
+    @RequestParam(required = false) Long idCursor,
     @RequestParam(defaultValue = "1") Long limit
   ) {
     try {
-      if (Objects.isNull(offset)) offset = 0l;
-      List<PostModel> posts = postService.readOthersByParent(parent, child, offset, limit);
+      if (Objects.isNull(popularityCursor)) popularityCursor = Long.valueOf(Integer.MAX_VALUE);
+      if (Objects.isNull(idCursor)) idCursor = Long.valueOf(Integer.MAX_VALUE);
+      List<PostModel> posts = postService.readOthersByParent(parent, child, popularityCursor, idCursor, limit);
       return ResponseEntity.status(HttpStatus.OK).body(posts);
     } catch (AuthorizationException e) {
       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();

@@ -2,18 +2,17 @@ package com.village.bellevue.service.impl;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.stream.Stream;
+import java.util.List;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.village.bellevue.event.StatusEvent;
 import com.village.bellevue.repository.ProfileRepository;
 import com.village.bellevue.service.ActivityService;
-
-import jakarta.transaction.Transactional;
 
 @Service
 public class ActivityServiceImpl implements ActivityService {
@@ -29,7 +28,7 @@ public class ActivityServiceImpl implements ActivityService {
   }
 
   @Async
-  @Transactional
+  @Transactional(value = "asyncTransactionManager", timeout = 300)
   @Modifying
   @Override
   public void updateLastSeen(Long user) {
@@ -45,20 +44,19 @@ public class ActivityServiceImpl implements ActivityService {
   }
 
   @Async
-  @Transactional
+  @Transactional(value = "asyncTransactionManager", timeout = 300)
   @Modifying
   @Override
   public void markUsersIdle(Timestamp lastSeen) {
-    try (Stream<Long> users = profileRepository.getUsersToMarkIdle(lastSeen);) {
-      users.parallel().forEach(user -> {
-        profileRepository.setStatusIdle(user);
-        publisher.publishEvent(new StatusEvent(user, "idle"));
-      });
+    List<Long> users = profileRepository.getUsersToMarkIdle(lastSeen);
+    for (Long user : users) {
+      profileRepository.setStatusIdle(user);
+      publisher.publishEvent(new StatusEvent(user, "idle"));
     }
   }
 
   @Async
-  @Transactional
+  @Transactional(value = "asyncTransactionManager", timeout = 300)
   @Modifying
   @Override
   public void markUserOffline(Long user) {

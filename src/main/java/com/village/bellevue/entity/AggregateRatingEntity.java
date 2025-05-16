@@ -25,6 +25,7 @@ public class AggregateRatingEntity {
 
   private Double rating;
   private Integer ratingCount;
+  private Integer popularity;
 
   private Timestamp updated;
 }

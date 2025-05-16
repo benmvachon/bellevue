@@ -10,17 +10,38 @@ INSERT INTO post (user, forum, content) VALUES
   (14, 13, 'Currently obsessed with Brandon Sanderson.'),
   (15, 20, 'Anyone here from the Seattle area?'),
   (19, 21, 'We’re planning a community BBQ next month!');
+CALL add_or_update_rating(1, 1, 'five');
+CALL add_or_update_rating(3, 2, 'five');
+CALL add_or_update_rating(5, 3, 'five');
+CALL add_or_update_rating(6, 4, 'five');
+CALL add_or_update_rating(8, 5, 'five');
+CALL add_or_update_rating(9, 6, 'five');
+CALL add_or_update_rating(12, 7, 'five');
+CALL add_or_update_rating(14, 8, 'five');
+CALL add_or_update_rating(15, 9, 'five');
+CALL add_or_update_rating(19, 10, 'five');
 
+SET @p_output_post = 0;
 -- Replies to existing posts
-INSERT INTO post (user, parent, forum, content) VALUES
-  (2, 1, 1, 'hey'),
-  (7, 11, 1, 'will you two get a room?'),
-  (4, 2, 2, 'Thanks, welcome to be here!'),
-  (7, 3, 5, 'Yes! Spring Boot 3.3 is looking slick.'),
-  (10, 4, 9, 'Dune was mind-blowing, totally agree.'),
-  (11, 5, 15, 'Got a recipe to share?'),
-  (13, 6, 6, 'Try Hollow Knight if you haven’t already!'),
-  (16, 7, 17, 'Start simple: push-ups, planks, squats.'),
-  (19, 8, 13, 'Mistborn trilogy is amazing.'),
-  (17, 9, 20, 'Seattle here! Fremont is beautiful in spring.'),
-  (20, 10, 21, 'Count me in! Let me know what to bring.');
+CALL add_reply(2, 1, 1, 'hey', @p_output_post);
+CALL add_reply(7, 11, 1, 'will you two get a room?', @p_output_post);
+CALL add_reply(4, 2, 2, 'Thanks, welcome to be here!', @p_output_post);
+CALL add_reply(7, 3, 5, 'Yes! Spring Boot 3.3 is looking slick.', @p_output_post);
+CALL add_reply(10, 4, 9, 'Dune was mind-blowing, totally agree.', @p_output_post);
+CALL add_reply(11, 5, 15, 'Got a recipe to share?', @p_output_post);
+CALL add_reply(13, 6, 6, 'Try Hollow Knight if you haven’t already!', @p_output_post);
+CALL add_reply(16, 7, 17, 'Start simple: push-ups, planks, squats.', @p_output_post);
+CALL add_reply(19, 8, 13, 'Mistborn trilogy is amazing.', @p_output_post);
+CALL add_reply(17, 9, 20, 'Seattle here! Fremont is beautiful in spring.', @p_output_post);
+CALL add_reply(20, 10, 21, 'Count me in! Let me know what to bring.', @p_output_post);
+CALL add_or_update_rating(2, 11, 'five');
+CALL add_or_update_rating(7, 12, 'five');
+CALL add_or_update_rating(4, 13, 'five');
+CALL add_or_update_rating(7, 14, 'five');
+CALL add_or_update_rating(10, 15, 'five');
+CALL add_or_update_rating(11, 16, 'five');
+CALL add_or_update_rating(13, 17, 'five');
+CALL add_or_update_rating(16, 18, 'five');
+CALL add_or_update_rating(19, 19, 'five');
+CALL add_or_update_rating(17, 20, 'five');
+CALL add_or_update_rating(20, 21, 'five');

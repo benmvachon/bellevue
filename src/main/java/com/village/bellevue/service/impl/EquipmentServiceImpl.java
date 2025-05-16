@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import static com.village.bellevue.config.security.SecurityConfig.getAuthenticatedUserId;
 import com.village.bellevue.entity.EquipmentEntity;
@@ -13,8 +14,6 @@ import com.village.bellevue.entity.id.EquipmentId;
 import com.village.bellevue.error.AuthorizationException;
 import com.village.bellevue.repository.EquipmentRepository;
 import com.village.bellevue.service.EquipmentService;
-
-import jakarta.transaction.Transactional;
 
 @Service
 public class EquipmentServiceImpl implements EquipmentService {
@@ -26,7 +25,7 @@ public class EquipmentServiceImpl implements EquipmentService {
   }
 
   @Override
-  @Transactional
+  @Transactional(timeout = 30)
   public void equip(Long item) throws AuthorizationException {
     Optional<EquipmentEntity> equipment = equipmentRepository.findById(new EquipmentId(getAuthenticatedUserId(), new ItemEntity(item)));
     if (equipment.isPresent()) {
@@ -43,7 +42,7 @@ public class EquipmentServiceImpl implements EquipmentService {
   }
 
   @Override
-  @Transactional
+  @Transactional(timeout = 30)
   public void unequip(Long item) throws AuthorizationException {
     Optional<EquipmentEntity> equipment = equipmentRepository.findById(new EquipmentId(getAuthenticatedUserId(), new ItemEntity(item)));
     if (equipment.isPresent()) {
