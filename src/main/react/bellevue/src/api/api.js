@@ -186,6 +186,26 @@ export const updateLocation = (location, locationType, callback, error) => {
   }
 };
 
+export const getMyFriends = (callback, error, page = 0, size = 10) => {
+  api
+    .get(`/friend?page=${page}&size=${size}`)
+    .then((response) => {
+      const page = Page.fromJSON(response.data, Profile.profileMapper);
+      callback && callback(page);
+    })
+    .catch((err) => error(err));
+};
+
+export const getSuggestedFriends = (callback, error, page = 0, size = 10) => {
+  api
+    .get(`/friend/suggestions?page=${page}&size=${size}`)
+    .then((response) => {
+      const page = Page.fromJSON(response.data, Profile.profileMapper);
+      callback && callback(page);
+    })
+    .catch((err) => error(err));
+};
+
 export const getFriends = (friend, callback, error, page = 0, size = 10) => {
   api
     .get(`/friend/${friend}/friends?page=${page}&size=${size}`)

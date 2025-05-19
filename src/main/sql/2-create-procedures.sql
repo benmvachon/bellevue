@@ -156,7 +156,7 @@ CREATE PROCEDURE increment_friendship_score(
     IN p_friend INT UNSIGNED
 )
 BEGIN
-    UPDATE friend f SET f.score = (f.score + 1) WHERE f.user = p.user AND f.friend = p_friend AND f.status = 'ACCEPTED';
+    UPDATE friend f SET f.score = (f.score + 1) WHERE f.user = p_user AND f.friend = p_friend AND f.status = 'ACCEPTED';
 END;
 //
 DELIMITER ;

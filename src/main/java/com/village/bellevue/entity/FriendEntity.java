@@ -35,6 +35,8 @@ public class FriendEntity {
   @Column(nullable = false)
   private FriendshipStatus status = FriendshipStatus.PENDING_THEM;
 
+  private Long score = 0l;
+
   private Timestamp created = new Timestamp(System.currentTimeMillis());
   private Timestamp updated = new Timestamp(System.currentTimeMillis());
 

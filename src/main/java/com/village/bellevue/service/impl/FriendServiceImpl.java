@@ -40,6 +40,7 @@ import com.village.bellevue.event.AcceptanceEvent;
 import com.village.bellevue.event.RequestEvent;
 import com.village.bellevue.model.ProfileModel;
 import com.village.bellevue.model.ProfileModelProvider;
+import com.village.bellevue.model.SuggestedFriendModel;
 import com.village.bellevue.repository.FavoriteRepository;
 import com.village.bellevue.repository.ForumRepository;
 import com.village.bellevue.repository.FriendRepository;
@@ -199,6 +200,22 @@ public class FriendServiceImpl implements FriendService {
       return false;
     }
     return FriendEntity.FriendshipStatus.BLOCKED_YOU.equals(status.get());
+  }
+
+  @Override
+  public Page<ProfileModel> readAll(int page, int size) throws FriendshipException {
+    Page<FriendEntity> friendEntities = friendRepository.findFriends(getAuthenticatedUserId(), PageRequest.of(page, size));
+    return friendEntities.map(friendEntity -> {
+      return new ProfileModel(friendEntity.getFriend(), profileModelProvider);
+    });
+  }
+
+  @Override
+  public Page<ProfileModel> readSuggestions(int page, int size) throws FriendshipException {
+    Page<SuggestedFriendModel> friendModels = friendRepository.findSuggestedFriends(getAuthenticatedUserId(), PageRequest.of(page, size));
+    return friendModels.map(friendModel -> {
+      return new ProfileModel(friendModel.getFriend(), profileModelProvider);
+    });
   }
 
   @Override

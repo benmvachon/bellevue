@@ -51,6 +51,7 @@ public class MessageServiceImpl implements MessageService {
     if (messageEntity.getId() != null) {
       MessageEntity fullMessage = messageRepository.findById(messageEntity.getId())
         .orElseThrow(() -> new IllegalStateException("Message not found after save"));
+      friendRepository.incrementFriendshipScore(friend, getAuthenticatedUserId());
       publisher.publishEvent(new MessageEvent(getAuthenticatedUserId(), friend, fullMessage));
     }
   }

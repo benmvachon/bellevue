@@ -51,6 +51,34 @@ public class FriendController {
     }
   }
 
+  @GetMapping
+  public ResponseEntity<PagedModel<EntityModel<ProfileModel>>> read(
+    @RequestParam(defaultValue = "0") int page,
+    @RequestParam(defaultValue = "10") int size
+  ) {
+    try {
+      Page<ProfileModel> friends = friendService.readAll(page, size);
+      PagedModel<EntityModel<ProfileModel>> pagedModel = pagedAssembler.toModel(friends, profileModelAssembler);
+      return ResponseEntity.ok(pagedModel);
+    } catch (FriendshipException e) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    }
+  }
+
+  @GetMapping("/suggestions")
+  public ResponseEntity<PagedModel<EntityModel<ProfileModel>>> readSuggestions(
+    @RequestParam(defaultValue = "0") int page,
+    @RequestParam(defaultValue = "10") int size
+  ) {
+    try {
+      Page<ProfileModel> friends = friendService.readSuggestions(page, size);
+      PagedModel<EntityModel<ProfileModel>> pagedModel = pagedAssembler.toModel(friends, profileModelAssembler);
+      return ResponseEntity.ok(pagedModel);
+    } catch (FriendshipException e) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    }
+  }
+
   @GetMapping("/{user}/status")
   public ResponseEntity<String> readStatus(@PathVariable Long user) {
     if (getAuthenticatedUserId().equals(user)) return ResponseEntity.ok("YOU");
