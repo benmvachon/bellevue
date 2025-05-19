@@ -45,11 +45,11 @@ public interface ProfileRepository extends JpaRepository<ProfileEntity, Long> {
 
   @Modifying
   @Query("UPDATE ProfileEntity p SET p.location = :location, p.locationType = :locationType WHERE p.id = :user")
-  @Transactional(readOnly = true)
+  @Transactional
   int setLocation(Long user, Long location, LocationType locationType);
 
   @Modifying
   @Query("UPDATE ProfileEntity p SET p.blackboard = :blackboard WHERE p.id = :user")
-  @Transactional(readOnly = true)
+  @Transactional
   int setBlackboard(Long user, String blackboard);
 }

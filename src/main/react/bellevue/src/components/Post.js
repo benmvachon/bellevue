@@ -122,9 +122,11 @@ function Post({
           ) {
             getPost(post, (post) => {
               setReplies(
-                replies
-                  .concat([post])
-                  .sort((a, b) => a.popularity - b.popularity)
+                replies.concat([post]).sort((a, b) => {
+                  if (b.popularity !== a.popularity)
+                    return b.popularity - a.popularity;
+                  return b.id - a.id;
+                })
               );
             });
           }

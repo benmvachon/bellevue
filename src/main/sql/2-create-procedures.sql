@@ -151,6 +151,17 @@ END;
 DELIMITER ;
 
 DELIMITER //
+CREATE PROCEDURE increment_friendship_score(
+    IN p_user INT UNSIGNED,
+    IN p_friend INT UNSIGNED
+)
+BEGIN
+    UPDATE friend f SET f.score = (f.score + 1) WHERE f.user = p.user AND f.friend = p_friend AND f.status = 'ACCEPTED';
+END;
+//
+DELIMITER ;
+
+DELIMITER //
 CREATE PROCEDURE add_rating_to_aggregate(
     IN p_user INT UNSIGNED,
     IN p_post INT UNSIGNED,
@@ -1050,6 +1061,8 @@ BEGIN
         CALL add_popularity_to_parent(friend_id, o_post, 1);
     END LOOP;
     CLOSE friend_cursor;
+    SELECT p.user INTO friend_id FROM post p WHERE p.id = p_parent;
+    CALL increment_friendship_score(p_user, friend_id);
 END;
 //
 DELIMITER ;
@@ -1098,6 +1111,8 @@ BEGIN
         CLOSE friend_cursor;
         CALL add_rating_to_aggregate(p_user, p_post, rating_value);
         CALL add_popularity_to_parent(p_user, p_post, 1);
+        SELECT p.user INTO friend_id FROM post p WHERE p.id = p_post;
+        CALL increment_friendship_score(p_user, friend_id);
         INSERT INTO rating (user, post, rating) VALUES (p_user, p_post, p_rating);
     END IF;
 

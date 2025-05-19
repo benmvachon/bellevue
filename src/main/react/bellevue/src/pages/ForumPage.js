@@ -12,7 +12,8 @@ import {
   getPost,
   getPopularPosts,
   getRecentPosts,
-  onForumPopularityUpdate
+  onForumPopularityUpdate,
+  unsubscribeForumPopularity
 } from '../api/api.js';
 import Post from '../components/Post.js';
 import Header from '../components/Header.js';
@@ -105,13 +106,18 @@ function ForumPage() {
           ) {
             getPost(messagePost, (post) => {
               setPosts(
-                posts.concat([post]).sort((a, b) => a.popularity - b.popularity)
+                posts.concat([post]).sort((a, b) => {
+                  if (b.popularity !== a.popularity)
+                    return b.popularity - a.popularity;
+                  return b.id - a.id;
+                })
               );
             });
           }
         });
       return () => {
         unsubscribeForum(id);
+        unsubscribeForumPopularity(id);
       };
     }
   }, [id, sortByPopular, posts]);
