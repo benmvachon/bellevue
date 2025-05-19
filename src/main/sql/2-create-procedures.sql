@@ -54,70 +54,6 @@ END;
 DELIMITER ;
 
 DELIMITER //
-CREATE PROCEDURE calculate_popularity(
-    IN p_user INT UNSIGNED,
-    IN p_friend INT UNSIGNED,
-    IN p_post INT UNSIGNED,
-    OUT o_popularity INT UNSIGNED
-)
-BEGIN
-    DECLARE done INT DEFAULT FALSE;
-    DECLARE child INT UNSIGNED;
-    DECLARE popularity INT UNSIGNED;
-    DECLARE child_popularity INT UNSIGNED;
-    DECLARE is_friend BOOLEAN DEFAULT FALSE;
-    
-    DECLARE post_cursor CURSOR FOR
-        SELECT DISTINCT(p.id)
-        FROM post p
-        LEFT JOIN friend f ON p.user = f.friend AND f.user = p_user
-        WHERE p.parent = p_post AND (f.status = 'ACCEPTED' OR p.user = p_user);
-
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
-
-    SELECT EXISTS (
-        SELECT 1 FROM post p
-        LEFT JOIN friend f ON f.user = p_user AND f.friend = p.user
-        WHERE p.id = p_post AND (p.user = p_user OR f.status = 'ACCEPTED')
-    ) INTO is_friend;
-
-    IF is_friend THEN
-        SELECT a.popularity INTO popularity
-        FROM aggregate_rating a
-        WHERE a.user = p_user AND a.post = p_post;
-
-        IF popularity IS NULL THEN
-            SELECT COUNT(DISTINCT(r.user)) INTO popularity
-            FROM rating r
-            LEFT JOIN friend f ON f.user = p_user AND f.friend = r.user
-            WHERE r.post = p_post
-            AND (r.user = p_user OR f.status = 'ACCEPTED')
-            AND (r.user != p_friend);
-
-            SET done = FALSE;
-            OPEN post_cursor;
-            read_loop: LOOP
-                FETCH post_cursor INTO child;
-                IF done THEN
-                    LEAVE read_loop;
-                END IF;
-
-                IF child IS NOT NULL THEN
-                    SET child_popularity = 0;
-                    CALL calculate_popularity(p_user, p_friend, child, child_popularity);
-                    SET popularity = popularity + child_popularity + 1;
-                END IF;
-            END LOOP;
-            CLOSE post_cursor;
-        END IF;
-
-        SET o_popularity = popularity;
-    END IF;
-END;
-//
-DELIMITER ;
-
-DELIMITER //
 CREATE PROCEDURE add_popularity_to_parent(
     IN p_user INT UNSIGNED,
     IN p_post INT UNSIGNED,
@@ -136,6 +72,7 @@ BEGIN
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
 
     -- Use a temporary table to store all ancestor post IDs
+    DROP TEMPORARY TABLE IF EXISTS temp_visible_ancestors;
     CREATE TEMPORARY TABLE IF NOT EXISTS temp_visible_ancestors (
         ancestor INT UNSIGNED PRIMARY KEY
     ) ENGINE = MEMORY;
@@ -373,6 +310,49 @@ END;
 DELIMITER ;
 
 DELIMITER //
+CREATE PROCEDURE remove_child_posts(
+    IN p_user INT UNSIGNED,
+    IN p_friend INT UNSIGNED,
+    IN p_post INT UNSIGNED
+)
+BEGIN
+    DECLARE child INT UNSIGNED;
+    DECLARE popularity INT UNSIGNED;
+    DECLARE done INT DEFAULT FALSE;
+
+    DECLARE children CURSOR FOR
+        SELECT p.id FROM post p
+        LEFT JOIN friend f ON f.user = p_friend AND f.friend = p.user
+        WHERE p.parent = p_post
+        AND (f.status = 'ACCEPTED' OR p.user = p_friend)
+        AND p.user != p_user;
+
+    -- process children of p_post
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    SET done = FALSE;
+    OPEN children;
+    read_loop: LOOP
+        FETCH children INTO child;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+        IF child IS NOT NULL THEN
+            SELECT a.popularity INTO popularity FROM aggregate_rating a WHERE a.user = p_friend AND a.post = child;
+            IF popularity IS NOT NULL THEN
+                CALL remove_popularity_from_parent(p_friend, child, popularity);
+                CALL remove_child_posts(p_user, p_friend, child);
+                DELETE FROM aggregate_rating a WHERE a.user= p_friend AND a.post = child;
+            END IF;
+            SET done = FALSE;
+        END IF;
+    END LOOP;
+    CLOSE children;
+END;
+//
+DELIMITER ;
+
+DELIMITER //
 CREATE PROCEDURE accept_posts(
     IN p_user INT UNSIGNED,
     IN p_friend INT UNSIGNED
@@ -406,6 +386,43 @@ BEGIN
 
             CALL add_popularity_to_parent(p_friend, post, rating_count + 1);
             CALL accept_child_posts(p_user, p_friend, post);
+            SET done = FALSE;
+        END IF;
+    END LOOP;
+    CLOSE posts;
+END;
+//
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE remove_posts(
+    IN p_user INT UNSIGNED,
+    IN p_friend INT UNSIGNED
+)
+BEGIN
+    DECLARE post INT UNSIGNED;
+    DECLARE popularity INT UNSIGNED;
+    DECLARE done INT DEFAULT FALSE;
+
+    DECLARE posts CURSOR FOR SELECT id FROM post WHERE user = p_user;
+
+    -- Process posts by p_user
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    SET done = FALSE;
+    OPEN posts;
+    read_loop: LOOP
+        FETCH posts INTO post;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+        IF post IS NOT NULL THEN
+            SELECT a.popularity INTO popularity FROM aggregate_rating a WHERE a.user = p_friend AND a.post = post;
+            IF popularity IS NOT NULL THEN
+                CALL remove_popularity_from_parent(p_friend, post, popularity);
+                CALL remove_child_posts(p_user, p_friend, post);
+                DELETE FROM aggregate_rating a WHERE a.user= p_friend AND a.post = post;
+            END IF;
             SET done = FALSE;
         END IF;
     END LOOP;
@@ -456,12 +473,52 @@ END;
 DELIMITER ;
 
 DELIMITER //
+CREATE PROCEDURE remove_ratings(
+    IN p_user INT UNSIGNED,
+    IN p_friend INT UNSIGNED
+)
+BEGIN
+    DECLARE post INT UNSIGNED;
+    DECLARE rating DECIMAL(3,2);
+    DECLARE done INT DEFAULT FALSE;
+
+    DECLARE ratings CURSOR FOR
+    SELECT r.post, FIELD(r.rating, 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE') AS rating
+    FROM rating r
+    JOIN post p ON p.id = r.post
+    LEFT JOIN friend f ON f.user = p_friend AND f.friend = p.user AND f.status = 'ACCEPTED'
+    WHERE r.user = p_user
+    AND (p.user = p_friend OR f.user IS NOT NULL);
+
+    -- Process ratings by p_user which were visible to p_friend
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    SET done = FALSE;
+    OPEN ratings;
+    read_loop: LOOP
+        FETCH ratings INTO post, rating;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+        IF post IS NOT NULL THEN
+            IF rating IS NOT NULL THEN
+                CALL remove_rating_from_aggregate(p_friend, post, rating);
+                CALL remove_popularity_from_parent(p_friend, post, 1);
+                SET done = FALSE;
+            END IF;
+        END IF;
+    END LOOP;
+    CLOSE ratings;
+END;
+//
+DELIMITER ;
+
+DELIMITER //
 CREATE PROCEDURE accept_friend(
     IN p_user INT UNSIGNED,
     IN p_friend INT UNSIGNED
 )
 BEGIN
-
     -- Check if the friendship already exists with pending status
     IF EXISTS (
         SELECT 1 FROM friend WHERE user = p_user AND friend = p_friend AND status = 'PENDING_YOU'
@@ -504,87 +561,437 @@ END;
 DELIMITER ;
 
 DELIMITER //
+CREATE PROCEDURE delete_rating(
+    IN p_user INT UNSIGNED,
+    IN p_post INT UNSIGNED
+)
+BEGIN
+    DECLARE rating DECIMAL(3,2);
+    DECLARE author INT UNSIGNED;
+    DECLARE friend INT UNSIGNED;
+    DECLARE is_friend INT DEFAULT FALSE;
+    DECLARE done INT DEFAULT FALSE;
+
+    DECLARE friends CURSOR FOR
+        SELECT f.friend
+        FROM friend f
+        WHERE f.user = p_user
+        AND status = 'ACCEPTED';
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    SELECT FIELD(r.rating, 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE') INTO rating FROM rating r WHERE r.user = p_user AND r.post = p_post;
+    SELECT p.user INTO author FROM post p WHERE p.id = p_post;
+
+    SET done = FALSE;
+    OPEN friends;
+    read_loop: LOOP
+        FETCH friends INTO friend;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+        IF friend IS NOT NULL THEN
+            SELECT EXISTS (
+                SELECT 1 FROM friend f
+                WHERE f.user = friend AND f.friend = author AND f.status = 'ACCEPTED'
+            ) INTO is_friend;
+            IF is_friend THEN
+                CALL remove_rating_from_aggregate(friend, p_post, rating);
+                CALL remove_popularity_from_parent(friend, p_post, 1);
+                SET done = FALSE;
+            END IF;
+        END IF;
+    END LOOP;
+    CLOSE friends;
+
+    CALL remove_rating_from_aggregate(p_user, p_post, rating);
+    CALL remove_popularity_from_parent(p_user, p_post, 1);
+
+    DELETE FROM rating WHERE user = p_user AND post = p_post;
+END;
+//
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE delete_post(
+    IN p_post INT UNSIGNED
+)
+BEGIN
+    DECLARE user INT UNSIGNED;
+    DECLARE friend INT UNSIGNED;
+    DECLARE popularity INT UNSIGNED;
+    DECLARE is_friend INT DEFAULT FALSE;
+    DECLARE done INT DEFAULT FALSE;
+
+    DECLARE friends CURSOR FOR
+        SELECT f.friend
+        FROM friend f
+        WHERE f.user = user
+        AND status = 'ACCEPTED';
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    SELECT p.user INTO user FROM post p WHERE p.id = p_post;
+
+    SET done = FALSE;
+    OPEN friends;
+    read_loop: LOOP
+        FETCH friends INTO friend;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+        IF friend IS NOT NULL THEN
+            SELECT EXISTS (
+                SELECT 1 FROM friend f
+                WHERE f.user = friend AND f.friend = author AND f.status = 'ACCEPTED'
+            ) INTO is_friend;
+            IF is_friend THEN
+                SELECT a.popularity INTO popularity
+                    FROM aggregate_rating a
+                    WHERE a.user = friend AND a.post = p_post;
+                CALL remove_popularity_from_parent(friend, post, popularity + 1);
+                SET done = FALSE;
+            END IF;
+        END IF;
+    END LOOP;
+    CLOSE friends;
+
+    SELECT a.popularity INTO popularity
+        FROM aggregate_rating a
+        WHERE a.user = user AND a.post = p_post;
+    CALL remove_popularity_from_parent(user, post, popularity + 1);
+
+    DELETE FROM post WHERE id = p_post;
+END;
+//
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE delete_ratings(
+    IN p_user INT UNSIGNED,
+    IN p_friend INT UNSIGNED
+)
+BEGIN
+    DECLARE user INT UNSIGNED;
+    DECLARE post INT UNSIGNED;
+    DECLARE done INT DEFAULT FALSE;
+
+    DECLARE ratings CURSOR FOR
+        SELECT r.user, r.post
+        FROM rating r
+        JOIN post p ON p.id = r.post
+        WHERE r.user = p_user
+        AND p.user = p_friend;
+
+    -- Delete ratings by p_user on posts by p_friend
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    SET done = FALSE;
+    OPEN ratings;
+    read_loop: LOOP
+        FETCH ratings INTO user, post;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+        IF user IS NOT NULL THEN
+            IF post IS NOT NULL THEN
+                CALL delete_rating(user, post);
+                SET done = FALSE;
+            END IF;
+        END IF;
+    END LOOP;
+    CLOSE ratings;
+END;
+//
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE delete_replies(
+    IN p_user INT UNSIGNED,
+    IN p_friend INT UNSIGNED
+)
+BEGIN
+    DECLARE reply INT UNSIGNED;
+    DECLARE done INT DEFAULT FALSE;
+
+    DECLARE replies CURSOR FOR
+        SELECT r.id
+        FROM post r
+        JOIN post p ON p.id = r.parent
+        WHERE r.user = p_user
+        AND p.user = p_friend;
+
+    -- Delete replies by p_user on posts by p_friend
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    SET done = FALSE;
+    OPEN replies;
+    read_loop: LOOP
+        FETCH replies INTO reply;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+        IF reply IS NOT NULL THEN
+            CALL delete_post(reply);
+            SET done = FALSE;
+        END IF;
+    END LOOP;
+    CLOSE replies;
+END;
+//
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE delete_sub_replies(
+    IN p_user INT UNSIGNED,
+    IN p_friend INT UNSIGNED
+)
+BEGIN
+    DECLARE v_post_id INT UNSIGNED;
+    DECLARE done INT DEFAULT FALSE;
+
+    DECLARE post_cursor CURSOR FOR
+        SELECT id FROM posts_to_delete;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    -- Temporary table to hold post IDs to delete
+    DROP TEMPORARY TABLE IF EXISTS posts_to_delete;
+    CREATE TEMPORARY TABLE IF NOT EXISTS posts_to_delete (
+        id INT UNSIGNED PRIMARY KEY
+    );
+
+    -- Recursive CTE to find posts with an ancestor by p_friend
+    INSERT INTO posts_to_delete (id)
+    WITH RECURSIVE ancestors (post_id, parent_id, ancestor_author) AS (
+        -- Start with posts by p_user
+        SELECT p.id AS post_id, p.parent AS parent_id, CAST(NULL AS UNSIGNED) AS ancestor_author
+        FROM post p
+        WHERE p.user = p_user
+
+        UNION ALL
+
+        -- Traverse ancestors
+        SELECT a.post_id, p.parent AS parent_id, p.user AS ancestor_author
+        FROM ancestors a
+        JOIN post p ON p.id = a.parent_id
+    )
+    SELECT DISTINCT post_id
+    FROM ancestors
+    WHERE ancestor_author = p_friend;
+
+    OPEN post_cursor;
+
+    read_loop: LOOP
+        FETCH post_cursor INTO v_post_id;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+
+        -- Call your deletion logic
+        CALL delete_post(v_post_id);
+    END LOOP;
+
+    CLOSE post_cursor;
+
+    DROP TEMPORARY TABLE IF EXISTS posts_to_delete;
+END;
+//
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE delete_sub_ratings(
+    IN p_user INT UNSIGNED,
+    IN p_friend INT UNSIGNED
+)
+BEGIN
+    DECLARE v_rating_id INT UNSIGNED;
+    DECLARE v_post INT UNSIGNED;
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE rating_cursor CURSOR FOR SELECT post FROM ratings_to_delete;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    -- Temporary table to hold rating IDs to delete
+    DROP TEMPORARY TABLE IF EXISTS ratings_to_delete;
+    CREATE TEMPORARY TABLE IF NOT EXISTS ratings_to_delete (
+        post INT UNSIGNED PRIMARY KEY
+    );
+
+    INSERT INTO ratings_to_delete (post)
+    WITH RECURSIVE replies (id) AS (
+        SELECT p.id
+        FROM post p
+        WHERE p.user = p_friend
+        UNION ALL
+        SELECT c.id
+        FROM post c
+        JOIN replies r ON c.parent = r.id
+    )
+    SELECT r.post
+    FROM rating r
+    JOIN replies rp ON rp.id = r.post
+    WHERE r.user = p_user;
+
+    OPEN rating_cursor;
+
+    read_loop: LOOP
+        FETCH rating_cursor INTO v_post;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+        IF v_post IS NOT NULL THEN
+            CALL delete_rating(p_user, v_post);
+        END IF;
+    END LOOP;
+
+    CLOSE rating_cursor;
+    DROP TEMPORARY TABLE IF EXISTS ratings_to_delete;
+END;
+//
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE delete_posts_in_forums(
+    IN p_user INT UNSIGNED,
+    IN p_friend INT UNSIGNED
+)
+BEGIN
+    DECLARE v_post_id INT UNSIGNED;
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE post_cursor CURSOR FOR
+        SELECT id FROM posts_to_delete;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    -- Temporary table to hold post IDs to delete
+    CREATE TEMPORARY TABLE IF NOT EXISTS posts_to_delete (
+        id INT UNSIGNED PRIMARY KEY
+    );
+
+    -- Insert matching post IDs into the temp table
+    INSERT INTO posts_to_delete (id)
+    SELECT p.id
+    FROM post p
+    JOIN forum f ON p.forum = f.id
+    WHERE p.user = p_user
+      AND f.user = p_friend;
+
+    OPEN post_cursor;
+
+    read_loop: LOOP
+        FETCH post_cursor INTO v_post_id;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+
+        -- Call your post deletion procedure
+        CALL delete_post(v_post_id);
+    END LOOP;
+
+    CLOSE post_cursor;
+
+    -- Clean up
+    DROP TEMPORARY TABLE IF EXISTS posts_to_delete;
+END;
+//
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE delete_favorites(
+    IN p_user INT UNSIGNED,
+    IN p_friend INT UNSIGNED
+)
+BEGIN
+    -- Delete favorites of type 'PROFILE' pointing to p_friend
+    DELETE FROM favorite
+    WHERE user = p_user AND type = 'PROFILE' AND entity = p_friend;
+
+    -- Delete favorites of type 'FORUM' created by p_friend
+    DELETE FROM favorite
+    WHERE user = p_user AND type = 'FORUM'
+      AND entity IN (
+          SELECT id FROM forum WHERE user = p_friend
+      );
+
+    -- Delete favorites of type 'POST' that are:
+    -- (1) Posts authored by p_friend
+    -- (2) Or any descendant of such posts (replies at any depth)
+
+    -- Temporary table to collect post IDs to unfavorite
+    DROP TEMPORARY TABLE IF EXISTS posts_to_unfavorite;
+    CREATE TEMPORARY TABLE IF NOT EXISTS posts_to_unfavorite (
+        id INT UNSIGNED PRIMARY KEY
+    );
+
+    INSERT INTO posts_to_unfavorite (id)
+    WITH RECURSIVE replies (id) AS (
+        SELECT p.id
+        FROM post p
+        WHERE p.user = p_friend
+        UNION ALL
+        SELECT c.id
+        FROM post c
+        JOIN replies r ON c.parent = r.id
+    )
+    SELECT DISTINCT id FROM replies;
+
+    -- Delete POST-type favorites matching collected post IDs
+    DELETE FROM favorite
+    WHERE user = p_user AND type = 'POST'
+      AND entity IN (SELECT id FROM posts_to_unfavorite);
+
+    -- Clean up
+    DROP TEMPORARY TABLE IF EXISTS posts_to_unfavorite;
+END;
+//
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE delete_friendship(
+    IN p_user INT UNSIGNED,
+    IN p_friend INT UNSIGNED
+)
+BEGIN
+    -- Remove private content from the aggregate ratings for both users
+    CALL remove_ratings(p_user, p_friend);
+    CALL remove_ratings(p_friend, p_user);
+    CALL remove_posts(p_user, p_friend);
+    CALL remove_posts(p_friend, p_user);
+
+    -- Delete all mutual content from the database
+    CALL delete_replies(p_user, p_friend);
+    CALL delete_replies(p_friend, p_user);
+    CALL delete_ratings(p_user, p_friend);
+    CALL delete_ratings(p_friend, p_user);
+    CALL delete_sub_replies(p_user, p_friend);
+    CALL delete_sub_replies(p_friend, p_user);
+    CALL delete_sub_ratings(p_user, p_friend);
+    CALL delete_sub_ratings(p_friend, p_user);
+    CALL delete_posts_in_forums(p_user, p_friend);
+    CALL delete_posts_in_forums(p_friend, p_user);
+    CALL delete_favorites(p_user, p_friend);
+    CALL delete_favorites(p_friend, p_user);
+
+    DELETE FROM message WHERE (sender = p_user AND receiver = p_friend) OR (receiver = p_user AND sender = p_friend);
+    DELETE FROM notification WHERE (notifier = p_user AND notified = p_friend) OR (notified = p_user AND notifier = p_friend);
+END;
+//
+DELIMITER ;
+
+DELIMITER //
 CREATE PROCEDURE block_friend(
     IN p_user INT UNSIGNED,
     IN p_friend INT UNSIGNED
 )
 BEGIN
-    DECLARE rating_post INT UNSIGNED;
-    DECLARE rating_rating DECIMAL(3,2);
-    DECLARE post INT UNSIGNED;
-    DECLARE popularity INT UNSIGNED;
-    DECLARE done INT DEFAULT FALSE;
-    -- Declare the cursors and handlers at the start
-    DECLARE friend_rating_cursor CURSOR FOR 
-        SELECT post, FIELD(rating, 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE') AS rating FROM rating WHERE user = p_friend;
-    DECLARE user_rating_cursor CURSOR FOR 
-        SELECT post, FIELD(rating, 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE') AS rating FROM rating WHERE user = p_user;
-    DECLARE post_cursor CURSOR FOR SELECT id FROM post WHERE user = p_user;
-    DECLARE post_cursor_friend CURSOR FOR SELECT id FROM post WHERE user = p_friend;
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
     -- Check if the friendship already exists
     IF EXISTS (
         SELECT * FROM friend
         WHERE user = p_user AND friend = p_friend
     ) THEN
         -- Update the status to 'blocked'
-        UPDATE friend 
-        SET status = 'BLOCKED_THEM', updated = CURRENT_TIMESTAMP 
+        UPDATE friend
+        SET status = 'BLOCKED_THEM', updated = CURRENT_TIMESTAMP
         WHERE user = p_user AND friend = p_friend;
-        -- Process ratings usered by the friend
-        OPEN friend_rating_cursor;
-        read_loop: LOOP
-            FETCH friend_rating_cursor INTO rating_post, rating_rating;
-            IF done THEN
-                LEAVE read_loop;
-            END IF;
-            CALL remove_rating_from_aggregate(p_user, rating_post, rating_rating);
-            CALL remove_popularity_from_parent(p_user, rating_post);
-        END LOOP;
-        CLOSE friend_rating_cursor;
-        SET done = FALSE;
-        -- Process posts authored by p_user
-        OPEN post_cursor;
-        read_loop: LOOP
-            FETCH post_cursor INTO post;
-            IF done THEN
-                LEAVE read_loop;
-            END IF;
-            CALL calculate_popularity(p_friend, p_user, post, popularity);
-            IF popularity IS NOT NULL THEN
-                DELETE FROM aggregate_rating WHERE a.post = post AND a.user = p_friend;
-                CALL remove_popularity_from_parent(p_friend, post, popularity);
-            END IF;
-        END LOOP;
-        CLOSE post_cursor;
-        SET done = FALSE;
-        -- Process ratings usered by the user
-        OPEN user_rating_cursor;
-        read_loop: LOOP
-            FETCH user_rating_cursor INTO rating_post, rating_rating;
-            IF done THEN
-                LEAVE read_loop;
-            END IF;
-            CALL remove_rating_from_aggregate(p_friend, rating_post, rating_rating);
-            CALL remove_popularity_from_parent(p_friend, rating_post);
-        END LOOP;
-        SET done = FALSE;
-        -- Process posts authored by p_user
-        OPEN post_cursor_friend;
-        read_loop: LOOP
-            FETCH post_cursor_friend INTO post;
-            IF done THEN
-                LEAVE read_loop;
-            END IF;
-            CALL calculate_popularity(p_user, p_friend, post, popularity);
-            IF popularity IS NOT NULL THEN
-                DELETE FROM aggregate_rating WHERE a.post = post AND a.user = p_user;
-                CALL remove_popularity_from_parent(p_user, post, popularity);
-            END IF;
-        END LOOP;
-        CLOSE post_cursor_friend;
-        SET done = FALSE;
-        CLOSE user_rating_cursor;
+
+        CALL delete_friendship(p_user, p_friend);
     ELSE
         -- If the friendship does not exist, just insert a blocked entry
         INSERT INTO friend (user, friend, status)
@@ -604,65 +1011,16 @@ CREATE PROCEDURE remove_friend(
     IN p_friend INT UNSIGNED
 )
 BEGIN
-    -- Remove ratings from the aggregate for both users
-    DECLARE done INT DEFAULT FALSE;
-    DECLARE rating_post INT UNSIGNED;
-    DECLARE rating_rating DECIMAL(3,2);
-    DECLARE post INT UNSIGNED;
-    DECLARE popularity INT UNSIGNED;
-    -- Cursor for ratings usered by p_user
-    DECLARE rating_cursor CURSOR FOR 
-        SELECT post, FIELD(rating, 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE') AS rating FROM rating WHERE user = p_user;
-    -- Cursor for ratings usered by p_friend
-    DECLARE rating_cursor_friend CURSOR FOR 
-        SELECT post, FIELD(rating, 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE') AS rating FROM rating WHERE user = p_friend;
-    DECLARE post_cursor CURSOR FOR SELECT id FROM post WHERE user = p_user;
-    DECLARE post_cursor_friend CURSOR FOR SELECT id FROM post WHERE user = p_friend;
-    -- Handler to exit the loop
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
-    -- Process ratings usered by p_user
-    OPEN rating_cursor;
-    read_loop: LOOP
-        FETCH rating_cursor INTO rating_post, rating_rating;
-        IF done THEN
-            LEAVE read_loop;
-        END IF;
-        CALL remove_rating_from_aggregate(p_friend, rating_post, rating_rating);
-        CALL remove_popularity_from_parent(p_user, rating_post);
-    END LOOP;
-    CLOSE rating_cursor;
-    -- Reset done flag for the second cursor
-    SET done = FALSE;
-    -- Process posts authored by p_user
-    OPEN post_cursor;
-    read_loop: LOOP
-        FETCH post_cursor INTO post;
-        IF done THEN
-            LEAVE read_loop;
-        END IF;
-        CALL calculate_popularity(p_friend, p_user, post, popularity);
-        IF popularity IS NOT NULL THEN
-            UPDATE aggregate_rating a SET a.popularity = popularity WHERE a.post = post AND a.user = p_friend;
-            CALL remove_popularity_from_parent(p_friend, post, popularity);
-        END IF;
-    END LOOP;
-    CLOSE post_cursor;
-    SET done = FALSE;
-    -- Process ratings authored by p_friend
-    -- Process ratings usered by p_friend
-    OPEN rating_cursor_friend;
-    read_loop_friend: LOOP
-        FETCH rating_cursor_friend INTO rating_post, rating_rating;
-        IF done THEN
-            LEAVE read_loop_friend;
-        END IF;
-        CALL remove_rating_from_aggregate(p_user, rating_post, rating_rating);
-        CALL remove_popularity_from_parent(p_user, rating_post);
-    END LOOP;
-    CLOSE rating_cursor_friend;
-    -- Finally, remove the friendship record and its reciprocal record
-    DELETE FROM friend WHERE user = p_user AND friend = p_friend;
-    DELETE FROM friend WHERE user = p_friend AND friend = p_user;
+    IF EXISTS (
+        SELECT * FROM friend
+        WHERE user = p_user AND friend = p_friend
+    ) THEN
+        -- Remove ratings from the aggregate for both users
+        CALL delete_friendship(p_user, p_friend);
+        -- Finally, remove the friendship record and its reciprocal record
+        DELETE FROM friend WHERE user = p_user AND friend = p_friend;
+        DELETE FROM friend WHERE user = p_friend AND friend = p_user;
+    END IF;
 END;
 //
 DELIMITER ;
@@ -682,14 +1040,14 @@ BEGIN
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
     INSERT INTO post (user, parent, forum, content) VALUES (p_user, p_parent, p_forum, p_content);
     SET o_post = LAST_INSERT_ID();
-    call add_popularity_to_parent(p_user, o_post, 1);
+    CALL add_popularity_to_parent(p_user, o_post, 1);
     OPEN friend_cursor;
     read_loop: LOOP
         FETCH friend_cursor INTO friend_id;
         IF done THEN
             LEAVE read_loop;
         END IF;
-        call add_popularity_to_parent(friend_id, o_post, 1);
+        CALL add_popularity_to_parent(friend_id, o_post, 1);
     END LOOP;
     CLOSE friend_cursor;
 END;
@@ -711,7 +1069,7 @@ BEGIN
     DECLARE friend_cursor CURSOR FOR SELECT friend FROM friend WHERE user = p_user AND status = 'ACCEPTED';
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
     SET rating_value = FIELD(p_rating, 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE');
-    SELECT rating INTO existing_rating FROM rating WHERE user = p_user AND post = p_post;
+    SELECT r.rating INTO existing_rating FROM rating r WHERE r.user = p_user AND r.post = p_post;
     SET done = false;
 
     IF existing_rating IS NOT NULL THEN
@@ -748,45 +1106,57 @@ END;
 DELIMITER ;
 
 DELIMITER //
-CREATE PROCEDURE delete_rating(
-    IN p_user INT UNSIGNED,
-    IN p_post INT UNSIGNED
+CREATE PROCEDURE delete_all_favorites(
+    IN p_user INT UNSIGNED
 )
 BEGIN
-    DECLARE done INT DEFAULT FALSE;
-    DECLARE friend_id INT UNSIGNED;
-    DECLARE old_rating DECIMAL(3, 2);
-    DECLARE friend_cursor CURSOR FOR
-        SELECT friend FROM friend WHERE user = p_user AND status = 'ACCEPTED';
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
-    SELECT FIELD(rating, 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE') INTO old_rating FROM rating WHERE user = p_user AND post = p_post;
-    DELETE FROM rating WHERE user = p_user AND post = p_post;
-    SET done = false;
-    OPEN friend_cursor;
-    read_loop: LOOP
-        FETCH friend_cursor INTO friend_id;
-        IF done THEN
-            LEAVE read_loop;
-        END IF;
-        CALL remove_rating_from_aggregate(friend_id, p_post, old_rating);
-        CALL remove_popularity_from_parent(p_user, rating_post);
-    END LOOP;
-    CLOSE friend_cursor;
-    CALL remove_rating_from_aggregate(p_user, p_post, old_rating);
-    CALL remove_popularity_from_parent(p_user, rating_post);
+    -- Delete favorites of type 'PROFILE' pointing to p_user
+    DELETE FROM favorite WHERE type = 'PROFILE' AND entity = p_user;
+
+    -- Delete favorites of type 'FORUM' created by p_user
+    DELETE FROM favorite WHERE type = 'FORUM' AND entity IN (SELECT id FROM forum WHERE user = p_user);
+
+    -- Temporary table to collect post IDs to unfavorite
+    DROP TEMPORARY TABLE IF EXISTS posts_to_unfavorite;
+    CREATE TEMPORARY TABLE IF NOT EXISTS posts_to_unfavorite (
+        id INT UNSIGNED PRIMARY KEY
+    );
+
+    INSERT INTO posts_to_unfavorite (id)
+    WITH RECURSIVE replies (id) AS (
+        SELECT p.id
+        FROM post p
+        WHERE p.user = p_user
+        UNION ALL
+        SELECT c.id
+        FROM post c
+        JOIN replies r ON c.parent = r.id
+    )
+    SELECT DISTINCT id FROM replies;
+
+    -- Delete POST-type favorites matching collected post IDs
+    DELETE FROM favorite WHERE type = 'POST' AND entity IN (SELECT id FROM posts_to_unfavorite);
+
+    -- Clean up
+    DROP TEMPORARY TABLE IF EXISTS posts_to_unfavorite;
 END;
 //
 DELIMITER ;
 
 DELIMITER //
 CREATE PROCEDURE delete_user(
-    IN p_user_id INT UNSIGNED
+    IN p_user INT UNSIGNED
 )
 BEGIN
     DECLARE done INT DEFAULT FALSE;
     DECLARE post_id INT UNSIGNED;
-    DECLARE rating_cursor CURSOR FOR SELECT post FROM rating WHERE user = p_user_id;
+    DECLARE rating_cursor CURSOR FOR SELECT r.post FROM rating r WHERE r.user = p_user;
+    DECLARE reply_cursor CURSOR FOR SELECT p.id FROM post p WHERE p.user = p_user AND p.parent IS NOT NULL;
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    CALL delete_all_favorites(p_user);
+
+    SET done = FALSE;
     OPEN rating_cursor;
     rating_loop: LOOP
         FETCH rating_cursor INTO post_id;
@@ -794,10 +1164,22 @@ BEGIN
             LEAVE rating_loop;
         END IF;
 
-        CALL delete_rating(p_user_id, post_id);
+        CALL delete_rating(p_user, post_id);
     END LOOP;
     CLOSE rating_cursor;
-    DELETE FROM user WHERE id = p_user_id;
+
+    SET done = FALSE;
+    OPEN reply_cursor;
+    reply_loop: LOOP
+        FETCH reply_cursor INTO post_id;
+        IF done THEN
+            LEAVE reply_loop;
+        END IF;
+
+        CALL delete_post(post_id);
+    END LOOP;
+    CLOSE reply_cursor;
+    DELETE FROM user WHERE id = p_user;
 END;
 //
 DELIMITER ;
