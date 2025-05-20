@@ -2,6 +2,9 @@ package com.village.bellevue.config;
 
 import java.io.IOException;
 import java.util.Objects;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -16,6 +19,7 @@ import static com.village.bellevue.config.security.SecurityConfig.getAuthenticat
 
 @Component
 public class ActivityTrackerFilter extends OncePerRequestFilter {
+  private static final Logger log = LoggerFactory.getLogger(ActivityTrackerFilter.class);
   private final ActivityService activityService;
 
   public ActivityTrackerFilter(ActivityService activityService) {
@@ -29,7 +33,8 @@ public class ActivityTrackerFilter extends OncePerRequestFilter {
     FilterChain filterChain
   ) throws ServletException, IOException {
     Long user = getAuthenticatedUserId();
-    if (Objects.nonNull(user)) activityService.updateLastSeen(getAuthenticatedUserId());
+    log.debug("Updating last seen for user: " + user);
+    if (Objects.nonNull(user)) activityService.updateLastSeen(user);
     filterChain.doFilter(request, response);
   }
 }

@@ -123,7 +123,7 @@ CREATE TABLE message(
     sender          INT UNSIGNED NOT NULL,                                                                      -- ID of the user who sent the message
     receiver        INT UNSIGNED NOT NULL,                                                                      -- ID of the user to whom the message was sent
     message         TEXT NOT NULL,                                                                              -- Text content of the message
-    `read`          BOOLEAN NOT NULL DEFAULT 0,                                                                 -- Flag indicating whether the message has been read or not
+    `read`          BOOLEAN NOT NULL DEFAULT FALSE,                                                             -- Flag indicating whether the message has been read or not
     created         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,                                                        -- Timestamp for when the aggregate was last updated
     PRIMARY KEY     (id),                                                                                       -- Make the ID the primary key
     FOREIGN KEY     (sender) REFERENCES user(id) ON DELETE CASCADE,                                             -- sender is a reference to the user table

@@ -1,6 +1,7 @@
 package com.village.bellevue.config.security;
 
 import java.io.IOException;
+import java.util.Objects;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
@@ -10,6 +11,7 @@ import com.village.bellevue.service.ActivityService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 @Component
 public class LogoutSuccessHandlerImpl implements LogoutSuccessHandler {
@@ -26,6 +28,9 @@ public class LogoutSuccessHandlerImpl implements LogoutSuccessHandler {
       throws IOException {
 
     if (authentication != null) {
+      HttpSession session = request.getSession(false);
+      if (Objects.nonNull(session)) session.invalidate();
+      request.getSession(true);
       Long userId = ((UserDetailsImpl) authentication.getPrincipal()).getId();
       activityService.markUserOffline(userId);
     }

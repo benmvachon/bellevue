@@ -8,6 +8,12 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.village.bellevue.assembler.ProfileModelAssembler;
+import com.village.bellevue.config.security.UserDetailsImpl;
 import com.village.bellevue.config.security.UserDetailsServiceImpl;
 import com.village.bellevue.entity.UserEntity;
 import com.village.bellevue.entity.ProfileEntity.LocationType;
@@ -26,6 +33,10 @@ import com.village.bellevue.error.AuthorizationException;
 import com.village.bellevue.error.FriendshipException;
 import com.village.bellevue.model.ProfileModel;
 import com.village.bellevue.service.UserProfileService;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 
 @RestController
@@ -36,17 +47,59 @@ public class UserController {
   private final UserProfileService profileService;
   private final ProfileModelAssembler profileModelAssembler;
   private final PagedResourcesAssembler<ProfileModel> pagedAssembler;
+  private final AuthenticationManager authManager;
 
   public UserController(
     UserDetailsServiceImpl userService,
     UserProfileService profileService,
     ProfileModelAssembler profileModelAssembler,
-    PagedResourcesAssembler<ProfileModel> pagedAssembler
+    PagedResourcesAssembler<ProfileModel> pagedAssembler,
+    AuthenticationManager authManager
   ) {
     this.userService = userService;
     this.profileService = profileService;
     this.profileModelAssembler = profileModelAssembler;
     this.pagedAssembler = pagedAssembler;
+    this.authManager = authManager;
+  }
+
+  @PostMapping("/login")
+  public ResponseEntity<String> login(
+    @RequestBody UserEntity loginRequest,
+    HttpServletRequest request,
+    HttpServletResponse response
+  ) {
+    try {
+      // Invalidate old session if present
+      HttpSession oldSession = request.getSession(false);
+      if (oldSession != null) {
+        oldSession.invalidate(); // Required to force a new session ID
+      }
+
+      // Manually authenticate using the AuthenticationManager
+      UsernamePasswordAuthenticationToken token =
+          new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword());
+      Authentication authResult = authManager.authenticate(token);
+
+      // Set the authenticated user in the security context
+      SecurityContextHolder.getContext().setAuthentication(authResult);
+
+      // Create a new session and store the context there
+      HttpSession newSession = request.getSession(true); // Force creation of a new session
+      newSession.setAttribute(
+          HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+          SecurityContextHolder.getContext()
+      );
+
+      // Return user ID or any other response
+      Long userId = ((UserDetailsImpl) authResult.getPrincipal()).getId();
+      return ResponseEntity.ok(userId.toString());
+
+    } catch (BadCredentialsException e) {
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Login failed");
+    }
   }
 
   @PostMapping("/signup")

@@ -61,7 +61,7 @@ function ProfilePage() {
       )
         getProfile(id, setProfile, setError);
     });
-    onFriendshipStatusUpdate(id, getProfile(id, setProfile, setError));
+    onFriendshipStatusUpdate(id, () => getProfile(id, setProfile, setError));
     return () => {
       unsubscribeProfile(id);
       unsubscribeFriendshipStatus(id);

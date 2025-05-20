@@ -111,17 +111,7 @@ export const unsubscribe = (destination) => {
 };
 
 export const login = (username, password, callback, error) => {
-  const formData = new URLSearchParams();
-  formData.append('username', username);
-  formData.append('password', password);
-  api
-    .post('/user/login', formData, {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      }
-    })
-    .then(callback)
-    .catch(error);
+  api.post('/user/login', { username, password }).then(callback).catch(error);
 };
 
 export const logout = (callback, error) => {

@@ -5,7 +5,9 @@ import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import static org.springframework.security.config.Customizer.withDefaults;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.GlobalAuthenticationConfigurerAdapter;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -23,6 +25,7 @@ import jakarta.servlet.http.HttpServletResponse;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig extends GlobalAuthenticationConfigurerAdapter {
+  private static final Logger log = LoggerFactory.getLogger(SecurityConfig.class);
 
   @Autowired private UserDetailsServiceImpl userDetailsService;
   @Autowired PasswordEncoder passwordEncoder;
@@ -48,14 +51,7 @@ public class SecurityConfig extends GlobalAuthenticationConfigurerAdapter {
                     .permitAll()
                     .anyRequest()
                     .authenticated())
-        .formLogin(
-            form ->
-                form.loginPage("/login")
-                    .loginProcessingUrl("/api/user/login")
-                    .successHandler(authenticationSuccessHandler)
-                    .failureHandler(customAuthenticationFailureHandler())
-                    // .defaultSuccessUrl("/", true)
-                    .permitAll())
+        .formLogin(form -> form.disable())
         .sessionManagement(
             session ->
                 session
@@ -68,8 +64,7 @@ public class SecurityConfig extends GlobalAuthenticationConfigurerAdapter {
                     .logoutUrl("/api/user/logout")
                     .logoutSuccessUrl("/login?logout=true")
                     .logoutSuccessHandler(logoutSuccessHandler)
-                    .permitAll())
-        .httpBasic(withDefaults());
+                    .permitAll());
     return http.build();
   }
 
@@ -107,6 +102,7 @@ public class SecurityConfig extends GlobalAuthenticationConfigurerAdapter {
         && authentication.isAuthenticated()
         && !"anonymousUser".equals(authentication.getPrincipal())) {
       UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+      log.debug("Request from user: " + userDetails.getId());
       return userDetails.getId();
     }
     return null;
