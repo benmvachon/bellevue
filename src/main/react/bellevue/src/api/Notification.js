@@ -5,8 +5,7 @@ class Notification {
     this.id = id;
     this.notifier = notifier ? Profile.fromJSON(notifier) : undefined;
     this.notified = notified;
-    this.typeName = type?.name;
-    this.typeId = type?.typeId;
+    this.type = type;
     this.entity = entity;
     this.read = read;
     this.created = created ? new Date(created) : undefined;
@@ -42,7 +41,7 @@ class Notification {
       id: this.id,
       notifier: this.notifier ? this.notifier.toJSON() : null,
       notified: this.notified,
-      type: { name: this.typeName, id: this.typeId },
+      type: this.type,
       entity: this.entity,
       read: this.read,
       created: this.created?.toString()

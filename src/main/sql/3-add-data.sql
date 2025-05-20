@@ -35,13 +35,3 @@ INSERT INTO forum (name, category) VALUES
 ('Off-Topic Chat', 'Community & Social'),               -- id 19
 ('Local & Regional Discussions', 'Community & Social'), -- id 20
 ('Events & Meetups', 'Community & Social');             -- id 21
-
-INSERT INTO notification_type (name) VALUES
-('forum'),      -- id 1
-('post'),       -- id 2
-('reply'),      -- id 3
-('rating'),     -- id 4
-('request'),    -- id 5
-('acceptance'), -- id 6
-('message'),    -- id 7
-('equipment');  -- id 8

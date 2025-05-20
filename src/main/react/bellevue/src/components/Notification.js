@@ -24,23 +24,23 @@ function Notification({ notification, onClose, openMessages }) {
   };
 
   const notificationClick = () => {
-    switch (stateNotification.typeName) {
-      case 'reply':
-      case 'rating':
+    switch (stateNotification.type) {
+      case 'REPLY':
+      case 'RATING':
         navigate(`/post/${stateNotification.entity}`);
         break;
-      case 'request':
-      case 'acceptance':
+      case 'REQUEST':
+      case 'ACCEPTANCE':
         navigate(`/profile/${stateNotification.entity}`);
         break;
-      case 'message':
+      case 'MESSAGE':
         openMessages(stateNotification.entity);
         break;
-      case 'equipment':
+      case 'EQUIPMENT':
         navigate(`/profile/${stateNotification.notified}`);
         break;
       default:
-        navigate(`/${stateNotification.typeName}/${stateNotification.entity}`);
+        navigate(`/${stateNotification.type}/${stateNotification.entity}`);
         break;
     }
     onClose();
@@ -68,7 +68,7 @@ function Notification({ notification, onClose, openMessages }) {
   return (
     <div className="notification">
       <button onClick={profileClick}>{stateNotification.notifier.name}</button>
-      <button onClick={notificationClick}>{stateNotification.typeName}</button>
+      <button onClick={notificationClick}>{stateNotification.type}</button>
       {!stateNotification.read && (
         <button onClick={markAsRead}>Mark as read</button>
       )}

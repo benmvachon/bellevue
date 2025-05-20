@@ -2,9 +2,10 @@ package com.village.bellevue.entity;
 
 import java.sql.Timestamp;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonValue;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -35,9 +36,8 @@ public class NotificationEntity {
   @Column(nullable = false)
   private Long notified;
 
-  @ManyToOne(cascade = CascadeType.MERGE)
-  @JoinColumn(name = "type")
-  private NotificationTypeEntity type;
+  @Column(nullable = false)
+  private NotificationType type = NotificationType.OTHER;
 
   private Long entity;
 
@@ -45,4 +45,30 @@ public class NotificationEntity {
   private boolean read = false;
 
   private Timestamp created = new Timestamp(System.currentTimeMillis());
+
+  public enum NotificationType {
+    FORUM,
+    POST,
+    REPLY,
+    RATING,
+    REQUEST,
+    ACCEPTANCE,
+    MESSAGE,
+    EQUIPMENT,
+    OTHER;
+
+    @JsonValue
+    public String toValue() {
+      return this.name().toUpperCase();
+    }
+
+    @JsonCreator
+    public static NotificationType fromString(String value) {
+      return NotificationType.valueOf(value.toUpperCase());
+    }
+
+    public boolean equals(String value) {
+      return this.equals(fromString(value));
+    }
+  }
 }

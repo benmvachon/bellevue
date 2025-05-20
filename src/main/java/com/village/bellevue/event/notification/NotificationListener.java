@@ -10,8 +10,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.village.bellevue.entity.NotificationEntity;
-import com.village.bellevue.entity.NotificationTypeEntity;
 import com.village.bellevue.entity.UserProfileEntity;
+import com.village.bellevue.entity.NotificationEntity.NotificationType;
 import com.village.bellevue.event.AcceptanceEvent;
 import com.village.bellevue.event.EquipmentEvent;
 import com.village.bellevue.event.ForumEvent;
@@ -25,7 +25,6 @@ import com.village.bellevue.model.ForumModel;
 import com.village.bellevue.model.PostModel;
 import com.village.bellevue.repository.FriendRepository;
 import com.village.bellevue.repository.NotificationRepository;
-import com.village.bellevue.repository.NotificationTypeRepository;
 import com.village.bellevue.repository.UserProfileRepository;
 
 @Component
@@ -33,20 +32,17 @@ public class NotificationListener {
   private final NotificationRepository notificationRepository;
   private final FriendRepository friendRepository;
   private final UserProfileRepository userProfileRepository;
-  private final NotificationTypeRepository notificationTypeRepository;
   private final SimpMessagingTemplate messagingTemplate;
 
   public NotificationListener(
     NotificationRepository notificationRepository,
     FriendRepository friendRepository,
     UserProfileRepository userProfileRepository,
-    NotificationTypeRepository notificationTypeRepository,
     SimpMessagingTemplate messagingTemplate
   ) {
     this.notificationRepository = notificationRepository;
     this.friendRepository = friendRepository;
     this.userProfileRepository = userProfileRepository;
-    this.notificationTypeRepository = notificationTypeRepository;
     this.messagingTemplate = messagingTemplate;
   }
 
@@ -56,7 +52,7 @@ public class NotificationListener {
     Long user = event.getUser();
     ForumModel forum = event.getForum();
     if (forum != null) {
-      notifyFriends(user, 1l, forum.getId());
+      notifyFriends(user, NotificationType.FORUM, forum.getId());
     }
   }
 
@@ -70,15 +66,15 @@ public class NotificationListener {
         PostModel parent = post.getParent();
         while (parent != null) {
           if (user.equals(parent.getUser().getId())) continue;
-          notifyFriend(user, parent.getUser().getId(), 3l, post.getId());
+          notifyFriend(user, parent.getUser().getId(), NotificationType.REPLY, post.getId());
           parent = parent.getParent();
         }
       } else if (post.getForum().getUser() == null) {
-        notifyFriends(user, 2l, post.getId());
+        notifyFriends(user, NotificationType.POST, post.getId());
       } else {
-        notifyMutualFriends(user, post.getForum().getUser().getId(), 2l, post.getId());
+        notifyMutualFriends(user, post.getForum().getUser().getId(), NotificationType.POST, post.getId());
         if (user.equals(post.getForum().getUser().getId())) return;
-        notifyFriend(user, post.getForum().getUser().getId(), 2l, post.getId());
+        notifyFriend(user, post.getForum().getUser().getId(), NotificationType.POST, post.getId());
       }
     }
   }
@@ -90,7 +86,7 @@ public class NotificationListener {
     Long post = event.getPost();
     Long postAuthor = event.getPostAuthor();
     if (user.equals(postAuthor)) return;
-    notifyFriend(user, postAuthor, 4l, post);
+    notifyFriend(user, postAuthor, NotificationType.RATING, post);
   }
 
   @Async
@@ -98,7 +94,7 @@ public class NotificationListener {
   public void handleRequestEvent(RequestEvent event) {
     Long user = event.getUser();
     Long friend = event.getFriend();
-    notifyFriend(user, friend, 5l, user);
+    notifyFriend(user, friend, NotificationType.REQUEST, user);
   }
 
   @Async
@@ -106,7 +102,7 @@ public class NotificationListener {
   public void handleAcceptanceEvent(AcceptanceEvent event) {
     Long user = event.getUser();
     Long friend = event.getFriend();
-    notifyFriend(user, friend, 6l, user);
+    notifyFriend(user, friend, NotificationType.ACCEPTANCE, user);
   }
 
   @Async
@@ -114,7 +110,7 @@ public class NotificationListener {
   public void handleMessageEvent(MessageEvent event) {
     Long user = event.getUser();
     Long friend = event.getFriend();
-    notifyFriend(user, friend, 7l, user);
+    notifyFriend(user, friend, NotificationType.MESSAGE, user);
   }
 
   @Async
@@ -122,7 +118,7 @@ public class NotificationListener {
   public void handleEquipmentEvent(EquipmentEvent event) {
     Long user = event.getUser();
     Long item = event.getEquipment().getItem().getId();
-    notifyFriend(user, user, 8l, item);
+    notifyFriend(user, user, NotificationType.EQUIPMENT, item);
   }
 
   @Async
@@ -144,7 +140,7 @@ public class NotificationListener {
 
   @Async
   @Transactional(value = "asyncTransactionManager", timeout = 300)
-  public void notifyFriends(Long user, Long type, Long entity) {
+  public void notifyFriends(Long user, NotificationType type, Long entity) {
     List<Long> friends = friendRepository.findFriends(user);
     for (Long friend : friends) {
       notifyFriend(user, friend, type, entity);
@@ -153,7 +149,7 @@ public class NotificationListener {
 
   @Async
   @Transactional(value = "asyncTransactionManager", timeout = 300)
-  public void notifyMutualFriends(Long user, Long friend, Long type, Long entity) {
+  public void notifyMutualFriends(Long user, Long friend, NotificationType type, Long entity) {
     List<Long> friends = friendRepository.findMutualFriends(user, friend);
     for (Long mutual : friends) {
       notifyFriend(user, mutual, type, entity);
@@ -163,14 +159,13 @@ public class NotificationListener {
   @Async
   @Transactional(value = "asyncTransactionManager", timeout = 300)
   @Modifying
-  private void notifyFriend(Long user, Long friend, Long type, Long entity) {
+  private void notifyFriend(Long user, Long friend, NotificationType type, Long entity) {
     UserProfileEntity notifier = userProfileRepository.findById(user).orElseThrow(() -> new IllegalStateException("Not found"));
-    NotificationTypeEntity notificationType = notificationTypeRepository.findById(type).orElseThrow(() -> new IllegalStateException("Not found"));
 
     NotificationEntity notification = new NotificationEntity();
     notification.setNotifier(notifier);
     notification.setNotified(friend);
-    notification.setType(notificationType);
+    notification.setType(type);
     notification.setEntity(entity);
     notification.setRead(false);
     notification = notificationRepository.save(notification);
