@@ -15,8 +15,6 @@ import lombok.NoArgsConstructor;
 public class ForumModel {
 
   private Long id;
-
-  private String category;
   private String name;
 
   private ProfileModel user;
@@ -29,7 +27,6 @@ public class ForumModel {
       throw new AuthorizationException("Not authorized");
     }
     this.id = forum.getId();
-    this.category = forum.getCategory();
     this.name = forum.getName();
     this.user = helper.getProfile(forum.getUser()).orElse(null);
     this.created = forum.getCreated();

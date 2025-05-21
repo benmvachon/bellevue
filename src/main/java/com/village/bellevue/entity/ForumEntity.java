@@ -33,16 +33,12 @@ public class ForumEntity {
   @Column(nullable = false, unique = true)
   private String name;
 
-  @Column(nullable = false)
-  private String category;
-
   private Timestamp created = new Timestamp(System.currentTimeMillis());
 
   public ForumEntity(ForumModel model) {
     this.id = model.getId();
     this.user = Objects.nonNull(model.getUser()) ? model.getUser().getId() : null;
     this.name = model.getName();
-    this.category = model.getCategory();
     this.created = model.getCreated();
   }
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import withAuth from '../utils/withAuth.js';
 import {
   getForum,
@@ -21,7 +21,6 @@ import Attendees from '../components/Attendees.js';
 import ScrollLoader from '../components/ScrollLoader.js';
 
 function ForumPage() {
-  const navigate = useNavigate();
   const { id } = useParams();
   const [forum, setForum] = useState(null);
   const [sortByPopular, setSortByPopular] = useState(false);
@@ -144,9 +143,6 @@ function ForumPage() {
     <div className="page forum-page">
       <Header />
       <h2>{forum?.name}</h2>
-      <button onClick={() => navigate(`/category/${forum?.category}`)}>
-        {forum?.category}
-      </button>
       {forum.favorite ? (
         <button onClick={unfavorite}>Unfavorite</button>
       ) : (

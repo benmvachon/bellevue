@@ -13,10 +13,6 @@ public interface ForumService {
   public ForumModel create(ForumEntity forum) throws AuthorizationException;
 
   public Optional<ForumModel> read(Long id) throws AuthorizationException;
-  
-  public Page<String> readAllCategories(int page, int size);
-
-  public Page<ForumModel> readAllByCategory(String category, int page, int size);
 
   public Page<ForumModel> readAll(int page, int size);
 

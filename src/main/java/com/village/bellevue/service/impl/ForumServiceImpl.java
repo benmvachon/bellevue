@@ -103,23 +103,6 @@ public class ForumServiceImpl implements ForumService {
   }
 
   @Override
-  public Page<String> readAllCategories(int page, int size){
-    return forumRepository.findAllCategories(getAuthenticatedUserId(), PageRequest.of(page, size));
-  }
-
-  @Override
-  public Page<ForumModel> readAllByCategory(String category, int page, int size) {
-    Page<ForumEntity> forums = forumRepository.findAllByCategory(getAuthenticatedUserId(), category, PageRequest.of(page, size));
-    return forums.map(forum -> {
-      try {
-        return new ForumModel(forum, forumModelProvider);
-      } catch (AuthorizationException e) {
-        return null;
-      }
-    });
-  }
-
-  @Override
   public Page<ForumModel> readAll(int page, int size) {
     Page<ForumEntity> forums = forumRepository.findAll(getAuthenticatedUserId(), PageRequest.of(page, size));
     return forums.map(forum -> {

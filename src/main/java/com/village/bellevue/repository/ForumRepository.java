@@ -22,23 +22,6 @@ public interface ForumRepository extends JpaRepository<ForumEntity, Long> {
   Page<ForumEntity> findAll(@Param("user") Long user, Pageable pageable);
 
   @Query(
-    "SELECT DISTINCT f1 FROM ForumEntity f1 " +
-    "LEFT JOIN FriendEntity f2 ON f1.user = f2.friend.id AND f2.status = 'accepted' AND f2.user = :user " +
-    "WHERE (f1.user IS NULL OR f1.user = :user OR f2.id IS NOT NULL) " +
-    "AND f1.category = :category"
-  )
-  @Transactional(readOnly = true)
-  Page<ForumEntity> findAllByCategory(@Param("user") Long user, @Param("category") String category, Pageable pageable);
-
-  @Query(
-    "SELECT DISTINCT f1.category FROM ForumEntity f1 " +
-    "LEFT JOIN FriendEntity f2 ON f1.user = f2.friend.id AND f2.status = 'accepted' AND f2.user = :user " +
-    "WHERE f1.user IS NULL OR f1.user = :user OR f2.id IS NOT NULL"
-  )
-  @Transactional(readOnly = true)
-  Page<String> findAllCategories(@Param("user") Long user, Pageable pageable);
-
-  @Query(
     "SELECT CASE WHEN COUNT(f1) > 0 THEN true ELSE false END " +
     "FROM ForumEntity f1 " +
     "LEFT JOIN FriendEntity f2 ON f1.user = f2.friend.id AND f2.status = 'accepted' AND f2.user = :user " +

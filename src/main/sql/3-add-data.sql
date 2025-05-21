@@ -8,30 +8,35 @@ INSERT INTO item (name, slot, starter, unlockable) VALUES
 ('white_hat', 'hat', true, false),
 ('brown_hat', 'hat', true, false);
 
-INSERT INTO forum (name, category) VALUES
-('Announcements', 'General'),                           -- id 1
-('Introductions & Welcome', 'General'),                 -- id 2
-('General Discussion', 'General'),                      -- id 3
-('Feedback & Suggestions', 'General'),                  -- id 4
-
-('Software Development', 'Technology'),                 -- id 5
-
-('Video Games', 'Gaming'),                              -- id 6
-('Board Games', 'Gaming'),                              -- id 7
-('Esports & Competitive Gaming', 'Gaming'),             -- id 8
-
-('Movies', 'Entertainment'),                            -- id 9
-('Television', 'Entertainment'),                        -- id 10
-('Music', 'Entertainment'),                             -- id 11
-('Podcasts', 'Entertainment'),                          -- id 12
-('Literature', 'Entertainment'),                        -- id 13
-
-('Travel', 'Lifestyle'),                                -- id 14
-('Food & Cooking', 'Lifestyle'),                        -- id 15
-('Restaurants & Bars', 'Lifestyle'),                    -- id 16
-('Fitness & Health', 'Lifestyle'),                      -- id 17
-('DIY & Home Improvement', 'Lifestyle'),                -- id 18
-
-('Off-Topic Chat', 'Community & Social'),               -- id 19
-('Local & Regional Discussions', 'Community & Social'), -- id 20
-('Events & Meetups', 'Community & Social');             -- id 21
+INSERT INTO forum (name) VALUES
+('Town Hall'),         -- id 1  (General)
+('News Station'),      -- id 2  (News Articles / Current Events)
+('Event Space'),       -- id 3  (Event Planning)
+('Airport'),           -- id 4  (Travel)
+('Culinary Center'),   -- id 5  (Food / Cooking)
+('Book Store'),        -- id 6  (Literature)
+('Museum'),            -- id 7  (History / Art / Culture)
+('Movie Theater'),     -- id 8  (Movies)
+('Television Studio'), -- id 9  (TV)
+('Concert Hall'),      -- id 10 (Music)
+('Video Game Store'),  -- id 11 (Video Games)
+('Board Game Store'),  -- id 12 (Board Games)
+('Garden'),            -- id 13 (Gardening / Sustainability)
+('Gym'),               -- id 14 (Exercise)
+('Liquor Store'),      -- id 15 (Beer / Wine / Spirits)
+('Workshop'),          -- id 16 (DIY / Crafts / Trades)
+('Garage'),            -- id 17 (Cars / Mechanics / Repairs)
+('Laboratory'),        -- id 18 (Science / Research)
+('Hacker Den'),        -- id 19 (Software / Development)
+('Court House'),       -- id 20 (Law / Government / Bureaucracy)
+('Hospital'),          -- id 21 (Health / Wellness / Medicine)
+('Police Station'),    -- id 22 (Crime / Justice / Security)
+('Playground'),        -- id 23 (Parenting / Kids / Activities)
+('School'),            -- id 24 (Parenting / Youth / Education)
+('University'),        -- id 25 (Academics / Higher Education)
+('Temple'),            -- id 26 (Religion / Spirituality)
+('Train Station'),     -- id 27 (Public Transport / Commuting)
+('Office'),            -- id 28 (Work / Employment)
+('Park'),              -- id 29 (General / Random)
+('Recycling Center'),  -- id 30 (Environment / Conservation)
+('Shelter');           -- id 31 (Social Services / Support)

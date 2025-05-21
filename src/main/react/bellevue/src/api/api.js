@@ -2,7 +2,6 @@ import axios from 'axios';
 import Page from './Page.js';
 import User from './User.js';
 import Profile from './Profile.js';
-import Category from './Category.js';
 import Forum from './Forum.js';
 import Post from './Post.js';
 import Notification from './Notification.js';
@@ -242,19 +241,9 @@ export const unsubscribeFriendshipStatus = (profile) => {
   unsubscribe(`/user/topic/friendshipStatus/${profile}`);
 };
 
-export const getCategories = (callback, error, page = 0) => {
+export const getForums = (callback, error, page = 0) => {
   api
-    .get(`/forum/category?page=${page}`)
-    .then((response) => {
-      const page = Page.fromJSON(response.data, Category.categoryMapper);
-      callback && callback(page);
-    })
-    .catch((err) => error(err));
-};
-
-export const getForums = (category, callback, error, page = 0) => {
-  api
-    .get(`/forum/category/${category}?page=${page}`)
+    .get(`/forum?page=${page}`)
     .then((response) => {
       const page = Page.fromJSON(response.data, Forum.forumMapper);
       callback && callback(page);

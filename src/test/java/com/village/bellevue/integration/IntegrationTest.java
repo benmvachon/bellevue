@@ -67,7 +67,6 @@ public class IntegrationTest extends IntegrationTestWrapper {
     3L,
     null,
     "Test Forum",
-    "General",
     new Timestamp(System.currentTimeMillis())
   );
   // this forum will be added and then deleted
@@ -169,13 +168,11 @@ public class IntegrationTest extends IntegrationTestWrapper {
     ForumModel createdForum = createForum(forum, false);
     assertThat(createdForum).isNotNull();
     assertThat(createdForum.getUser().getId()).isEqualTo(newUser.getId());
-    assertThat(createdForum.getCategory()).isEqualTo(forum.getCategory());
     assertThat(createdForum.getName()).isEqualTo(forum.getName());
 
     ForumModel retrievedForum = readForum(createdForum.getId(), false);
     assertThat(retrievedForum).isNotNull();
     assertThat(retrievedForum.getUser().getId()).isEqualTo(newUser.getId());
-    assertThat(retrievedForum.getCategory()).isEqualTo(forum.getCategory());
     assertThat(retrievedForum.getName()).isEqualTo(forum.getName());
 
     logout();

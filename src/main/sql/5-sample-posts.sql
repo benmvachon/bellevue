@@ -1,15 +1,15 @@
 -- Original posts
 INSERT INTO post (user, forum, content) VALUES
   (1, 1, 'Hey everyone!'),
-  (3, 2, 'Everyone welcome Michael Smith!'),
-  (5, 5, 'Anyone excited about the new Spring release?'),
-  (6, 9, 'Just watched Dune Part 2—what a ride!'),
-  (8, 15, 'I just made the best lasagna last night.'),
-  (9, 6, 'Any favorite indie games you recommend?'),
-  (12, 17, 'Trying to build a home workout routine.'),
-  (14, 13, 'Currently obsessed with Brandon Sanderson.'),
-  (15, 20, 'Anyone here from the Seattle area?'),
-  (19, 21, 'We’re planning a community BBQ next month!');
+  (3, 1, 'Everyone welcome Michael Smith!'),
+  (5, 19, 'Anyone excited about the new Spring release?'),
+  (6, 8, 'Just watched Dune Part 2—what a ride!'),
+  (8, 5, 'I just made the best lasagna last night.'),
+  (9, 11, 'Any favorite indie games you recommend?'),
+  (12, 14, 'Trying to build a home workout routine.'),
+  (14, 6, 'Currently obsessed with Brandon Sanderson.'),
+  (15, 4, 'Anyone here from the Seattle area?'),
+  (19, 3, 'We’re planning a community BBQ next month!');
 CALL add_or_update_rating(1, 1, 'five');
 CALL add_or_update_rating(3, 2, 'five');
 CALL add_or_update_rating(5, 3, 'five');
@@ -25,15 +25,15 @@ SET @p_output_post = 0;
 -- Replies to existing posts
 CALL add_reply(2, 1, 1, 'hey', @p_output_post);
 CALL add_reply(7, 11, 1, 'will you two get a room?', @p_output_post);
-CALL add_reply(4, 2, 2, 'Thanks, welcome to be here!', @p_output_post);
-CALL add_reply(7, 3, 5, 'Yes! Spring Boot 3.3 is looking slick.', @p_output_post);
-CALL add_reply(10, 4, 9, 'Dune was mind-blowing, totally agree.', @p_output_post);
-CALL add_reply(11, 5, 15, 'Got a recipe to share?', @p_output_post);
-CALL add_reply(13, 6, 6, 'Try Hollow Knight if you haven’t already!', @p_output_post);
-CALL add_reply(16, 7, 17, 'Start simple: push-ups, planks, squats.', @p_output_post);
-CALL add_reply(19, 8, 13, 'Mistborn trilogy is amazing.', @p_output_post);
-CALL add_reply(17, 9, 20, 'Seattle here! Fremont is beautiful in spring.', @p_output_post);
-CALL add_reply(20, 10, 21, 'Count me in! Let me know what to bring.', @p_output_post);
+CALL add_reply(4, 2, 1, 'Thanks, welcome to be here!', @p_output_post);
+CALL add_reply(7, 3, 19, 'Yes! Spring Boot 3.3 is looking slick.', @p_output_post);
+CALL add_reply(10, 4, 8, 'Dune was mind-blowing, totally agree.', @p_output_post);
+CALL add_reply(11, 5, 5, 'Got a recipe to share?', @p_output_post);
+CALL add_reply(13, 6, 11, 'Try Hollow Knight if you haven’t already!', @p_output_post);
+CALL add_reply(16, 7, 14, 'Start simple: push-ups, planks, squats.', @p_output_post);
+CALL add_reply(19, 8, 6, 'Mistborn trilogy is amazing.', @p_output_post);
+CALL add_reply(17, 9, 4, 'Seattle here! Fremont is beautiful in spring.', @p_output_post);
+CALL add_reply(20, 10, 3, 'Count me in! Let me know what to bring.', @p_output_post);
 CALL add_or_update_rating(2, 11, 'five');
 CALL add_or_update_rating(7, 12, 'five');
 CALL add_or_update_rating(4, 13, 'five');

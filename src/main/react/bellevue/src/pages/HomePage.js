@@ -1,34 +1,30 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import withAuth from '../utils/withAuth.js';
-import {
-  getCategories,
-  getMyFriends,
-  getSuggestedFriends
-} from '../api/api.js';
+import { getForums, getMyFriends, getSuggestedFriends } from '../api/api.js';
 import Header from '../components/Header.js';
 import Page from '../components/Page.js';
 
 function HomePage() {
   const navigate = useNavigate();
-  const [categories, setCategories] = useState([]);
+  const [forums, setForums] = useState([]);
   const [myFriends, setMyFriends] = useState([]);
   const [suggestedFriends, setSuggestedFriends] = useState([]);
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    getCategories(setCategories, setError);
+    getForums(setForums, setError);
     getMyFriends(setMyFriends, setError);
     getSuggestedFriends(setSuggestedFriends, setError);
-  }, [setCategories]);
+  }, [setForums]);
 
-  const loadCategoryPage = (page) => {
-    getCategories(setCategories, setError, page);
+  const loadForumPage = (page) => {
+    getForums(setForums, setError, page);
   };
 
-  const categoryClick = (event) => {
+  const forumClick = (event) => {
     event.preventDefault();
-    navigate(`/category/${event.target.value}`);
+    navigate(`/forum/${event.target.value}`);
   };
 
   const loadMyFriendPage = (page) => {
@@ -49,18 +45,18 @@ function HomePage() {
   return (
     <div className="page home-page">
       <Header />
-      <h2>Categories</h2>
+      <h2>Forums</h2>
       <div>
         <Page
-          page={categories}
-          renderItem={(category) => (
-            <div key={`category-${category.name}`}>
-              <button value={category.name} onClick={categoryClick}>
-                {category.name}
+          page={forums}
+          renderItem={(forum) => (
+            <div key={`forum-${forum.name}`}>
+              <button value={forum.id} onClick={forumClick}>
+                {forum.name}
               </button>
             </div>
           )}
-          loadPage={loadCategoryPage}
+          loadPage={loadForumPage}
         />
       </div>
       <h2>Friends</h2>

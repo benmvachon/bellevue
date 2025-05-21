@@ -20,14 +20,12 @@ CREATE TABLE avatar(
 CREATE TABLE forum(
     id              INT UNSIGNED NOT NULL AUTO_INCREMENT,                                                       -- Unique ID for the record
     name            VARCHAR(255) NOT NULL UNIQUE,                                                               -- Name of the forum
-    category        VARCHAR(255),                                                                               -- Category of the forum
     user            INT UNSIGNED,                                                                               -- Forum's creator (if this is a custom forum)
     created         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,                                                        -- Timestamp for when the account was created
     PRIMARY KEY     (id),                                                                                       -- Make the ID the primary key
     FOREIGN KEY     (user) REFERENCES user(id) ON DELETE CASCADE,                                               -- user is a reference to the user table
     INDEX           (name),                                                                                     -- Index on the name for fast look-up
-    INDEX           (user),                                                                                     -- Index on the user for fast look-up
-    INDEX           (category)                                                                                  -- Index on the category for fast look-up
+    INDEX           (user)                                                                                      -- Index on the user for fast look-up
 );
 CREATE TABLE profile(
     user            INT UNSIGNED NOT NULL UNIQUE,                                                               -- ID of the user
@@ -44,7 +42,7 @@ CREATE TABLE profile(
 );
 CREATE TABLE item(
     id              INT UNSIGNED NOT NULL AUTO_INCREMENT,                                                       -- Unique ID for the record
-    name            VARCHAR(255) NOT NULL UNIQUE,                                                                      -- Name of the item
+    name            VARCHAR(255) NOT NULL UNIQUE,                                                               -- Name of the item
     slot            VARCHAR(255) NOT NULL,                                                                      -- Where the item is equipped (avatar, hat, mask, shirt, glow, etc)
     starter         BOOLEAN NOT NULL DEFAULT 0,                                                                 -- Flag indicating starter-item status
     unlockable      BOOLEAN NOT NULL DEFAULT 1,                                                                 -- Flag indicating unlockable status
