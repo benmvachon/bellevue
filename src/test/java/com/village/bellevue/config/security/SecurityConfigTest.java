@@ -49,7 +49,6 @@ class SecurityConfigTest {
     verify(http).formLogin(any());
     verify(http).sessionManagement(any());
     verify(http).logout(any());
-    verify(http).httpBasic(any());
   }
 
   @Test

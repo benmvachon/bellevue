@@ -26,8 +26,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.village.bellevue.entity.ForumEntity;
@@ -209,12 +207,10 @@ public class IntegrationTest extends IntegrationTestWrapper {
   private synchronized void login(String user) {
     logger.info("logging in as: " + user);
     String loginUrl = "http://localhost:" + port + "/api/user/login";
-    MultiValueMap<String, String> loginParams = new LinkedMultiValueMap<>();
-    loginParams.add("username", user);
-    loginParams.add("password", user);
+    UserEntity loginBody = new UserEntity(null, null, user, user, null, false, null, null);
 
     ResponseEntity<String> loginResponse =
-        restTemplate.postForEntity(loginUrl, loginParams, String.class);
+        restTemplate.postForEntity(loginUrl, loginBody, String.class);
 
     assertThat(loginResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
     HttpHeaders headers = loginResponse.getHeaders();
