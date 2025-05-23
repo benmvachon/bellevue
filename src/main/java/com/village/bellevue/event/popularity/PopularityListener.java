@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.village.bellevue.entity.AggregateRatingEntity;
 import com.village.bellevue.entity.id.AggregateRatingId;
-import com.village.bellevue.event.PopularityEvent;
+import com.village.bellevue.event.type.PopularityEvent;
 import com.village.bellevue.model.PopularityMessageModel;
 import com.village.bellevue.repository.AggregateRatingRepository;
 import com.village.bellevue.repository.FriendRepository;

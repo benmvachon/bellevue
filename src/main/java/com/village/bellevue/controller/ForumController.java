@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -62,6 +63,16 @@ public class ForumController {
     return ResponseEntity.status(HttpStatus.OK).body(pagedModel);
   }
 
+  @GetMapping("/unread")
+  public ResponseEntity<PagedModel<EntityModel<ForumModel>>> readUnread(
+    @RequestParam(defaultValue = "0") int page,
+    @RequestParam(defaultValue = "10") int size
+  ) {
+    Page<ForumModel> forums = forumService.readAllWithUnreadPosts(page, size);
+    PagedModel<EntityModel<ForumModel>> pagedModel = pagedForumAssembler.toModel(forums, forumModelAssembler);
+    return ResponseEntity.status(HttpStatus.OK).body(pagedModel);
+  }
+
   @GetMapping("/{id}")
   public ResponseEntity<EntityModel<ForumModel>> read(@PathVariable Long id) {
     try {
@@ -69,6 +80,26 @@ public class ForumController {
       return forum
         .map(forumEntity -> ResponseEntity.ok(forumModelAssembler.toModel(forumEntity)))
         .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    } catch (AuthorizationException e) {
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+  }
+
+  @PutMapping("/{forum}/notify")
+  public ResponseEntity<Void> turnOnNotifications(@PathVariable Long forum) {
+    try {
+      if (forumService.turnOnNotifications(forum)) return ResponseEntity.status(HttpStatus.OK).build();
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    } catch (AuthorizationException e) {
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+  }
+
+  @PutMapping("/{forum}/mute")
+  public ResponseEntity<Void> turnOffNotifications(@PathVariable Long forum) {
+    try {
+      if (forumService.turnOffNotifications(forum)) return ResponseEntity.status(HttpStatus.OK).build();
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     } catch (AuthorizationException e) {
       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }

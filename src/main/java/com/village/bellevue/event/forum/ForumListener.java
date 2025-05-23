@@ -7,7 +7,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import com.village.bellevue.event.PostEvent;
+import com.village.bellevue.event.type.PostEvent;
 
 @Component
 public class ForumListener {

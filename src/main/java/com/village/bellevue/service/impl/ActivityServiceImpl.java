@@ -10,7 +10,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.village.bellevue.event.StatusEvent;
+import com.village.bellevue.event.type.StatusEvent;
 import com.village.bellevue.repository.ProfileRepository;
 import com.village.bellevue.service.ActivityService;
 

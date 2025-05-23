@@ -1,7 +1,6 @@
 package com.village.bellevue.service.impl;
 
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,10 +11,10 @@ import java.util.List;
 
 import com.village.bellevue.entity.MessageEntity;
 import com.village.bellevue.error.AuthorizationException;
-import com.village.bellevue.event.MessageEvent;
-import com.village.bellevue.event.MessageReadEvent;
-import com.village.bellevue.event.ThreadReadEvent;
-import com.village.bellevue.event.ThreadsReadEvent;
+import com.village.bellevue.event.type.MessageEvent;
+import com.village.bellevue.event.type.MessageReadEvent;
+import com.village.bellevue.event.type.ThreadReadEvent;
+import com.village.bellevue.event.type.ThreadsReadEvent;
 import com.village.bellevue.repository.FriendRepository;
 import com.village.bellevue.repository.MessageRepository;
 import com.village.bellevue.repository.UserProfileRepository;
@@ -93,8 +92,7 @@ public class MessageServiceImpl implements MessageService {
   }
 
   @Override
-  @Async
-  @Transactional(value = "asyncTransactionManager", timeout = 300)
+  @Transactional(timeout = 30)
   public void markAllAsRead() {
     try {
       messageRepository.markAllAsRead(getAuthenticatedUserId());
@@ -104,8 +102,7 @@ public class MessageServiceImpl implements MessageService {
   }
 
   @Override
-  @Async
-  @Transactional(value = "asyncTransactionManager", timeout = 300)
+  @Transactional(timeout = 30)
   public void markThreadAsRead(Long friend) {
     try {
       messageRepository.markThreadAsRead(getAuthenticatedUserId(), friend);
@@ -115,8 +112,7 @@ public class MessageServiceImpl implements MessageService {
   }
 
   @Override
-  @Async
-  @Transactional(value = "asyncTransactionManager", timeout = 300)
+  @Transactional(timeout = 30)
   public void markAsRead(Long friend, Long id) {
     try {
       messageRepository.markAsRead(getAuthenticatedUserId(), id);

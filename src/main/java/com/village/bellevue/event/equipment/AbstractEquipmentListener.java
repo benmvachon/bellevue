@@ -5,15 +5,15 @@ import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.scheduling.annotation.Async;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.village.bellevue.entity.EquipmentEntity;
 import com.village.bellevue.entity.ItemEntity;
 import com.village.bellevue.entity.id.EquipmentId;
 import com.village.bellevue.error.EquipmentException;
-import com.village.bellevue.event.EquipmentEvent;
-import com.village.bellevue.event.UserEvent;
+import com.village.bellevue.event.type.EquipmentEvent;
+import com.village.bellevue.event.type.UserEvent;
 import com.village.bellevue.repository.EquipmentRepository;
 import com.village.bellevue.repository.ItemRepository;
 
@@ -55,16 +55,14 @@ public abstract class AbstractEquipmentListener<T extends UserEvent> {
     return event.getUser();
   }
 
-  @Async
   @Transactional(value = "asyncTransactionManager", timeout = 300)
-  public void handleEvent(T event) throws EquipmentException {
+  protected void handleEvent(T event) throws EquipmentException {
     if (!(event instanceof T)) return;
     if (equipmentRepository.existsById(new EquipmentId(getUser(event), itemRepository.getReferenceById(getItem())))) return;
     if (isEventRelevant(event) && shouldUnlock(event)) unlock(event);
   }
 
-  @Async
-  @Transactional(value = "asyncTransactionManager", timeout = 300)
+  @Modifying
   protected void unlock(T event) throws EquipmentException {
     Long user = getUser(event);
     ItemEntity item = itemRepository.findById(getItem()).orElseThrow(() -> new EquipmentException("Failed to find item to unlock for user"));

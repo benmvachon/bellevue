@@ -5,11 +5,11 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import com.village.bellevue.event.AcceptanceEvent;
-import com.village.bellevue.event.BlackboardEvent;
-import com.village.bellevue.event.LocationEvent;
-import com.village.bellevue.event.RequestEvent;
-import com.village.bellevue.event.StatusEvent;
+import com.village.bellevue.event.type.AcceptanceEvent;
+import com.village.bellevue.event.type.BlackboardEvent;
+import com.village.bellevue.event.type.LocationEvent;
+import com.village.bellevue.event.type.RequestEvent;
+import com.village.bellevue.event.type.StatusEvent;
 
 @Component
 public class ProfileListener {

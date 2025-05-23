@@ -13,7 +13,8 @@ import {
   getRecentReplies,
   getPopularReplies,
   unsubscribePostPopularity,
-  onPostPopularityUpdate
+  onPostPopularityUpdate,
+  markPostRead
 } from '../api/api.js';
 import Rating from './Rating.js';
 import ScrollLoader from './ScrollLoader.js';
@@ -150,6 +151,12 @@ function Post({
   useEffect(() => {
     setSortByPopular(sortByPopularParent);
   }, [sortByPopularParent]);
+
+  useEffect(() => {
+    if (!post.read) {
+      markPostRead(post.id);
+    }
+  }, [post.id, post.read]);
 
   if (error) return JSON.stringify(error);
   if (!post) return;

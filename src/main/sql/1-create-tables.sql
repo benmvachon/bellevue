@@ -27,6 +27,16 @@ CREATE TABLE forum(
     INDEX           (name),                                                                                     -- Index on the name for fast look-up
     INDEX           (user)                                                                                      -- Index on the user for fast look-up
 );
+CREATE TABLE notification_setting(
+    user            INT UNSIGNED NOT NULL,                                                                      -- User to whom the setting applies
+    forum           INT UNSIGNED NOT NULL,                                                                      -- Forum to which the setting applies
+    notify          BOOLEAN NOT NULL DEFAULT 0,                                                                 -- Flag indicating whether or not to notify the user
+    PRIMARY KEY     (user, forum),                                                                              -- Composite primary key to ensure unique settings
+    FOREIGN KEY     (user) REFERENCES user(id) ON DELETE CASCADE,                                               -- user is a reference to the user table
+    FOREIGN KEY     (forum) REFERENCES forum(id) ON DELETE CASCADE,                                             -- forum is a reference to the forum table
+    INDEX           (user),                                                                                     -- Index on the user for fast look-up
+    INDEX           (forum)                                                                                     -- Index on the forum for fast look-up
+);
 CREATE TABLE profile(
     user            INT UNSIGNED NOT NULL UNIQUE,                                                               -- ID of the user
     status          ENUM('OFFLINE', 'ACTIVE', 'IDLE', 'OTHER') NOT NULL DEFAULT 'OFFLINE',                      -- Indication of what the user is currently doing
@@ -110,6 +120,7 @@ CREATE TABLE aggregate_rating(
     rating_count    INT UNSIGNED,                                                                               -- The number of ratings which were used to calculate the aggregate
     popularity      INT UNSIGNED,                                                                               -- The number of ratings plus the popularity value of all child posts
     updated         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,                                                        -- Timestamp for when the aggregate was last updated
+    `read`          BOOLEAN NOT NULL DEFAULT FALSE,                                                             -- Flag indicating whether the post has been read or not
     PRIMARY KEY     (user, post),                                                                               -- The primary key is a combination of the two foreign keys
     FOREIGN KEY     (user) REFERENCES user(id) ON DELETE CASCADE,                                               -- user is a reference to the user table
     FOREIGN KEY     (post) REFERENCES post(id) ON DELETE CASCADE,                                               -- post is a reference to the post table

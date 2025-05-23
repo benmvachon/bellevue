@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.village.bellevue.entity.ProfileEntity.LocationType;
-import com.village.bellevue.event.LocationEvent;
+import com.village.bellevue.event.type.LocationEvent;
 import com.village.bellevue.repository.UserProfileRepository;
 
 @Component

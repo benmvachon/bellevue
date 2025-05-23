@@ -36,5 +36,11 @@ public interface PostService {
 
   public boolean delete(Long id) throws AuthorizationException;
 
+  public boolean markAsRead(Long id) throws AuthorizationException;
+
+  public boolean markForumAsRead(Long id) throws AuthorizationException;
+
+  public boolean markAllAsRead();
+
   public boolean canRead(Long id);
 }

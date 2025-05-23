@@ -126,7 +126,7 @@ export const getProfile = (friend, callback, error) => {
   api
     .get(`/user/${friend}`)
     .then((response) => callback && callback(Profile.fromJSON(response.data)))
-    .catch((err) => error(err));
+    .catch(error);
 };
 
 export const getFriendshipStatus = (friend, callback, error) => {
@@ -158,7 +158,7 @@ export const updateBlackboard = (blackboard, callback, error) => {
       headers: { 'Content-Type': 'text/plain' }
     })
     .then(callback)
-    .catch((err) => error(err));
+    .catch(error);
 };
 
 export const updateLocation = (location, locationType, callback, error) => {
@@ -166,12 +166,9 @@ export const updateLocation = (location, locationType, callback, error) => {
     api
       .put(`/user/location/${locationType}/${location}`)
       .then(callback)
-      .catch((err) => error(err));
+      .catch(error);
   } else {
-    api
-      .put('/user/location')
-      .then(callback)
-      .catch((err) => error(err));
+    api.put('/user/location').then(callback).catch(error);
   }
 };
 
@@ -182,7 +179,7 @@ export const getMyFriends = (callback, error, page = 0, size = 10) => {
       const page = Page.fromJSON(response.data, Profile.profileMapper);
       callback && callback(page);
     })
-    .catch((err) => error(err));
+    .catch(error);
 };
 
 export const getSuggestedFriends = (callback, error, page = 0, size = 10) => {
@@ -192,7 +189,7 @@ export const getSuggestedFriends = (callback, error, page = 0, size = 10) => {
       const page = Page.fromJSON(response.data, Profile.profileMapper);
       callback && callback(page);
     })
-    .catch((err) => error(err));
+    .catch(error);
 };
 
 export const getFriends = (friend, callback, error, page = 0, size = 10) => {
@@ -202,7 +199,7 @@ export const getFriends = (friend, callback, error, page = 0, size = 10) => {
       const page = Page.fromJSON(response.data, Profile.profileMapper);
       callback && callback(page);
     })
-    .catch((err) => error(err));
+    .catch(error);
 };
 
 export const getFriendsInLocation = (callback, error, page = 0, size = 10) => {
@@ -212,7 +209,7 @@ export const getFriendsInLocation = (callback, error, page = 0, size = 10) => {
       const page = Page.fromJSON(response.data, Profile.profileMapper);
       callback && callback(page);
     })
-    .catch((err) => error(err));
+    .catch(error);
 };
 
 export const getOthersInLocation = (callback, error, page = 0) => {
@@ -222,10 +219,10 @@ export const getOthersInLocation = (callback, error, page = 0) => {
       const page = Page.fromJSON(response.data, Profile.profileMapper);
       callback && callback(page);
     })
-    .catch((err) => error(err));
+    .catch(error);
 };
 
-export const onProfileUpdate = async (profile, onProfileUpdate) => {
+export const onProfileUpdate = (profile, onProfileUpdate) => {
   subscribe(`/topic/profile/${profile}`, onProfileUpdate);
 };
 
@@ -233,7 +230,7 @@ export const unsubscribeProfile = (profile) => {
   unsubscribe(`/topic/profile/${profile}`);
 };
 
-export const onFriendshipStatusUpdate = async (profile, onProfileUpdate) => {
+export const onFriendshipStatusUpdate = (profile, onProfileUpdate) => {
   subscribe(`/user/topic/friendshipStatus/${profile}`, onProfileUpdate);
 };
 
@@ -241,31 +238,38 @@ export const unsubscribeFriendshipStatus = (profile) => {
   unsubscribe(`/user/topic/friendshipStatus/${profile}`);
 };
 
-export const getForums = (callback, error, page = 0) => {
+export const getForums = (callback, error, page = 0, onlyUnread = false) => {
   api
-    .get(`/forum?page=${page}`)
+    .get(`/forum${onlyUnread ? '/unread' : ''}?page=${page}`)
     .then((response) => {
       const page = Page.fromJSON(response.data, Forum.forumMapper);
       callback && callback(page);
     })
-    .catch((err) => error(err));
+    .catch(error);
 };
 
 export const getForum = (id, callback, error) => {
   api
     .get(`/forum/${id}`)
     .then((response) => callback && callback(Forum.fromJSON(response.data)))
-    .catch((err) => error(err));
+    .catch(error);
 };
 
 export const addForum = (category, name, callback, error) => {
   api
     .post('/forum', new Forum(undefined, category, name).toJSON())
     .then((response) => callback && callback(Forum.fromJSON(response.data)))
-    .catch((err) => error(err));
+    .catch(error);
 };
 
-export const onForumUpdate = async (forum, onForumUpdate) => {
+export const setForumNotification = (forum, notify, callback, error) => {
+  api
+    .put(`/forum/${forum}/${notify ? 'notify' : 'mute'}`)
+    .then(callback)
+    .catch(error);
+};
+
+export const onForumUpdate = (forum, onForumUpdate) => {
   subscribe(`/topic/forum/${forum}`, (post) =>
     onForumUpdate(Number.parseInt(post))
   );
@@ -275,7 +279,7 @@ export const unsubscribeForum = (forum) => {
   unsubscribe(`/topic/forum/${forum}`);
 };
 
-export const onForumPopularityUpdate = async (forum, onForumUpdate) => {
+export const onForumPopularityUpdate = (forum, onForumUpdate) => {
   subscribe(`/user/topic/forum/${forum}/popularity`, (message) => {
     onForumUpdate(JSON.parse(message));
   });
@@ -285,6 +289,16 @@ export const unsubscribeForumPopularity = (forum) => {
   unsubscribe(`/user/topic/forum/${forum}/popularity`);
 };
 
+export const onForumUnreadUpdate = (forum, onForumUnreadUpdate) => {
+  subscribe(`/user/topic/forum/unread/${forum}`, (message) =>
+    onForumUnreadUpdate(message)
+  );
+};
+
+export const unsubscribeForumUnread = (forum) => {
+  unsubscribe(`/user/topic/forum/unread/${forum}`);
+};
+
 export const getPosts = (forum, callback, error, limit = 1) => {
   let uri = `/post/forum/${forum}?limit=${limit}`;
   api
@@ -292,7 +306,7 @@ export const getPosts = (forum, callback, error, limit = 1) => {
     .then((response) => {
       callback && callback(response.data.map((post) => Post.fromJSON(post)));
     })
-    .catch((err) => error(err));
+    .catch(error);
 };
 
 export const getRecentPosts = (
@@ -311,7 +325,7 @@ export const getRecentPosts = (
     .then((response) => {
       callback && callback(response.data.map((post) => Post.fromJSON(post)));
     })
-    .catch((err) => error(err));
+    .catch(error);
 };
 
 export const getPopularPosts = (
@@ -330,7 +344,7 @@ export const getPopularPosts = (
     .then((response) => {
       callback && callback(response.data.map((post) => Post.fromJSON(post)));
     })
-    .catch((err) => error(err));
+    .catch(error);
 };
 
 export const getTotalPosts = (forum, callback, error) => {
@@ -339,7 +353,7 @@ export const getTotalPosts = (forum, callback, error) => {
     .then((response) => {
       callback && callback(response.data);
     })
-    .catch((err) => error(err));
+    .catch(error);
 };
 
 export const getReplies = (
@@ -357,7 +371,7 @@ export const getReplies = (
     .then((response) => {
       callback && callback(response.data.map((post) => Post.fromJSON(post)));
     })
-    .catch((err) => error(err));
+    .catch(error);
 };
 
 export const getRecentReplies = (
@@ -379,7 +393,7 @@ export const getRecentReplies = (
     .then((response) => {
       callback && callback(response.data.map((post) => Post.fromJSON(post)));
     })
-    .catch((err) => error(err));
+    .catch(error);
 };
 
 export const getPopularReplies = (
@@ -401,7 +415,7 @@ export const getPopularReplies = (
     .then((response) => {
       callback && callback(response.data.map((post) => Post.fromJSON(post)));
     })
-    .catch((err) => error(err));
+    .catch(error);
 };
 
 export const getTotalReplies = (post, callback, error, selectedChildId) => {
@@ -412,14 +426,14 @@ export const getTotalReplies = (post, callback, error, selectedChildId) => {
     .then((response) => {
       callback && callback(response.data);
     })
-    .catch((err) => error(err));
+    .catch(error);
 };
 
 export const getPost = (id, callback, error) => {
   api
     .get(`/post/${id}`)
     .then((response) => callback && callback(Post.fromJSON(response.data)))
-    .catch((err) => error(err));
+    .catch(error);
 };
 
 export const addPost = (forum, content, callback, error) => {
@@ -428,7 +442,7 @@ export const addPost = (forum, content, callback, error) => {
       headers: { 'Content-Type': 'text/plain' }
     })
     .then((response) => callback && callback(Post.fromJSON(response.data)))
-    .catch((err) => error(err));
+    .catch(error);
 };
 
 export const addReply = (forum, parent, content, callback, error) => {
@@ -437,17 +451,26 @@ export const addReply = (forum, parent, content, callback, error) => {
       headers: { 'Content-Type': 'text/plain' }
     })
     .then((response) => callback && callback(Post.fromJSON(response.data)))
-    .catch((err) => error(err));
+    .catch(error);
 };
 
 export const ratePost = (post, rating, callback, error) => {
-  api
-    .put(`/rating/${post}/${rating}`)
-    .then(callback)
-    .catch((err) => error(err));
+  api.put(`/rating/${post}/${rating}`).then(callback).catch(error);
 };
 
-export const onPostUpdate = async (post, onPostUpdate) => {
+export const markPostRead = (post, callback, error) => {
+  api.put(`/post/read/${post}`).then(callback).catch(error);
+};
+
+export const markForumRead = (forum, callback, error) => {
+  api.put(`/post/readall/${forum}`).then(callback).catch(error);
+};
+
+export const markPostsRead = (callback, error) => {
+  api.put('/post/readall').then(callback).catch(error);
+};
+
+export const onPostUpdate = (post, onPostUpdate) => {
   subscribe(`/topic/post/${post}`, (message) => {
     if (message === 'rating') onPostUpdate(message);
     else onPostUpdate(Number.parseInt(message));
@@ -458,7 +481,7 @@ export const unsubscribePost = (post) => {
   unsubscribe(`/topic/post/${post}`);
 };
 
-export const onPostPopularityUpdate = async (post, onPostUpdate) => {
+export const onPostPopularityUpdate = (post, onPostUpdate) => {
   subscribe(`/user/topic/post/${post}/popularity`, (message) => {
     onPostUpdate(JSON.parse(message));
   });
@@ -474,7 +497,7 @@ export const getNotification = (notification, callback, error) => {
     .then((response) => {
       callback && callback(Notification.fromJSON(response.data));
     })
-    .catch((err) => error(err));
+    .catch(error);
 };
 
 export const getNotificationCount = (callback, error) => {
@@ -483,7 +506,7 @@ export const getNotificationCount = (callback, error) => {
     .then((response) => {
       callback && callback(Number.parseInt(response.data));
     })
-    .catch((err) => error(err));
+    .catch(error);
 };
 
 export const getNotificationTotal = (callback, error) => {
@@ -492,7 +515,7 @@ export const getNotificationTotal = (callback, error) => {
     .then((response) => {
       callback && callback(Number.parseInt(response.data));
     })
-    .catch((err) => error(err));
+    .catch(error);
 };
 
 export const getNotifications = (callback, error, cursor, limit = 5) => {
@@ -509,7 +532,7 @@ export const getNotifications = (callback, error, cursor, limit = 5) => {
           )
         )
     )
-    .catch((err) => error(err));
+    .catch(error);
 };
 
 export const refreshNotifications = (callback, error, cursor) => {
@@ -526,21 +549,15 @@ export const refreshNotifications = (callback, error, cursor) => {
           )
         )
     )
-    .catch((err) => error(err));
+    .catch(error);
 };
 
 export const markNotificationsRead = (callback, error) => {
-  api
-    .put('/notification/read')
-    .then(callback)
-    .catch((err) => error(err));
+  api.put('/notification/read').then(callback).catch(error);
 };
 
 export const markNotificationRead = (notification, callback, error) => {
-  api
-    .put(`/notification/read/${notification}`)
-    .then(callback)
-    .catch((err) => error(err));
+  api.put(`/notification/read/${notification}`).then(callback).catch(error);
 };
 
 export const onNotification = (onNotification) => {
@@ -586,7 +603,7 @@ export const getUnreadCount = (callback, error) => {
     .then((response) => {
       callback && callback(Number.parseInt(response.data));
     })
-    .catch((err) => error(err));
+    .catch(error);
 };
 
 export const getThreadCount = (callback, error) => {
@@ -595,7 +612,7 @@ export const getThreadCount = (callback, error) => {
     .then((response) => {
       callback && callback(Number.parseInt(response.data));
     })
-    .catch((err) => error(err));
+    .catch(error);
 };
 
 export const getThreads = (callback, error, cursor, limit = 5) => {
@@ -606,7 +623,7 @@ export const getThreads = (callback, error, cursor, limit = 5) => {
     .then((response) => {
       callback && callback(response.data.map((post) => Message.fromJSON(post)));
     })
-    .catch((err) => error(err));
+    .catch(error);
 };
 
 export const refreshThreads = (callback, error, cursor) => {
@@ -617,21 +634,15 @@ export const refreshThreads = (callback, error, cursor) => {
     .then((response) => {
       callback && callback(response.data.map((post) => Message.fromJSON(post)));
     })
-    .catch((err) => error(err));
+    .catch(error);
 };
 
 export const markThreadRead = (friend, callback, error) => {
-  api
-    .put(`/message/${friend}/read`)
-    .then(callback)
-    .catch((err) => error(err));
+  api.put(`/message/${friend}/read`).then(callback).catch(error);
 };
 
 export const markThreadsRead = (callback, error) => {
-  api
-    .put('/message/read')
-    .then(callback)
-    .catch((err) => error(err));
+  api.put('/message/read').then(callback).catch(error);
 };
 
 export const getMessage = (message, callback, error) => {
@@ -640,7 +651,7 @@ export const getMessage = (message, callback, error) => {
     .then((response) => {
       callback && callback(Message.fromJSON(response.data));
     })
-    .catch((err) => error(err));
+    .catch(error);
 };
 
 export const getMessages = (friend, callback, error, cursor, limit = 5) => {
@@ -652,7 +663,7 @@ export const getMessages = (friend, callback, error, cursor, limit = 5) => {
       callback &&
         callback(response.data.map((message) => Message.fromJSON(message)));
     })
-    .catch((err) => error(err));
+    .catch(error);
 };
 
 export const getMessageCount = (friend, callback, error) => {
@@ -661,7 +672,7 @@ export const getMessageCount = (friend, callback, error) => {
     .then((response) => {
       callback && callback(Number.parseInt(response.data));
     })
-    .catch((err) => error(err));
+    .catch(error);
 };
 
 export const sendMessage = (friend, message, callback, error) => {
@@ -670,14 +681,11 @@ export const sendMessage = (friend, message, callback, error) => {
       headers: { 'Content-Type': 'text/plain' }
     })
     .then(callback)
-    .catch((err) => error(err));
+    .catch(error);
 };
 
 export const markMessageRead = (friend, message, callback, error) => {
-  api
-    .put(`/message/${friend}/read/${message}`)
-    .then(callback)
-    .catch((err) => error(err));
+  api.put(`/message/${friend}/read/${message}`).then(callback).catch(error);
 };
 
 export const onThread = (onThread) => {
@@ -751,21 +759,15 @@ export const getEquipment = (callback, error, page = 0, slot = 'all') => {
       const page = Page.fromJSON(response.data, Equipment.equipmentMapper);
       callback && callback(page);
     })
-    .catch((err) => error(err));
+    .catch(error);
 };
 
 export const equipItem = (item, callback, error) => {
-  api
-    .put(`/equipment/${item}/equip`)
-    .then(callback)
-    .catch((err) => error(err));
+  api.put(`/equipment/${item}/equip`).then(callback).catch(error);
 };
 
 export const unequipItem = (item, callback, error) => {
-  api
-    .put(`/equipment/${item}/unequip`)
-    .then(callback)
-    .catch((err) => error(err));
+  api.put(`/equipment/${item}/unequip`).then(callback).catch(error);
 };
 
 export const getFavorites = (callback, error, page = 0, type) => {
@@ -776,7 +778,7 @@ export const getFavorites = (callback, error, page = 0, type) => {
         const page = Page.fromJSON(response.data, Favorite.favoriteMapper);
         callback && callback(page);
       })
-      .catch((err) => error(err));
+      .catch(error);
   } else {
     api
       .get(`/favorite?page=${page}`)
@@ -784,7 +786,7 @@ export const getFavorites = (callback, error, page = 0, type) => {
         const page = Page.fromJSON(response.data, Favorite.favoriteMapper);
         callback && callback(page);
       })
-      .catch((err) => error(err));
+      .catch(error);
   }
 };
 
@@ -794,7 +796,7 @@ export const favoritePost = (post, callback, error) => {
       headers: { 'Content-Type': 'application/json' }
     })
     .then(callback)
-    .catch((err) => error(err));
+    .catch(error);
 };
 
 export const favoriteForum = (forum, callback, error) => {
@@ -803,7 +805,7 @@ export const favoriteForum = (forum, callback, error) => {
       headers: { 'Content-Type': 'application/json' }
     })
     .then(callback)
-    .catch((err) => error(err));
+    .catch(error);
 };
 
 export const favoriteProfile = (user, callback, error) => {
@@ -812,26 +814,17 @@ export const favoriteProfile = (user, callback, error) => {
       headers: { 'Content-Type': 'application/json' }
     })
     .then(callback)
-    .catch((err) => error(err));
+    .catch(error);
 };
 
 export const unfavoritePost = (post, callback, error) => {
-  api
-    .delete(`/favorite/post/${post}`)
-    .then(callback)
-    .catch((err) => error(err));
+  api.delete(`/favorite/post/${post}`).then(callback).catch(error);
 };
 
 export const unfavoriteForum = (forum, callback, error) => {
-  api
-    .delete(`/favorite/forum/${forum}`)
-    .then(callback)
-    .catch((err) => error(err));
+  api.delete(`/favorite/forum/${forum}`).then(callback).catch(error);
 };
 
 export const unfavoriteProfile = (user, callback, error) => {
-  api
-    .delete(`/favorite/profile/${user}`)
-    .then(callback)
-    .catch((err) => error(err));
+  api.delete(`/favorite/profile/${user}`).then(callback).catch(error);
 };

@@ -20,7 +20,7 @@ function PostPage() {
   if (!post) return;
 
   const getPostElement = (depth) => (
-    <Post id={post.id} depth={depth} selected />
+    <Post id={post.id} postProp={post} depth={depth} selected />
   );
   let parent = post.parent;
   let previousParent = post;
@@ -30,9 +30,11 @@ function PostPage() {
     const id = Number.parseInt('' + parent.id);
     const previousId = Number.parseInt('' + previousParent.id);
     const pointer = Number.parseInt('' + i);
+    const post = JSON.parse(JSON.stringify(parent));
     parentFuncs[pointer] = (depth) => (
       <Post
         id={id}
+        postProp={post}
         depth={depth}
         selectedChildId={previousId}
         getSelectedChild={

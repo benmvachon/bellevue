@@ -11,9 +11,14 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.village.bellevue.entity.NotificationEntity;
+import com.village.bellevue.entity.NotificationEntity.NotificationType;
 
 @Repository
 public interface NotificationRepository extends JpaRepository<NotificationEntity, Long> {
+
+  @Query("SELECT n.id FROM NotificationEntity n WHERE n.notified = :user AND n.type = :type AND n.entity = :entity")
+  @Transactional(readOnly = true)
+  Long findId(@Param("user") Long user, @Param("type") NotificationType type, @Param("entity") Long entity);
 
   @Query("SELECT n FROM NotificationEntity n WHERE n.notified = :user AND n.created < :cursor ORDER BY n.created DESC LIMIT :limit")
   @Transactional(readOnly = true)
@@ -44,4 +49,9 @@ public interface NotificationRepository extends JpaRepository<NotificationEntity
   @Query("UPDATE NotificationEntity n SET n.read = true WHERE n.id = :id AND n.notified = :user")
   @Transactional
   int markAsRead(@Param("id") Long id, @Param("user") Long user);
+
+  @Modifying
+  @Query("UPDATE NotificationEntity n SET n.read = true WHERE n.entity = :post AND n.notified = :user AND n.type = 'POST'")
+  @Transactional
+  int markPostAsRead(@Param("post") Long post, @Param("user") Long user);
 }

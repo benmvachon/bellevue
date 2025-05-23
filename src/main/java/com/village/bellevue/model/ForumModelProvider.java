@@ -14,5 +14,13 @@ public interface ForumModelProvider  {
     return false;
   };
 
+  default Long getUnreadCount(ForumEntity forum) {
+    return 0l;
+  };
+
+  default boolean isNotify(ForumEntity forum) {
+    return false;
+  };
+
   Optional<ProfileModel> getProfile(Long user);
 }

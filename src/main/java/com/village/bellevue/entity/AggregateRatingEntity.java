@@ -4,6 +4,7 @@ import java.sql.Timestamp;
 
 import com.village.bellevue.entity.id.AggregateRatingId;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.IdClass;
@@ -28,4 +29,7 @@ public class AggregateRatingEntity {
   private Integer popularity;
 
   private Timestamp updated;
+
+  @Column(name = "`read`", nullable = false)
+  private boolean read = false;
 }

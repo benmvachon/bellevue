@@ -2,12 +2,11 @@ package com.village.bellevue.event.equipment.post;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.base.Strings;
 import com.village.bellevue.error.EquipmentException;
-import com.village.bellevue.event.PostEvent;
 import com.village.bellevue.event.equipment.AbstractEquipmentListener;
+import com.village.bellevue.event.type.PostEvent;
 import com.village.bellevue.repository.EquipmentRepository;
 import com.village.bellevue.repository.ItemRepository;
 import com.village.bellevue.repository.PostRepository;
@@ -35,7 +34,6 @@ public abstract class AbstractEquipmentPostEventListener extends AbstractEquipme
   }
 
   @EventListener
-  @Transactional("asyncTransactionManager")
   public void handleEvent(PostEvent event) throws EquipmentException {
     super.handleEvent(event);
   }

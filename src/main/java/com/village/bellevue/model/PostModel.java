@@ -31,6 +31,7 @@ public class PostModel {
   private Integer popularity = 0;
 
   private boolean favorite = false;
+  private boolean read = false;
 
   public PostModel(PostEntity post, PostModelProvider helper) throws AuthorizationException {
     if (!helper.canReadPost(post)) {
@@ -51,6 +52,7 @@ public class PostModel {
       this.rating = ratingOption.get().getRating();
       this.ratingCount = ratingOption.get().getRatingCount();
       this.popularity = ratingOption.get().getPopularity();
+      this.read = ratingOption.get().isRead();
     }
 
     if (post.getParent() != null) {

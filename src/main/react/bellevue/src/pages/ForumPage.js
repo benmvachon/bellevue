@@ -5,15 +5,19 @@ import {
   getForum,
   getTotalPosts,
   addPost,
-  onForumUpdate,
   favoriteForum,
   unfavoriteForum,
-  unsubscribeForum,
   getPost,
   getPopularPosts,
   getRecentPosts,
+  markForumRead,
+  onForumUpdate,
   onForumPopularityUpdate,
-  unsubscribeForumPopularity
+  onForumUnreadUpdate,
+  unsubscribeForum,
+  unsubscribeForumPopularity,
+  unsubscribeForumUnread,
+  setForumNotification
 } from '../api/api.js';
 import Post from '../components/Post.js';
 import Header from '../components/Header.js';
@@ -74,6 +78,23 @@ function ForumPage() {
     unfavoriteForum(id, () => getForum(id, setForum, setError), setError);
   };
 
+  const markRead = () => {
+    markForumRead(
+      forum.id,
+      () => getForum(forum.id, setForum, setError),
+      setError
+    );
+  };
+
+  const toggleNotifications = () => {
+    setForumNotification(
+      forum.id,
+      !forum.notify,
+      () => getForum(forum.id, setForum, setError),
+      setError
+    );
+  };
+
   useEffect(() => {
     if (id) {
       getForum(id, setForum, setError);
@@ -114,9 +135,11 @@ function ForumPage() {
             });
           }
         });
+      onForumUnreadUpdate(id, () => getForum(id, setForum, setError));
       return () => {
         unsubscribeForum(id);
         unsubscribeForumPopularity(id);
+        unsubscribeForumUnread(id);
       };
     }
   }, [id, sortByPopular, posts]);
@@ -142,12 +165,20 @@ function ForumPage() {
   return (
     <div className="page forum-page">
       <Header />
-      <h2>{forum?.name}</h2>
+      <h2>
+        {forum?.name} - ({forum?.unreadCount} unread)
+      </h2>
       {forum.favorite ? (
         <button onClick={unfavorite}>Unfavorite</button>
       ) : (
         <button onClick={favorite}>Favorite</button>
       )}
+      {forum.unreadCount > 0 && (
+        <button onClick={markRead}>Mark as read</button>
+      )}
+      <button
+        onClick={toggleNotifications}
+      >{`Turn ${forum.notify ? 'off' : 'on'} notifications`}</button>
       <div className="contents">
         <Attendees />
         <div className="posts">

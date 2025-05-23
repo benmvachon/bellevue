@@ -1,6 +1,7 @@
 package com.village.bellevue.event.notification;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.context.event.EventListener;
 import org.springframework.data.jpa.repository.Modifying;
@@ -12,19 +13,21 @@ import org.springframework.transaction.annotation.Transactional;
 import com.village.bellevue.entity.NotificationEntity;
 import com.village.bellevue.entity.UserProfileEntity;
 import com.village.bellevue.entity.NotificationEntity.NotificationType;
-import com.village.bellevue.event.AcceptanceEvent;
-import com.village.bellevue.event.EquipmentEvent;
-import com.village.bellevue.event.ForumEvent;
-import com.village.bellevue.event.MessageEvent;
-import com.village.bellevue.event.NotificationReadEvent;
-import com.village.bellevue.event.NotificationsReadEvent;
-import com.village.bellevue.event.PostEvent;
-import com.village.bellevue.event.RatingEvent;
-import com.village.bellevue.event.RequestEvent;
+import com.village.bellevue.entity.id.NotificationSettingId;
+import com.village.bellevue.event.type.AcceptanceEvent;
+import com.village.bellevue.event.type.EquipmentEvent;
+import com.village.bellevue.event.type.ForumEvent;
+import com.village.bellevue.event.type.MessageEvent;
+import com.village.bellevue.event.type.NotificationReadEvent;
+import com.village.bellevue.event.type.NotificationsReadEvent;
+import com.village.bellevue.event.type.PostEvent;
+import com.village.bellevue.event.type.RatingEvent;
+import com.village.bellevue.event.type.RequestEvent;
 import com.village.bellevue.model.ForumModel;
 import com.village.bellevue.model.PostModel;
 import com.village.bellevue.repository.FriendRepository;
 import com.village.bellevue.repository.NotificationRepository;
+import com.village.bellevue.repository.NotificationSettingRepository;
 import com.village.bellevue.repository.UserProfileRepository;
 
 @Component
@@ -32,17 +35,20 @@ public class NotificationListener {
   private final NotificationRepository notificationRepository;
   private final FriendRepository friendRepository;
   private final UserProfileRepository userProfileRepository;
+  private final NotificationSettingRepository notificationSettingRepository;
   private final SimpMessagingTemplate messagingTemplate;
 
   public NotificationListener(
     NotificationRepository notificationRepository,
     FriendRepository friendRepository,
     UserProfileRepository userProfileRepository,
+    NotificationSettingRepository notificationSettingRepository,
     SimpMessagingTemplate messagingTemplate
   ) {
     this.notificationRepository = notificationRepository;
     this.friendRepository = friendRepository;
     this.userProfileRepository = userProfileRepository;
+    this.notificationSettingRepository = notificationSettingRepository;
     this.messagingTemplate = messagingTemplate;
   }
 
@@ -61,20 +67,20 @@ public class NotificationListener {
   public void handlePostEvent(PostEvent event) {
     Long user = event.getUser();
     PostModel post = event.getPost();
-    if (post != null) {
-      if (post.getParent() != null) {
+    if (Objects.nonNull(post)) {
+      if (Objects.nonNull(post.getParent())) {
         PostModel parent = post.getParent();
-        while (parent != null) {
+        while (Objects.nonNull(parent)) {
           if (user.equals(parent.getUser().getId())) continue;
           notifyFriend(user, parent.getUser().getId(), NotificationType.REPLY, post.getId());
           parent = parent.getParent();
         }
-      } else if (post.getForum().getUser() == null) {
-        notifyFriends(user, NotificationType.POST, post.getId());
+      } else if (Objects.isNull(post.getForum().getUser())) {
+        notifyFriends(user, post.getId(), post.getForum().getId());
       } else {
-        notifyMutualFriends(user, post.getForum().getUser().getId(), NotificationType.POST, post.getId());
+        notifyMutualFriends(user, post.getForum().getUser().getId(), post.getId(), post.getForum().getId());
         if (user.equals(post.getForum().getUser().getId())) return;
-        notifyFriend(user, post.getForum().getUser().getId(), NotificationType.POST, post.getId());
+        notifyFriend(user, post.getForum().getUser().getId(), post.getId(), post.getForum().getId());
       }
     }
   }
@@ -149,10 +155,28 @@ public class NotificationListener {
 
   @Async
   @Transactional(value = "asyncTransactionManager", timeout = 300)
+  public void notifyFriends(Long user, Long post, Long forum) {
+    List<Long> friends = friendRepository.findFriends(user);
+    for (Long friend : friends) {
+      notifyFriend(user, friend, post, forum);
+    }
+  }
+
+  @Async
+  @Transactional(value = "asyncTransactionManager", timeout = 300)
   public void notifyMutualFriends(Long user, Long friend, NotificationType type, Long entity) {
     List<Long> friends = friendRepository.findMutualFriends(user, friend);
     for (Long mutual : friends) {
       notifyFriend(user, mutual, type, entity);
+    }
+  }
+
+  @Async
+  @Transactional(value = "asyncTransactionManager", timeout = 300)
+  public void notifyMutualFriends(Long user, Long friend, Long post, Long forum) {
+    List<Long> friends = friendRepository.findMutualFriends(user, friend);
+    for (Long mutual : friends) {
+      notifyFriend(user, mutual, post, forum);
     }
   }
 
@@ -171,5 +195,25 @@ public class NotificationListener {
     notification = notificationRepository.save(notification);
     messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/notification/unread", "update");
     messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/notification", notification);
+  }
+
+  @Async
+  @Transactional(value = "asyncTransactionManager", timeout = 300)
+  @Modifying
+  private void notifyFriend(Long user, Long friend, Long post, Long forum) {
+    UserProfileEntity notifier = userProfileRepository.findById(user).orElseThrow(() -> new IllegalStateException("Not found"));
+    notificationSettingRepository.findById(new NotificationSettingId(friend, forum)).ifPresent((setting) -> {
+      if (setting.isNotify()) {
+        NotificationEntity notification = new NotificationEntity();
+        notification.setNotifier(notifier);
+        notification.setNotified(friend);
+        notification.setType(NotificationType.POST);
+        notification.setEntity(post);
+        notification.setRead(false);
+        notification = notificationRepository.save(notification);
+        messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/notification/unread", "update");
+        messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/notification", notification);
+      }
+    });
   }
 }

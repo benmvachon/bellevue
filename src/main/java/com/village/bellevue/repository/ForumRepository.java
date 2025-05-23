@@ -1,5 +1,7 @@
 package com.village.bellevue.repository;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,19 +16,66 @@ import com.village.bellevue.entity.ForumEntity;
 public interface ForumRepository extends JpaRepository<ForumEntity, Long> {
 
   @Query(
-    "SELECT DISTINCT f1 FROM ForumEntity f1 " +
-    "LEFT JOIN FriendEntity f2 ON f1.user = f2.friend.id AND f2.status = 'accepted' AND f2.user = :user " +
-    "WHERE f1.user IS NULL OR f1.user = :user OR f2.id IS NOT NULL"
+    "SELECT f.id FROM ForumEntity f " +
+    "WHERE f.user IS NULL OR f.user = 1 OR EXISTS ( " +
+      "SELECT 1 FROM FriendEntity ff " +
+      "WHERE ff.user = :user AND ff.friend.id = f.user AND ff.status = 'ACCEPTED' " +
+    ")"
+  )
+  @Transactional(readOnly = true)
+  List<Long> findAll(@Param("user") Long user);
+
+  @Query(
+    "SELECT f FROM ForumEntity f " +
+    "LEFT JOIN PostEntity p ON p.forum.id = f.id AND p.parent IS NULL " +
+    "AND (p.user.id = :user OR EXISTS ( " +
+      "SELECT 1 FROM FriendEntity pf " +
+      "WHERE pf.user = :user AND pf.friend.id = p.user.id AND pf.status = 'ACCEPTED' " +
+    ")) " +
+    "WHERE f.user IS NULL OR f.user = 1 OR EXISTS ( " +
+      "SELECT 1 FROM FriendEntity ff " +
+      "WHERE ff.user = :user AND ff.friend.id = f.user AND ff.status = 'ACCEPTED' " +
+    ") GROUP BY f.id ORDER BY MAX(p.created) DESC, f.id ASC"
   )
   @Transactional(readOnly = true)
   Page<ForumEntity> findAll(@Param("user") Long user, Pageable pageable);
 
   @Query(
+    "SELECT f FROM ForumEntity f " +
+    "LEFT JOIN PostEntity p ON p.forum.id = f.id AND p.parent IS NULL " +
+    "AND (p.user.id = :user OR EXISTS ( " +
+    "SELECT 1 FROM FriendEntity pf " +
+    "WHERE pf.user = :user AND pf.friend.id = p.user.id AND pf.status = 'ACCEPTED' " +
+    ")) " +
+    "AND EXISTS ( " +
+    "SELECT 1 FROM AggregateRatingEntity a " +
+    "WHERE a.post = p.id AND a.user = :user AND a.read = false " +
+    ") WHERE f.user IS NULL OR f.user = :user OR EXISTS ( " +
+    "SELECT 1 FROM FriendEntity ff " +
+    "WHERE ff.user = :user AND ff.friend.id = f.user AND ff.status = 'ACCEPTED' " +
+    ") GROUP BY f.id HAVING COUNT(p.id) > 0 " +
+    "ORDER BY MAX(p.created) DESC, f.id ASC"
+  )
+  @Transactional(readOnly = true)
+  Page<ForumEntity> findUnread(@Param("user") Long user, Pageable pageable);
+
+  @Query(
     "SELECT CASE WHEN COUNT(f1) > 0 THEN true ELSE false END " +
     "FROM ForumEntity f1 " +
-    "LEFT JOIN FriendEntity f2 ON f1.user = f2.friend.id AND f2.status = 'accepted' AND f2.user = :user " +
+    "LEFT JOIN FriendEntity f2 ON f1.user = f2.friend.id AND f2.status = 'ACCEPTED' AND f2.user = :user " +
     "WHERE f1.user IS NULL OR f1.id = :forum AND (f1.user = :user OR f2.id IS NOT NULL)"
   )
   @Transactional(readOnly = true)
   Boolean canRead(@Param("forum") Long forum, @Param("user") Long user);
+
+  @Query(
+    "SELECT COUNT(DISTINCT(p.id)) " +
+    "FROM PostEntity p " +
+    "LEFT JOIN AggregateRatingEntity a ON p.id = a.post " +
+    "LEFT JOIN FriendEntity f ON p.user.id = f.friend.id AND f.user = :user " +
+    "WHERE p.parent IS NULL AND p.forum.id = :forum AND a.read = false AND a.user = :user " +
+    "AND (f.status = 'ACCEPTED' OR p.user.id = :user)"
+  )
+  @Transactional(readOnly = true)
+  Long getUnreadCount(@Param("forum") Long forum, @Param("user") Long user);
 }

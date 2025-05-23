@@ -22,6 +22,10 @@ public class ForumModel {
 
   private boolean favorite = false;
 
+  private Long unreadCount;
+
+  private boolean notify = false;
+
   public ForumModel(ForumEntity forum, ForumModelProvider helper) throws AuthorizationException {
     if (!helper.canReadForum(forum)) {
       throw new AuthorizationException("Not authorized");
@@ -31,5 +35,7 @@ public class ForumModel {
     this.user = helper.getProfile(forum.getUser()).orElse(null);
     this.created = forum.getCreated();
     this.favorite = helper.isFavorite(forum);
+    this.unreadCount = helper.getUnreadCount(forum);
+    this.notify = helper.isNotify(forum);
   }
 }

@@ -15,15 +15,18 @@ import static com.village.bellevue.config.security.SecurityConfig.getAuthenticat
 
 import com.village.bellevue.entity.FavoriteEntity.FavoriteType;
 import com.village.bellevue.entity.ForumEntity;
+import com.village.bellevue.entity.NotificationSettingEntity;
 import com.village.bellevue.entity.id.FavoriteId;
+import com.village.bellevue.entity.id.NotificationSettingId;
 import com.village.bellevue.error.AuthorizationException;
 import com.village.bellevue.error.FriendshipException;
-import com.village.bellevue.event.ForumEvent;
+import com.village.bellevue.event.type.ForumEvent;
 import com.village.bellevue.model.ForumModel;
 import com.village.bellevue.model.ForumModelProvider;
 import com.village.bellevue.model.ProfileModel;
 import com.village.bellevue.repository.FavoriteRepository;
 import com.village.bellevue.repository.ForumRepository;
+import com.village.bellevue.repository.NotificationSettingRepository;
 import com.village.bellevue.service.ForumService;
 import com.village.bellevue.service.UserProfileService;
 
@@ -61,22 +64,36 @@ public class ForumServiceImpl implements ForumService {
     public boolean isFavorite(ForumEntity forum) {
       return favoriteRepository.existsById(new FavoriteId(getAuthenticatedUserId(), FavoriteType.FORUM, forum.getId()));
     }
+
+    @Override
+    public Long getUnreadCount(ForumEntity forum) {
+      return forumRepository.getUnreadCount(forum.getId(), getAuthenticatedUserId());
+    }
+
+    @Override
+    public boolean isNotify(ForumEntity forum) {
+      Optional<NotificationSettingEntity> setting = notificationSettingRepository.findById(new NotificationSettingId(getAuthenticatedUserId(), forum.getId()));
+      return setting.isPresent() && setting.get().isNotify();
+    }
   };
 
   private final ForumRepository forumRepository;
   private final UserProfileService userProfileService;
   private final FavoriteRepository favoriteRepository;
+  private final NotificationSettingRepository notificationSettingRepository;
   private final ApplicationEventPublisher publisher;
 
   public ForumServiceImpl(
     ForumRepository forumRepository,
     UserProfileService userProfileService,
     FavoriteRepository favoriteRepository,
+    NotificationSettingRepository notificationSettingRepository,
     ApplicationEventPublisher publisher
   ) {
     this.forumRepository = forumRepository;
     this.userProfileService = userProfileService;
     this.favoriteRepository = favoriteRepository;
+    this.notificationSettingRepository = notificationSettingRepository;
     this.publisher = publisher;
   }
 
@@ -112,6 +129,34 @@ public class ForumServiceImpl implements ForumService {
         return null;
       }
     });
+  }
+
+  @Override
+  public Page<ForumModel> readAllWithUnreadPosts(int page, int size) {
+    Page<ForumEntity> forums = forumRepository.findUnread(getAuthenticatedUserId(), PageRequest.of(page, size));
+    return forums.map(forum -> {
+      try {
+        return new ForumModel(forum, forumModelProvider);
+      } catch (AuthorizationException e) {
+        return null;
+      }
+    });
+  }
+
+  @Override
+  @Transactional(timeout = 30)
+  public boolean turnOnNotifications(Long forum) throws AuthorizationException {
+    if (canRead(forum)) notificationSettingRepository.save(new NotificationSettingEntity(getAuthenticatedUserId(), forum, true));
+    else return false;
+    return true;
+  }
+
+  @Override
+  @Transactional(timeout = 30)
+  public boolean turnOffNotifications(Long forum) throws AuthorizationException {
+    if (canRead(forum)) notificationSettingRepository.save(new NotificationSettingEntity(getAuthenticatedUserId(), forum, false));
+    else return false;
+    return true;
   }
 
   @Override

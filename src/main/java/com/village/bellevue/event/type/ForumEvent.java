@@ -1,4 +1,4 @@
-package com.village.bellevue.event;
+package com.village.bellevue.event.type;
 
 import com.village.bellevue.model.ForumModel;
 

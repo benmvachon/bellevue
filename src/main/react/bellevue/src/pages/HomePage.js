@@ -1,30 +1,32 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import withAuth from '../utils/withAuth.js';
-import { getForums, getMyFriends, getSuggestedFriends } from '../api/api.js';
+import {
+  getForums,
+  getMyFriends,
+  getSuggestedFriends,
+  markPostsRead
+} from '../api/api.js';
 import Header from '../components/Header.js';
 import Page from '../components/Page.js';
+import Forum from '../components/Forum.js';
 
 function HomePage() {
   const navigate = useNavigate();
   const [forums, setForums] = useState([]);
   const [myFriends, setMyFriends] = useState([]);
   const [suggestedFriends, setSuggestedFriends] = useState([]);
+  const [filter, setFilter] = useState(false);
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    getForums(setForums, setError);
+    getForums(setForums, setError, 0, filter);
     getMyFriends(setMyFriends, setError);
     getSuggestedFriends(setSuggestedFriends, setError);
-  }, [setForums]);
+  }, [setForums, filter]);
 
   const loadForumPage = (page) => {
-    getForums(setForums, setError, page);
-  };
-
-  const forumClick = (event) => {
-    event.preventDefault();
-    navigate(`/forum/${event.target.value}`);
+    getForums(setForums, setError, page, filter);
   };
 
   const loadMyFriendPage = (page) => {
@@ -45,17 +47,17 @@ function HomePage() {
   return (
     <div className="page home-page">
       <Header />
-      <h2>Forums</h2>
+      <h2>
+        <button onClick={() => setFilter(!filter)}>
+          {filter ? 'Show all' : 'Show unread'}
+        </button>
+        Forums
+        <button onClick={markPostsRead}>Mark all as read</button>
+      </h2>
       <div>
         <Page
           page={forums}
-          renderItem={(forum) => (
-            <div key={`forum-${forum.name}`}>
-              <button value={forum.id} onClick={forumClick}>
-                {forum.name}
-              </button>
-            </div>
-          )}
+          renderItem={(forum) => <Forum id={forum.id} forumProp={forum} />}
           loadPage={loadForumPage}
         />
       </div>

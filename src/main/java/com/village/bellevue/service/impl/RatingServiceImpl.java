@@ -18,8 +18,8 @@ import static com.village.bellevue.config.security.SecurityConfig.getAuthenticat
 import com.village.bellevue.entity.RatingEntity.Star;
 import com.village.bellevue.error.AuthorizationException;
 import com.village.bellevue.error.RatingException;
-import com.village.bellevue.event.PopularityEvent;
-import com.village.bellevue.event.RatingEvent;
+import com.village.bellevue.event.type.PopularityEvent;
+import com.village.bellevue.event.type.RatingEvent;
 import com.village.bellevue.repository.PostRepository;
 import com.village.bellevue.service.RatingService;
 

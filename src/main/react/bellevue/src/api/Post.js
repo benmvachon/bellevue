@@ -14,6 +14,7 @@ class Post {
     ratingCount,
     popularity,
     favorite,
+    read,
     _links
   ) {
     this.id = id;
@@ -27,6 +28,7 @@ class Post {
     this.ratingCount = ratingCount;
     this.popularity = popularity;
     this.favorite = favorite;
+    this.read = read;
     // TODO: process _links
   }
 
@@ -54,7 +56,8 @@ class Post {
       json.rating,
       json.ratingCount,
       json.popularity,
-      json.favorite
+      json.favorite,
+      json.read
     );
   }
 
@@ -70,7 +73,8 @@ class Post {
       rating: this.rating,
       ratingCount: this.ratingCount,
       popularity: this.popularity,
-      favorite: this.favorite
+      favorite: this.favorite,
+      read: this.read
     };
   }
 }

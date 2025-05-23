@@ -16,6 +16,12 @@ public interface ForumService {
 
   public Page<ForumModel> readAll(int page, int size);
 
+  public Page<ForumModel> readAllWithUnreadPosts(int page, int size);
+
+  public boolean turnOnNotifications(Long forum) throws AuthorizationException;
+
+  public boolean turnOffNotifications(Long forum) throws AuthorizationException;
+
   public boolean delete(Long id) throws AuthorizationException;
 
   public boolean canRead(Long id);

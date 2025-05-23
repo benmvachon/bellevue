@@ -5,10 +5,10 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import com.village.bellevue.event.MessageEvent;
-import com.village.bellevue.event.MessageReadEvent;
-import com.village.bellevue.event.ThreadReadEvent;
-import com.village.bellevue.event.ThreadsReadEvent;
+import com.village.bellevue.event.type.MessageEvent;
+import com.village.bellevue.event.type.MessageReadEvent;
+import com.village.bellevue.event.type.ThreadReadEvent;
+import com.village.bellevue.event.type.ThreadsReadEvent;
 
 @Component
 public class MessageListener {

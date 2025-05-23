@@ -18,34 +18,36 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import static com.village.bellevue.config.CacheConfig.POST_SECURITY_CACHE_NAME;
 import static com.village.bellevue.config.security.SecurityConfig.getAuthenticatedUserId;
 import com.village.bellevue.entity.AggregateRatingEntity;
 import com.village.bellevue.entity.ForumEntity;
+import com.village.bellevue.entity.NotificationSettingEntity;
 import com.village.bellevue.entity.PostEntity;
 import com.village.bellevue.entity.UserProfileEntity;
 import com.village.bellevue.entity.FavoriteEntity.FavoriteType;
+import com.village.bellevue.entity.NotificationEntity.NotificationType;
 import com.village.bellevue.entity.RatingEntity.Star;
 import com.village.bellevue.entity.id.AggregateRatingId;
 import com.village.bellevue.entity.id.FavoriteId;
+import com.village.bellevue.entity.id.NotificationSettingId;
 import com.village.bellevue.error.AuthorizationException;
 import com.village.bellevue.error.FriendshipException;
 import com.village.bellevue.error.PostException;
 import com.village.bellevue.error.RatingException;
-import com.village.bellevue.event.PopularityEvent;
-import com.village.bellevue.event.PostEvent;
+import com.village.bellevue.event.type.ForumReadCountEvent;
+import com.village.bellevue.event.type.NotificationReadEvent;
+import com.village.bellevue.event.type.PopularityEvent;
+import com.village.bellevue.event.type.PostEvent;
 import com.village.bellevue.model.ForumModel;
 import com.village.bellevue.model.ForumModelProvider;
 import com.village.bellevue.model.PostModel;
 import com.village.bellevue.model.PostModelProvider;
 import com.village.bellevue.model.ProfileModel;
 import com.village.bellevue.model.ProfileModelProvider;
-import com.village.bellevue.repository.AggregateRatingRepository;
-import com.village.bellevue.repository.FavoriteRepository;
-import com.village.bellevue.repository.ForumRepository;
-import com.village.bellevue.repository.PostRepository;
-import com.village.bellevue.repository.UserProfileRepository;
+import com.village.bellevue.repository.*;
 import com.village.bellevue.service.FriendService;
 import com.village.bellevue.service.PostService;
 import com.village.bellevue.service.RatingService;
@@ -134,6 +136,17 @@ public class PostServiceImpl implements PostService {
         public boolean isFavorite(ForumEntity forum) {
           return favoriteRepository.existsById(new FavoriteId(getAuthenticatedUserId(), FavoriteType.FORUM, forum.getId()));
         }
+
+        @Override
+        public Long getUnreadCount(ForumEntity forum) {
+          return forumRepository.getUnreadCount(forum.getId(), getAuthenticatedUserId());
+        }
+
+        @Override
+        public boolean isNotify(ForumEntity forum) {
+          Optional<NotificationSettingEntity> setting = notificationSettingRepository.findById(new NotificationSettingId(getAuthenticatedUserId(), forum.getId()));
+          return setting.isPresent() && setting.get().isNotify();
+        }
       });
     }
 
@@ -148,6 +161,8 @@ public class PostServiceImpl implements PostService {
   private final AggregateRatingRepository ratingRepository;
   private final ForumRepository forumRepository;
   private final UserProfileRepository userProfileRepository;
+  private final NotificationSettingRepository notificationSettingRepository;
+  private final NotificationRepository notificationRepository;
   private final FriendService friendService;
   private final RatingService ratingService;
   private final DataSource dataSource;
@@ -159,6 +174,8 @@ public class PostServiceImpl implements PostService {
     AggregateRatingRepository ratingRepository,
     ForumRepository forumRepository,
     UserProfileRepository userProfileRepository,
+    NotificationSettingRepository notificationSettingRepository,
+    NotificationRepository notificationRepository,
     FriendService friendService,
     RatingService ratingService,
     DataSource dataSource,
@@ -169,6 +186,8 @@ public class PostServiceImpl implements PostService {
     this.ratingRepository = ratingRepository;
     this.forumRepository = forumRepository;
     this.userProfileRepository = userProfileRepository;
+    this.notificationSettingRepository = notificationSettingRepository;
+    this.notificationRepository = notificationRepository;
     this.friendService = friendService;
     this.ratingService = ratingService;
     this.dataSource = dataSource;
@@ -184,15 +203,15 @@ public class PostServiceImpl implements PostService {
       post.setForum(forumEntity);
       post.setContent(content);
       model = new PostModel(save(post), postModelProvider);
+      try {
+        ratingService.rate(model.getId(), Star.FIVE);
+      } catch (RatingException e) {
+        throw new PostException("Could not rate new post");
+      }
       return model;
     } finally {
       if (model != null) {
         publisher.publishEvent(new PostEvent(getAuthenticatedUserId(), model));
-        try {
-          ratingService.rate(model.getId(), Star.FIVE);
-        } catch (RatingException e) {
-          throw new PostException("Could not rate new post");
-        }
       }
     }
   }
@@ -212,7 +231,6 @@ public class PostServiceImpl implements PostService {
     }
     if (depth >= 9) throw new PostException("Post too deep for replies");
     PostModel model = null;
-    logger.info("Starting reply procedure for {} by {} at {}", parent, user, System.currentTimeMillis());
     try (Connection connection = dataSource.getConnection();
         CallableStatement stmt = connection.prepareCall("{call add_reply(?, ?, ?, ?, ?)}")) {
       stmt.setLong(1, user);
@@ -223,7 +241,11 @@ public class PostServiceImpl implements PostService {
       stmt.executeUpdate();
       Long reply = stmt.getLong(5);
       model = new PostModel(postRepository.getReferenceById(reply), postModelProvider);
-      logger.info("Finished reply procedure for {} by {} at {}", parent, user, System.currentTimeMillis());
+      try {
+        ratingService.rate(model.getId(), Star.FIVE);
+      } catch (RatingException e) {
+        throw new PostException("Could not rate new reply");
+      }
       return model;
     } catch (SQLException e) {
       logger.error("Error adding reply: {}", e.getMessage(), e);
@@ -232,11 +254,6 @@ public class PostServiceImpl implements PostService {
       if (model != null) {
         publisher.publishEvent(new PostEvent(user, model));
         for (PopularityEvent event : events) publisher.publishEvent(event);
-        try {
-          ratingService.rate(model.getId(), Star.FIVE);
-        } catch (RatingException e) {
-          throw new PostException("Could not rate new reply");
-        }
       }
     }
   }
@@ -392,6 +409,7 @@ public class PostServiceImpl implements PostService {
   }
 
   @Override
+  @Transactional
   public boolean delete(Long id) throws AuthorizationException {
     Optional<PostModel> post = read(id);
     if (post.isEmpty()) return false;
@@ -401,6 +419,44 @@ public class PostServiceImpl implements PostService {
     return true;
   }
 
+  @Override
+  @Transactional(timeout = 30)
+  public boolean markAsRead(Long id) throws AuthorizationException {
+    Long user = getAuthenticatedUserId();
+    if (!canRead(id)) throw new AuthorizationException("User not authorized");
+    boolean marked = ratingRepository.markAsRead(user, id) > 0;
+    if (marked) {
+      read(id).ifPresent((post) -> { publisher.publishEvent(new ForumReadCountEvent(user, post.getForum().getId()));});
+      if (notificationRepository.markPostAsRead(id, user) > 0)
+        publisher.publishEvent(new NotificationReadEvent(user, notificationRepository.findId(user, NotificationType.POST, id)));
+    }
+    return marked;
+  }
+
+  @Override
+  @Transactional(timeout = 30)
+  public boolean markForumAsRead(Long forum) throws AuthorizationException {
+    Long user = getAuthenticatedUserId();
+    if (!forumRepository.canRead(user, forum)) throw new AuthorizationException("User not authorized");
+    boolean marked = ratingRepository.markForumAsRead(user, forum) > 0;
+    if (marked) {
+      publisher.publishEvent(new ForumReadCountEvent(user, forum));
+    }
+    return marked;
+  }
+
+  @Override
+  @Transactional(timeout = 30)
+  public boolean markAllAsRead() {
+    Long user = getAuthenticatedUserId();
+    boolean marked = ratingRepository.markAllAsRead(getAuthenticatedUserId()) > 0;
+    if (marked) {
+      publisher.publishEvent(new ForumReadCountEvent(user, null));
+    }
+    return marked;
+  }
+
+  @Transactional(timeout = 30)
   private PostEntity save(PostEntity post) throws AuthorizationException {
     Long userId = getAuthenticatedUserId();
     if (!forumRepository.canRead(post.getForum().getId(), userId)) throw new AuthorizationException("User not authorized");

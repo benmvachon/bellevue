@@ -1,7 +1,6 @@
 package com.village.bellevue.service.impl;
 
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,8 +10,8 @@ import java.sql.Timestamp;
 import java.util.List;
 
 import com.village.bellevue.entity.NotificationEntity;
-import com.village.bellevue.event.NotificationReadEvent;
-import com.village.bellevue.event.NotificationsReadEvent;
+import com.village.bellevue.event.type.NotificationReadEvent;
+import com.village.bellevue.event.type.NotificationsReadEvent;
 import com.village.bellevue.repository.NotificationRepository;
 import com.village.bellevue.service.NotificationService;
 
@@ -56,8 +55,7 @@ public class NotificationServiceImpl implements NotificationService {
   }
 
   @Override
-  @Async
-  @Transactional(value = "asyncTransactionManager", timeout = 300)
+  @Transactional
   public void markAllAsRead() {
     try {
       notificationRepository.markAllAsRead(getAuthenticatedUserId());
@@ -67,7 +65,7 @@ public class NotificationServiceImpl implements NotificationService {
   }
 
   @Override
-  @Transactional(value = "asyncTransactionManager", timeout = 300)
+  @Transactional
   public void markAsRead(Long id) {
     notificationRepository.markAsRead(id, getAuthenticatedUserId());
     try {
