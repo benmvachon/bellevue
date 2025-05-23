@@ -5,6 +5,7 @@ class Forum {
     id,
     category,
     name,
+    description,
     user,
     created,
     favorite,
@@ -15,6 +16,7 @@ class Forum {
     this.id = id;
     this.category = category;
     this.name = name;
+    this.description = description;
     this.user = user ? Profile.fromJSON(user) : undefined;
     this.created = created ? new Date(created) : undefined;
     this.favorite = favorite;
@@ -40,6 +42,7 @@ class Forum {
       json.id,
       json.category,
       json.name,
+      json.description,
       json.user,
       json.created,
       json.favorite,
@@ -53,6 +56,7 @@ class Forum {
       id: this.id,
       category: this.category,
       name: this.name,
+      description: this.description,
       user: this.user ? this.user.toJSON() : null,
       created: this.created?.toString(),
       favorite: this.favorite,

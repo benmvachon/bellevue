@@ -33,6 +33,8 @@ public class ForumEntity {
   @Column(nullable = false, unique = true)
   private String name;
 
+  private String description;
+
   private Timestamp created = new Timestamp(System.currentTimeMillis());
 
   public ForumEntity(ForumModel model) {

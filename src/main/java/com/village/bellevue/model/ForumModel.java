@@ -16,6 +16,7 @@ public class ForumModel {
 
   private Long id;
   private String name;
+  private String description;
 
   private ProfileModel user;
   private Timestamp created;
@@ -32,6 +33,7 @@ public class ForumModel {
     }
     this.id = forum.getId();
     this.name = forum.getName();
+    this.description = forum.getDescription();
     this.user = helper.getProfile(forum.getUser()).orElse(null);
     this.created = forum.getCreated();
     this.favorite = helper.isFavorite(forum);

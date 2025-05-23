@@ -20,6 +20,7 @@ CREATE TABLE avatar(
 CREATE TABLE forum(
     id              INT UNSIGNED NOT NULL AUTO_INCREMENT,                                                       -- Unique ID for the record
     name            VARCHAR(255) NOT NULL UNIQUE,                                                               -- Name of the forum
+    description     VARCHAR(255),                                                                               -- Forum's purpose
     user            INT UNSIGNED,                                                                               -- Forum's creator (if this is a custom forum)
     created         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,                                                        -- Timestamp for when the account was created
     PRIMARY KEY     (id),                                                                                       -- Make the ID the primary key

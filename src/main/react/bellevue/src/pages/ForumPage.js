@@ -168,6 +168,7 @@ function ForumPage() {
       <h2>
         {forum?.name} - ({forum?.unreadCount} unread)
       </h2>
+      <h3>{forum?.description}</h3>
       {forum.favorite ? (
         <button onClick={unfavorite}>Unfavorite</button>
       ) : (
