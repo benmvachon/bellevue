@@ -75,6 +75,7 @@ public class IntegrationTest extends IntegrationTestWrapper {
     null,
     forum,
     "This is a post",
+    false,
     new Timestamp(System.currentTimeMillis())
   );
 

@@ -148,7 +148,14 @@ function ForumPage() {
         }
       });
       onPostDelete(id, (message) => {
-        setPosts(posts.filter((post) => post.id !== message));
+        getTotalPosts(
+          id,
+          (totalPosts) => {
+            setTotalPosts(totalPosts);
+            setPosts(posts.filter((post) => post.id !== message));
+          },
+          setError
+        );
       });
       if (sortByPopular)
         onForumPopularityUpdate(id, (message) => {
