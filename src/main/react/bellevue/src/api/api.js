@@ -458,6 +458,10 @@ export const ratePost = (post, rating, callback, error) => {
   api.put(`/rating/${post}/${rating}`).then(callback).catch(error);
 };
 
+export const deletePost = (post, callback, error) => {
+  api.delete(`/post/${post}`).then(callback).catch(error);
+};
+
 export const markPostRead = (post, callback, error) => {
   api.put(`/post/read/${post}`).then(callback).catch(error);
 };
@@ -468,6 +472,26 @@ export const markForumRead = (forum, callback, error) => {
 
 export const markPostsRead = (callback, error) => {
   api.put('/post/readall').then(callback).catch(error);
+};
+
+export const onPostDelete = (forum, onPostDelete) => {
+  subscribe(`/user/topic/forum/${forum}/delete`, (message) => {
+    onPostDelete(Number.parseInt(message));
+  });
+};
+
+export const unsubscribePostDelete = (forum) => {
+  unsubscribe(`/user/topic/forum/${forum}/delete`);
+};
+
+export const onReplyDelete = (post, onReplyDelete) => {
+  subscribe(`/user/topic/post/${post}/delete`, (message) => {
+    onReplyDelete(Number.parseInt(message));
+  });
+};
+
+export const unsubscribeReplyDelete = (post) => {
+  unsubscribe(`/user/topic/post/${post}/delete`);
 };
 
 export const onPostUpdate = (post, onPostUpdate) => {

@@ -34,7 +34,7 @@ function ProfilePage() {
   const [blackboard, setBlackboard] = useState('');
   const [showEquipment, setShowEquipment] = useState(false);
 
-  const self = '' + userId === '' + id;
+  const self = userId === id;
 
   const refresh = () => getProfile(id, setProfile, setError);
 

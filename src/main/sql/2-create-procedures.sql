@@ -652,13 +652,13 @@ BEGIN
         IF friend IS NOT NULL THEN
             SELECT EXISTS (
                 SELECT 1 FROM friend f
-                WHERE f.user = friend AND f.friend = author AND f.status = 'ACCEPTED'
+                WHERE f.user = friend AND f.friend = user AND f.status = 'ACCEPTED'
             ) INTO is_friend;
             IF is_friend THEN
                 SELECT a.popularity INTO popularity
                     FROM aggregate_rating a
                     WHERE a.user = friend AND a.post = p_post;
-                CALL remove_popularity_from_parent(friend, post, popularity + 1);
+                CALL remove_popularity_from_parent(friend, p_post, popularity + 1);
                 SET done = FALSE;
             END IF;
         END IF;
@@ -668,7 +668,12 @@ BEGIN
     SELECT a.popularity INTO popularity
         FROM aggregate_rating a
         WHERE a.user = user AND a.post = p_post;
-    CALL remove_popularity_from_parent(user, post, popularity + 1);
+    CALL remove_popularity_from_parent(user, p_post, popularity + 1);
+
+    -- delete notifications
+    DELETE FROM notification n WHERE n.type = 'POST' AND n.entity = p_post;
+    -- delete favorites
+    DELETE FROM favorite f WHERE f.type = 'POST' AND f.entity = p_post;
 
     DELETE FROM post WHERE id = p_post;
 END;

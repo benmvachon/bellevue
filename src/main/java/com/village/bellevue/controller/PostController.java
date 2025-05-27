@@ -8,6 +8,7 @@ import java.util.Optional;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -291,5 +292,17 @@ public class PostController {
   public ResponseEntity<Void> markAllAsRead() {
     postService.markAllAsRead();
     return ResponseEntity.status(HttpStatus.OK).build();
+  }
+
+  @DeleteMapping("/{post}")
+  public ResponseEntity<Void> delete(@PathVariable Long post) {
+    try {
+      if (postService.delete(post)) return ResponseEntity.status(HttpStatus.OK).build();
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    } catch (AuthorizationException e) {
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    } catch (PostException e) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    }
   }
 }

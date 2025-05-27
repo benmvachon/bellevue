@@ -34,7 +34,7 @@ public interface PostService {
 
   public Long countOthersByParent(Long parent, Long child) throws AuthorizationException;
 
-  public boolean delete(Long id) throws AuthorizationException;
+  public boolean delete(Long id) throws AuthorizationException, PostException;
 
   public boolean markAsRead(Long id) throws AuthorizationException;
 

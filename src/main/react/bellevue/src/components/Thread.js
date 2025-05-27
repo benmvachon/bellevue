@@ -38,7 +38,7 @@ function Thread({ thread, onClick }) {
 
   useEffect(() => {
     if (stateThread) {
-      if ('' + stateThread.receiver.id === '' + userId) {
+      if (stateThread.receiver.id === userId) {
         setFriend(stateThread.sender);
         setReceived(true);
       } else {

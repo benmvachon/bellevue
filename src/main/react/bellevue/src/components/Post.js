@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import withAuth from '../utils/withAuth.js';
+import { useAuth } from '../utils/AuthContext.js';
 import {
   addReply,
   getPost,
@@ -14,7 +15,10 @@ import {
   getPopularReplies,
   unsubscribePostPopularity,
   onPostPopularityUpdate,
-  markPostRead
+  markPostRead,
+  deletePost,
+  onReplyDelete,
+  unsubscribeReplyDelete
 } from '../api/api.js';
 import Rating from './Rating.js';
 import ScrollLoader from './ScrollLoader.js';
@@ -26,9 +30,11 @@ function Post({
   selectedChildId,
   getSelectedChild,
   sortByPopularParent = false,
+  sortParentList,
   depth = 0
 }) {
   const navigate = useNavigate();
+  const { userId } = useAuth();
   const [post, setPost] = useState(postProp);
   const [sortByPopular, setSortByPopular] = useState(sortByPopularParent);
   const [replies, setReplies] = useState([]);
@@ -82,6 +88,47 @@ function Post({
     unfavoritePost(id, () => getPost(id, setPost, setError), setError);
   };
 
+  const sortReplies = useCallback(
+    (id, popularity) => {
+      getPost(
+        post.id,
+        (updatedPost) => {
+          if (sortByPopular) {
+            let index = -1;
+            const reply = replies.find((reply, i) => {
+              if (reply.id === id) {
+                index = i;
+                return true;
+              }
+              return false;
+            });
+            reply.popularity = popularity;
+            if (index !== replies.length - 1) {
+              let updatedReplies = replies.sort((a, b) => {
+                if (b.popularity !== a.popularity)
+                  return b.popularity - a.popularity;
+                return b.id - a.id;
+              });
+              if (
+                updatedReplies.indexOf(reply) === replies.length - 1 &&
+                updatedPost.children === replies.length
+              ) {
+                updatedReplies = updatedReplies.filter(
+                  (reply) => reply.id !== id
+                );
+              }
+              setReplies(updatedReplies);
+            }
+          }
+          sortParentList(updatedPost.id, popularity);
+          setPost(updatedPost);
+        },
+        setError
+      );
+    },
+    [replies, post?.id, sortByPopular, sortParentList]
+  );
+
   useEffect(() => {
     if (id && id !== postProp?.id) {
       getPost(id, setPost, setError);
@@ -111,6 +158,20 @@ function Post({
           setError
         );
       });
+      onReplyDelete(id, (message) => {
+        getPost(
+          id,
+          (post) => {
+            const updatedReplies = replies.filter(
+              (reply) => reply.id !== message
+            );
+            setPost(post);
+            setReplies(updatedReplies);
+            sortParentList(id, post.popularity);
+          },
+          setError
+        );
+      });
       if (sortByPopular)
         onPostPopularityUpdate(id, (message) => {
           const post = message.post;
@@ -135,9 +196,10 @@ function Post({
       return () => {
         unsubscribePost(id);
         unsubscribePostPopularity(id);
+        unsubscribeReplyDelete(id);
       };
     }
-  }, [id, sortByPopular, replies]);
+  }, [id, sortByPopular, replies, sortParentList]);
 
   useEffect(() => {
     if (post?.children > 0 && showReplies) {
@@ -185,6 +247,9 @@ function Post({
         ) : (
           <button onClick={favorite}>Favorite</button>
         )}
+        {post.user.id === userId && (
+          <button onClick={() => deletePost(id)}>Delete</button>
+        )}
       </div>
       <p>{post?.content}</p>
       <button onClick={toggleSort}>
@@ -211,6 +276,7 @@ function Post({
                   postProp={post}
                   depth={depth + 1}
                   sortByPopularParent={sortByPopular}
+                  sortParentList={sortReplies}
                 />
               ))}
             </ScrollLoader>
@@ -228,6 +294,7 @@ Post.propTypes = {
   selectedChildId: PropTypes.number,
   getSelectedChild: PropTypes.func,
   sortByPopularParent: PropTypes.bool,
+  sortParentList: PropTypes.func,
   depth: PropTypes.number
 };
 

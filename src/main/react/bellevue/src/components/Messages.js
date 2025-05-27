@@ -20,7 +20,7 @@ function Messages({ show = false, friend, onClose }) {
   const [error, setError] = useState(false);
 
   const sentOrReceived = (message) => {
-    if ('' + message.receiver.id === '' + userId) return 'received';
+    if (message.receiver.id === userId) return 'received';
     return 'sent';
   };
 
@@ -55,7 +55,7 @@ function Messages({ show = false, friend, onClose }) {
 
   useEffect(() => {
     const sentOrReceived = (message) => {
-      if ('' + message.receiver.id === '' + userId) return 'received';
+      if (message.receiver.id === userId) return 'received';
       return 'sent';
     };
     messages?.forEach((message) => {

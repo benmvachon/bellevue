@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import withAuth from '../utils/withAuth.js';
 import {
@@ -17,7 +17,9 @@ import {
   unsubscribeForum,
   unsubscribeForumPopularity,
   unsubscribeForumUnread,
-  setForumNotification
+  setForumNotification,
+  onPostDelete,
+  unsubscribePostDelete
 } from '../api/api.js';
 import Post from '../components/Post.js';
 import Header from '../components/Header.js';
@@ -95,6 +97,37 @@ function ForumPage() {
     );
   };
 
+  const sortPosts = useCallback(
+    (id, popularity) => {
+      if (sortByPopular) {
+        let index = -1;
+        const post = posts.find((post, i) => {
+          if (post.id === id) {
+            index = i;
+            return true;
+          }
+          return false;
+        });
+        post.popularity = popularity;
+        if (index !== posts.length - 1) {
+          let updatedPosts = posts.sort((a, b) => {
+            if (b.popularity !== a.popularity)
+              return b.popularity - a.popularity;
+            return b.id - a.id;
+          });
+          if (
+            updatedPosts.indexOf(post) === posts.length - 1 &&
+            totalPosts === posts.length
+          ) {
+            updatedPosts = updatedPosts.filter((post) => post.id !== id);
+          }
+          setPosts(updatedPosts);
+        }
+      }
+    },
+    [posts, sortByPopular, totalPosts]
+  );
+
   useEffect(() => {
     if (id) {
       getForum(id, setForum, setError);
@@ -113,6 +146,9 @@ function ForumPage() {
             () => {}
           );
         }
+      });
+      onPostDelete(id, (message) => {
+        setPosts(posts.filter((post) => post.id !== message));
       });
       if (sortByPopular)
         onForumPopularityUpdate(id, (message) => {
@@ -139,6 +175,7 @@ function ForumPage() {
       return () => {
         unsubscribeForum(id);
         unsubscribeForumPopularity(id);
+        unsubscribePostDelete(id);
         unsubscribeForumUnread(id);
       };
     }
@@ -202,6 +239,7 @@ function ForumPage() {
                 postProp={post}
                 depth={0}
                 sortByPopularParent={sortByPopular}
+                sortParentList={sortPosts}
               />
             ))}
           </ScrollLoader>

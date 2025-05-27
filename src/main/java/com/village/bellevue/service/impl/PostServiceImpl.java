@@ -40,6 +40,7 @@ import com.village.bellevue.error.RatingException;
 import com.village.bellevue.event.type.ForumReadCountEvent;
 import com.village.bellevue.event.type.NotificationReadEvent;
 import com.village.bellevue.event.type.PopularityEvent;
+import com.village.bellevue.event.type.PostDeleteEvent;
 import com.village.bellevue.event.type.PostEvent;
 import com.village.bellevue.model.ForumModel;
 import com.village.bellevue.model.ForumModelProvider;
@@ -231,8 +232,10 @@ public class PostServiceImpl implements PostService {
     }
     if (depth >= 9) throw new PostException("Post too deep for replies");
     PostModel model = null;
-    try (Connection connection = dataSource.getConnection();
-        CallableStatement stmt = connection.prepareCall("{call add_reply(?, ?, ?, ?, ?)}")) {
+    try (
+      Connection connection = dataSource.getConnection();
+      CallableStatement stmt = connection.prepareCall("{call add_reply(?, ?, ?, ?, ?)}")
+    ) {
       stmt.setLong(1, user);
       stmt.setLong(2, parent);
       stmt.setLong(3, forum);
@@ -410,12 +413,26 @@ public class PostServiceImpl implements PostService {
 
   @Override
   @Transactional
-  public boolean delete(Long id) throws AuthorizationException {
+  public boolean delete(Long id) throws AuthorizationException, PostException {
     Optional<PostModel> post = read(id);
     if (post.isEmpty()) return false;
     if (!getAuthenticatedUserId().equals(post.get().getUser().getId()))
       throw new AuthorizationException("Currently authenticated user is not authorized to delete post");
-    postRepository.deleteById(id);
+    try (
+      Connection connection = dataSource.getConnection();
+      CallableStatement stmt = connection.prepareCall("{call delete_post(?)}")
+    ) {
+      stmt.setLong(1, id);
+      stmt.executeUpdate();
+    } catch (SQLException e) {
+      logger.error("Error deleting post: {}", e.getMessage(), e);
+      throw new PostException("Failed to delete post. SQL command error: " + e.getMessage(), e);
+    }
+    Long parent = null;
+    if (Objects.nonNull(post.get().getParent())) {
+      parent = post.get().getParent().getId();
+    }
+    publisher.publishEvent(new PostDeleteEvent(getAuthenticatedUserId(), id, parent, post.get().getForum().getId()));
     return true;
   }
 

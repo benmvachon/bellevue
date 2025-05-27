@@ -45,7 +45,7 @@ function Threads({ show = false, onClose, openMessages }) {
   };
 
   const getOtherUser = (thread) => {
-    if ('' + thread.receiver.id === '' + userId) return thread.sender;
+    if (thread.receiver.id === userId) return thread.sender;
     return thread.receiver;
   };
 
@@ -61,7 +61,7 @@ function Threads({ show = false, onClose, openMessages }) {
   useEffect(() => {
     if (show) {
       const getOtherUser = (thread) => {
-        if ('' + thread.receiver.id === '' + userId) return thread.sender;
+        if (thread.receiver.id === userId) return thread.sender;
         return thread.receiver;
       };
       onThread((event) => {
