@@ -299,8 +299,8 @@ export const unsubscribeForumUnread = (forum) => {
   unsubscribe(`/user/topic/forum/unread/${forum}`);
 };
 
-export const getPosts = (forum, callback, error, limit = 1) => {
-  let uri = `/post/forum/${forum}?limit=${limit}`;
+export const getPosts = (callback, error, sortByPopular = false, limit = 1) => {
+  let uri = `/post?limit=${limit}&sortByPopular=${sortByPopular}`;
   api
     .get(uri)
     .then((response) => {

@@ -16,6 +16,10 @@ public interface PostService {
 
   public Optional<PostModel> read(Long id) throws AuthorizationException;
 
+  public List<PostModel> readAll(Timestamp createdCursor, Long idCursor, Long limit) throws AuthorizationException;
+
+  public List<PostModel> readAll(Long popularityCursor, Long idCursor, Long limit) throws AuthorizationException;
+
   public List<PostModel> readAllByForum(Long forum, Timestamp createdCursor, Long idCursor, Long limit) throws AuthorizationException;
 
   public List<PostModel> readAllByForum(Long forum, Long popularityCursor, Long idCursor, Long limit) throws AuthorizationException;

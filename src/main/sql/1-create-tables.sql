@@ -93,6 +93,7 @@ CREATE TABLE post(
     forum           INT UNSIGNED NOT NULL,                                                                      -- Forum containing the post
     content         TEXT NOT NULL,                                                                              -- Text content of the post / comment
     created         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,                                                        -- Timestamp for when the post was created
+    deleted         BOOLEAN NOT NULL DEFAULT FALSE,                                                             -- Whether the post has been marked for deletion
     PRIMARY KEY     (id),                                                                                       -- Make the ID the primary key
     FOREIGN KEY     (user) REFERENCES user(id) ON DELETE CASCADE,                                               -- user is a reference to the user table
     FOREIGN KEY     (parent) REFERENCES post(id) ON DELETE CASCADE,                                             -- parent is a reference to the post table

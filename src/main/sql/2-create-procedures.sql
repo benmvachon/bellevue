@@ -81,7 +81,7 @@ BEGIN
 
     visibility_check_loop: LOOP
         -- Get the parent of the current post
-        SELECT parent INTO v_parent FROM post WHERE id = v_current_post;
+        SELECT parent INTO v_parent FROM post WHERE id = v_current_post AND deleted = FALSE;
 
         -- If no more parents, break the loop
         IF v_parent IS NULL THEN
@@ -89,7 +89,7 @@ BEGIN
         END IF;
 
         -- Get the author of this parent post
-        SELECT user INTO v_author FROM post WHERE id = v_parent;
+        SELECT user INTO v_author FROM post WHERE id = v_parent AND deleted = FALSE;
 
         -- Check visibility: either it's the user themselves, or they're friends
         IF v_author != p_user THEN
@@ -140,7 +140,7 @@ CREATE PROCEDURE remove_popularity_from_parent(
 )
 BEGIN
     DECLARE parent INT UNSIGNED;
-    SELECT p.parent INTO parent FROM post p WHERE p.id = p_post;
+    SELECT p.parent INTO parent FROM post p WHERE p.id = p_post AND p.deleted = FALSE;
 
     IF parent IS NOT NULL THEN
         UPDATE aggregate_rating a SET popularity = a.popularity - p_popularity WHERE a.user = p_user AND a.post = parent;
@@ -175,7 +175,7 @@ BEGIN
 
     ancestor_check: LOOP
         -- Get the author and parent of the current post
-        SELECT user, parent INTO v_author, v_parent FROM post WHERE id = v_post;
+        SELECT user, parent INTO v_author, v_parent FROM post WHERE id = v_post AND deleted = FALSE;
 
         -- If the user is not the same as p_user, check friendship
         IF v_author != p_user THEN
@@ -288,7 +288,7 @@ BEGIN
     DECLARE children CURSOR FOR
         SELECT p.id FROM post p
         LEFT JOIN friend f ON f.user = p_friend AND f.friend = p.user
-        WHERE p.parent = p_post
+        WHERE p.parent = p_post AND p.deleted = FALSE
         AND (f.status = 'ACCEPTED' OR p.user = p_friend)
         AND p.user != p_user;
 
@@ -334,7 +334,7 @@ BEGIN
     DECLARE children CURSOR FOR
         SELECT p.id FROM post p
         LEFT JOIN friend f ON f.user = p_friend AND f.friend = p.user
-        WHERE p.parent = p_post
+        WHERE p.parent = p_post AND p.deleted = FALSE
         AND (f.status = 'ACCEPTED' OR p.user = p_friend)
         AND p.user != p_user;
 
@@ -374,7 +374,7 @@ BEGIN
     DECLARE rating DECIMAL(3,2);
     DECLARE done INT DEFAULT FALSE;
 
-    DECLARE posts CURSOR FOR SELECT id FROM post WHERE user = p_user;
+    DECLARE posts CURSOR FOR SELECT id FROM post WHERE user = p_user AND deleted = FALSE;
 
     -- Process posts by p_user
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
@@ -415,7 +415,7 @@ BEGIN
     DECLARE popularity INT UNSIGNED;
     DECLARE done INT DEFAULT FALSE;
 
-    DECLARE posts CURSOR FOR SELECT id FROM post WHERE user = p_user;
+    DECLARE posts CURSOR FOR SELECT id FROM post WHERE user = p_user AND deleted = FALSE;
 
     -- Process posts by p_user
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
@@ -591,7 +591,7 @@ BEGIN
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
 
     SELECT FIELD(r.rating, 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE') INTO rating FROM rating r WHERE r.user = p_user AND r.post = p_post;
-    SELECT p.user INTO author FROM post p WHERE p.id = p_post;
+    SELECT p.user INTO author FROM post p WHERE p.id = p_post AND p.deleted = FALSE;
 
     SET done = FALSE;
     OPEN friends;
@@ -627,6 +627,7 @@ CREATE PROCEDURE delete_post(
     IN p_post INT UNSIGNED
 )
 BEGIN
+    DECLARE marked_for_delection INT DEFAULT FALSE;
     DECLARE user INT UNSIGNED;
     DECLARE friend INT UNSIGNED;
     DECLARE popularity INT UNSIGNED;
@@ -640,42 +641,45 @@ BEGIN
         AND status = 'ACCEPTED';
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
 
-    SELECT p.user INTO user FROM post p WHERE p.id = p_post;
+    SELECT p.user, p.deleted INTO user, marked_for_delection FROM post p WHERE p.id = p_post;
 
-    SET done = FALSE;
-    OPEN friends;
-    read_loop: LOOP
-        FETCH friends INTO friend;
-        IF done THEN
-            LEAVE read_loop;
-        END IF;
-        IF friend IS NOT NULL THEN
-            SELECT EXISTS (
-                SELECT 1 FROM friend f
-                WHERE f.user = friend AND f.friend = user AND f.status = 'ACCEPTED'
-            ) INTO is_friend;
-            IF is_friend THEN
-                SELECT a.popularity INTO popularity
-                    FROM aggregate_rating a
-                    WHERE a.user = friend AND a.post = p_post;
-                CALL remove_popularity_from_parent(friend, p_post, popularity + 1);
-                SET done = FALSE;
+    IF NOT marked_for_delection THEN
+        UPDATE post p SET p.deleted = TRUE WHERE p.id = p_post;
+        SET done = FALSE;
+        OPEN friends;
+        read_loop: LOOP
+            FETCH friends INTO friend;
+            IF done THEN
+                LEAVE read_loop;
             END IF;
-        END IF;
-    END LOOP;
-    CLOSE friends;
+            IF friend IS NOT NULL THEN
+                SELECT EXISTS (
+                    SELECT 1 FROM friend f
+                    WHERE f.user = friend AND f.friend = user AND f.status = 'ACCEPTED'
+                ) INTO is_friend;
+                IF is_friend THEN
+                    SELECT a.popularity INTO popularity
+                        FROM aggregate_rating a
+                        WHERE a.user = friend AND a.post = p_post;
+                    CALL remove_popularity_from_parent(friend, p_post, popularity + 1);
+                    SET done = FALSE;
+                END IF;
+            END IF;
+        END LOOP;
+        CLOSE friends;
 
-    SELECT a.popularity INTO popularity
-        FROM aggregate_rating a
-        WHERE a.user = user AND a.post = p_post;
-    CALL remove_popularity_from_parent(user, p_post, popularity + 1);
+        SELECT a.popularity INTO popularity
+            FROM aggregate_rating a
+            WHERE a.user = user AND a.post = p_post;
+        CALL remove_popularity_from_parent(user, p_post, popularity + 1);
 
-    -- delete notifications
-    DELETE FROM notification n WHERE n.type = 'POST' AND n.entity = p_post;
-    -- delete favorites
-    DELETE FROM favorite f WHERE f.type = 'POST' AND f.entity = p_post;
+        -- delete notifications
+        DELETE FROM notification n WHERE n.type = 'POST' AND n.entity = p_post;
+        -- delete favorites
+        DELETE FROM favorite f WHERE f.type = 'POST' AND f.entity = p_post;
 
-    DELETE FROM post WHERE id = p_post;
+        DELETE FROM post WHERE id = p_post;
+    END IF;
 END;
 //
 DELIMITER ;
@@ -733,6 +737,7 @@ BEGIN
         FROM post r
         JOIN post p ON p.id = r.parent
         WHERE r.user = p_user
+        AND p.deleted = FALSE
         AND p.user = p_friend;
 
     -- Delete replies by p_user on posts by p_friend
@@ -781,7 +786,7 @@ BEGIN
         -- Start with posts by p_user
         SELECT p.id AS post_id, p.parent AS parent_id, CAST(NULL AS UNSIGNED) AS ancestor_author
         FROM post p
-        WHERE p.user = p_user
+        WHERE p.user = p_user AND p.deleted = FALSE
 
         UNION ALL
 
@@ -836,6 +841,7 @@ BEGIN
         SELECT p.id
         FROM post p
         WHERE p.user = p_friend
+        AND p.deleted = FALSE
         UNION ALL
         SELECT c.id
         FROM post c
@@ -887,7 +893,8 @@ BEGIN
     FROM post p
     JOIN forum f ON p.forum = f.id
     WHERE p.user = p_user
-      AND f.user = p_friend;
+      AND f.user = p_friend
+      AND p.deleted = FALSE;
 
     OPEN post_cursor;
 
@@ -941,6 +948,7 @@ BEGIN
         SELECT p.id
         FROM post p
         WHERE p.user = p_friend
+        AND p.deleted = FALSE
         UNION ALL
         SELECT c.id
         FROM post c
@@ -1066,7 +1074,7 @@ BEGIN
         CALL add_popularity_to_parent(friend_id, o_post, 1);
     END LOOP;
     CLOSE friend_cursor;
-    SELECT p.user INTO friend_id FROM post p WHERE p.id = p_parent;
+    SELECT p.user INTO friend_id FROM post p WHERE p.id = p_parent AND p.deleted = FALSE;
     CALL increment_friendship_score(p_user, friend_id);
 END;
 //
@@ -1116,7 +1124,7 @@ BEGIN
         CLOSE friend_cursor;
         CALL add_rating_to_aggregate(p_user, p_post, rating_value);
         CALL add_popularity_to_parent(p_user, p_post, 1);
-        SELECT p.user INTO friend_id FROM post p WHERE p.id = p_post;
+        SELECT p.user INTO friend_id FROM post p WHERE p.id = p_post AND p.deleted = FALSE;
         CALL increment_friendship_score(p_user, friend_id);
         INSERT INTO rating (user, post, rating) VALUES (p_user, p_post, p_rating);
     END IF;
@@ -1147,6 +1155,7 @@ BEGIN
         SELECT p.id
         FROM post p
         WHERE p.user = p_user
+        AND p.deleted = FALSE
         UNION ALL
         SELECT c.id
         FROM post c
@@ -1171,7 +1180,7 @@ BEGIN
     DECLARE done INT DEFAULT FALSE;
     DECLARE post_id INT UNSIGNED;
     DECLARE rating_cursor CURSOR FOR SELECT r.post FROM rating r WHERE r.user = p_user;
-    DECLARE reply_cursor CURSOR FOR SELECT p.id FROM post p WHERE p.user = p_user AND p.parent IS NOT NULL;
+    DECLARE reply_cursor CURSOR FOR SELECT p.id FROM post p WHERE p.user = p_user AND p.parent IS NOT NULL AND p.deleted = FALSE;
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
 
     CALL delete_all_favorites(p_user);

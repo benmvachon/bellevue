@@ -73,6 +73,29 @@ public class PostController {
     }
   }
 
+  @GetMapping
+  public ResponseEntity<List<PostModel>> readAll(
+    @RequestParam(defaultValue = "false") boolean sortByPopular,
+    @RequestParam(required = false) Long sortCursor,
+    @RequestParam(required = false) Long idCursor,
+    @RequestParam(defaultValue = "1") Long limit
+  ) {
+    try {
+      List<PostModel> posts;
+      if (Objects.isNull(idCursor)) idCursor = Long.valueOf(Integer.MAX_VALUE);
+      if (!sortByPopular) {
+        if (Objects.isNull(sortCursor)) sortCursor = System.currentTimeMillis();
+        posts = postService.readAll(new Timestamp(sortCursor), idCursor, limit);
+      } else {
+        if (Objects.isNull(sortCursor)) sortCursor = Long.valueOf(Integer.MAX_VALUE);
+        posts = postService.readAll(sortCursor, idCursor, limit);
+      }
+      return ResponseEntity.status(HttpStatus.OK).body(posts);
+    } catch (AuthorizationException e) {
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+  }
+
   @GetMapping("/forum/{forum}")
   public ResponseEntity<List<PostModel>> readAllByForum(
     @PathVariable Long forum,

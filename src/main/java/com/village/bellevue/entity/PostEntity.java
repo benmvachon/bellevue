@@ -43,5 +43,7 @@ public class PostEntity {
   @Column(columnDefinition = "TEXT")
   private String content;
 
+  private boolean deleted = false;
+
   private Timestamp created = new Timestamp(System.currentTimeMillis());
 }

@@ -275,6 +275,42 @@ public class PostServiceImpl implements PostService {
   }
 
   @Override
+  public List<PostModel> readAll(Timestamp createdCursor, Long idCursor, Long limit) throws AuthorizationException {
+    Long user = getAuthenticatedUserId();
+    List<PostEntity> postEntities = postRepository.findRecentTopLevel(
+      user,
+      createdCursor,
+      idCursor,
+      limit
+    );
+    return postEntities.stream().map(post -> {
+      try {
+        return new PostModel(post, postModelProvider);
+      } catch (AuthorizationException e) {
+        return null;
+      }
+    }).collect(Collectors.toList());
+  }
+
+  @Override
+  public List<PostModel> readAll(Long popularityCursor, Long idCursor, Long limit) throws AuthorizationException {
+    Long user = getAuthenticatedUserId();
+    List<PostEntity> postEntities = postRepository.findPopularTopLevel(
+      user,
+      popularityCursor,
+      idCursor,
+      limit
+    );
+    return postEntities.stream().map(post -> {
+      try {
+        return new PostModel(post, postModelProvider);
+      } catch (AuthorizationException e) {
+        return null;
+      }
+    }).collect(Collectors.toList());
+  }
+
+  @Override
   public List<PostModel> readAllByForum(Long forum, Timestamp createdCursor, Long idCursor, Long limit) throws AuthorizationException {
     Long user = getAuthenticatedUserId();
     if (!forumRepository.canRead(forum, user)) throw new AuthorizationException("User not authorized");
