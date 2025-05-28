@@ -302,13 +302,13 @@ export const unsubscribeForumPopularity = (forum) => {
 };
 
 export const onForumUnreadUpdate = (forum, onForumUpdate) => {
-  let uri = '/user/topic/feed/unread/';
+  let uri = '/user/topic/feed/unread';
   if (forum) uri = `/user/topic/forum/unread/${forum}`;
   subscribe(uri, (message) => onForumUpdate(message));
 };
 
 export const unsubscribeForumUnread = (forum) => {
-  let uri = '/user/topic/feed/unread/';
+  let uri = '/user/topic/feed/unread';
   if (forum) uri = `/user/topic/forum/unread/${forum}`;
   unsubscribe(uri);
 };

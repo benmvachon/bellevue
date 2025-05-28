@@ -218,7 +218,9 @@ function Post({
 
   useEffect(() => {
     if (!post.read) {
-      markPostRead(post.id);
+      setTimeout(() => {
+        markPostRead(post.id);
+      }, 100);
     }
   }, [post.id, post.read]);
 
