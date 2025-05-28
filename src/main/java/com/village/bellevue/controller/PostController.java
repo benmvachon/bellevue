@@ -76,6 +76,7 @@ public class PostController {
   @GetMapping
   public ResponseEntity<List<PostModel>> readAll(
     @RequestParam(defaultValue = "false") boolean sortByPopular,
+    @RequestParam(required = false) List<Long> excludedForums,
     @RequestParam(required = false) Long sortCursor,
     @RequestParam(required = false) Long idCursor,
     @RequestParam(defaultValue = "1") Long limit
@@ -85,12 +86,21 @@ public class PostController {
       if (Objects.isNull(idCursor)) idCursor = Long.valueOf(Integer.MAX_VALUE);
       if (!sortByPopular) {
         if (Objects.isNull(sortCursor)) sortCursor = System.currentTimeMillis();
-        posts = postService.readAll(new Timestamp(sortCursor), idCursor, limit);
+        posts = postService.readAll(excludedForums, new Timestamp(sortCursor), idCursor, limit);
       } else {
         if (Objects.isNull(sortCursor)) sortCursor = Long.valueOf(Integer.MAX_VALUE);
-        posts = postService.readAll(sortCursor, idCursor, limit);
+        posts = postService.readAll(excludedForums, sortCursor, idCursor, limit);
       }
       return ResponseEntity.status(HttpStatus.OK).body(posts);
+    } catch (AuthorizationException e) {
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+  }
+
+  @GetMapping("/count")
+  public ResponseEntity<Long> countAll(@RequestParam(required = false) List<Long> excludedForums) {
+    try {
+      return ResponseEntity.status(HttpStatus.OK).body(postService.countAll(excludedForums));
     } catch (AuthorizationException e) {
       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }

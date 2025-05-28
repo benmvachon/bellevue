@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
 import withAuth from '../utils/withAuth.js';
 import {
   getForum,
@@ -9,8 +8,6 @@ import {
   unfavoriteForum,
   setForumNotification,
   getPost,
-  getPopularPosts,
-  getRecentPosts,
   markForumRead,
   onForumUpdate,
   onForumPopularityUpdate,
@@ -19,16 +16,21 @@ import {
   unsubscribeForum,
   unsubscribeForumPopularity,
   unsubscribeForumUnread,
-  unsubscribePostDelete
+  unsubscribePostDelete,
+  getPosts,
+  getRecentPosts,
+  getPopularPosts
 } from '../api/api.js';
 import Post from '../components/Post.js';
 import Header from '../components/Header.js';
 import Attendees from '../components/Attendees.js';
 import ScrollLoader from '../components/ScrollLoader.js';
+import ExcludedForums from '../components/ExcludedForums.js';
 
-function ForumPage() {
-  const { id } = useParams();
+function FeedPage() {
   const [forum, setForum] = useState(null);
+  const [onlyTownHallPosts, setOnlyTownHallPosts] = useState(false);
+  const [excludedForums, setExcludedForums] = useState([]);
   const [sortByPopular, setSortByPopular] = useState(false);
   const [posts, setPosts] = useState([]);
   const [totalPosts, setTotalPosts] = useState(0);
@@ -37,7 +39,7 @@ function ForumPage() {
 
   const submitPost = (event) => {
     event.preventDefault();
-    addPost(id, newPost, () => setNewPost(''), setError);
+    addPost(1, newPost, () => setNewPost(''), setError);
   };
 
   const loadMore = () => {
@@ -46,25 +48,43 @@ function ForumPage() {
       : posts[posts.length - 1].created.getTime();
     const cursor2 = posts[posts.length - 1].id;
     getTotalPosts(
-      id,
+      onlyTownHallPosts ? 1 : undefined,
       (totalPosts) => {
-        let request = getRecentPosts;
-        if (sortByPopular) request = getPopularPosts;
-        request(
-          id,
-          (more) => {
-            setTotalPosts(totalPosts);
-            if (more) {
-              setPosts(posts?.concat(more));
-            }
-          },
-          setError,
-          cursor1,
-          cursor2,
-          5
-        );
+        if (onlyTownHallPosts) {
+          let request = getRecentPosts;
+          if (sortByPopular) request = getPopularPosts;
+          request(
+            1,
+            (more) => {
+              setTotalPosts(totalPosts);
+              if (more) {
+                setPosts(posts?.concat(more));
+              }
+            },
+            setError,
+            cursor1,
+            cursor2,
+            5
+          );
+        } else {
+          getPosts(
+            (more) => {
+              setTotalPosts(totalPosts);
+              if (more) {
+                setPosts(posts?.concat(more));
+              }
+            },
+            setError,
+            cursor1,
+            cursor2,
+            excludedForums,
+            sortByPopular,
+            5
+          );
+        }
       },
-      setError
+      setError,
+      excludedForums
     );
   };
 
@@ -73,11 +93,11 @@ function ForumPage() {
   };
 
   const favorite = () => {
-    favoriteForum(id, () => getForum(id, setForum, setError), setError);
+    favoriteForum(1, () => getForum(1, setForum, setError), setError);
   };
 
   const unfavorite = () => {
-    unfavoriteForum(id, () => getForum(id, setForum, setError), setError);
+    unfavoriteForum(1, () => getForum(1, setForum, setError), setError);
   };
 
   const markRead = () => {
@@ -128,80 +148,110 @@ function ForumPage() {
     [posts, sortByPopular, totalPosts]
   );
 
-  useEffect(() => {
-    if (id) {
-      getForum(id, setForum, setError);
+  const excludeForum = (forum) => {
+    setExcludedForums(excludedForums.concat([forum]));
+  };
+
+  const toggleFilterAll = () => {
+    if (!onlyTownHallPosts) {
+      clearFilter();
     }
-  }, [id]);
+    setOnlyTownHallPosts(!onlyTownHallPosts);
+  };
+
+  const includeForum = (forum) => {
+    setExcludedForums(excludedForums.filter((id) => forum !== id));
+  };
+
+  const clearFilter = () => {
+    setExcludedForums([]);
+  };
 
   useEffect(() => {
-    if (id) {
-      onForumUpdate(id, (postId) => {
-        if (!sortByPopular) {
-          getPost(
-            postId,
-            (post) => {
-              if (post) setPosts([post].concat(posts));
-            },
-            () => {}
-          );
+    getForum(1, setForum, setError);
+  }, []);
+
+  useEffect(() => {
+    onForumUpdate(onlyTownHallPosts ? 1 : undefined, (postId) => {
+      if (!sortByPopular) {
+        getPost(
+          postId,
+          (post) => {
+            if (post) setPosts([post].concat(posts));
+          },
+          () => {}
+        );
+      }
+    });
+    onPostDelete(onlyTownHallPosts ? 1 : undefined, (message) => {
+      getTotalPosts(
+        onlyTownHallPosts ? 1 : undefined,
+        (totalPosts) => {
+          setTotalPosts(totalPosts);
+          setPosts(posts.filter((post) => post.id !== message));
+        },
+        setError,
+        excludedForums
+      );
+    });
+    if (sortByPopular)
+      onForumPopularityUpdate(onlyTownHallPosts ? 1 : undefined, (message) => {
+        const messagePost = message.post;
+        const popularity = message.popularity;
+        if (
+          posts &&
+          posts.length &&
+          popularity >= posts[posts.length - 1].popularity &&
+          posts.findIndex((post) => post.id === messagePost) < 0
+        ) {
+          getPost(messagePost, (post) => {
+            setPosts(
+              posts.concat([post]).sort((a, b) => {
+                if (b.popularity !== a.popularity)
+                  return b.popularity - a.popularity;
+                return b.id - a.id;
+              })
+            );
+          });
         }
       });
-      onPostDelete(id, (message) => {
-        getTotalPosts(
-          id,
-          (totalPosts) => {
-            setTotalPosts(totalPosts);
-            setPosts(posts.filter((post) => post.id !== message));
-          },
-          setError
-        );
-      });
-      if (sortByPopular)
-        onForumPopularityUpdate(id, (message) => {
-          const messagePost = message.post;
-          const popularity = message.popularity;
-          if (
-            posts &&
-            posts.length &&
-            popularity >= posts[posts.length - 1].popularity &&
-            posts.findIndex((post) => post.id === messagePost) < 0
-          ) {
-            getPost(messagePost, (post) => {
-              setPosts(
-                posts.concat([post]).sort((a, b) => {
-                  if (b.popularity !== a.popularity)
-                    return b.popularity - a.popularity;
-                  return b.id - a.id;
-                })
-              );
-            });
-          }
-        });
-      onForumUnreadUpdate(id, () => getForum(id, setForum, setError));
-      return () => {
-        unsubscribeForum(id);
-        unsubscribeForumPopularity(id);
-        unsubscribePostDelete(id);
-        unsubscribeForumUnread(id);
-      };
-    }
-  }, [id, sortByPopular, posts]);
+    onForumUnreadUpdate(onlyTownHallPosts ? 1 : undefined, () =>
+      getForum(1, setForum, setError)
+    );
+    return () => {
+      unsubscribeForum(1);
+      unsubscribeForumPopularity(1);
+      unsubscribePostDelete(1);
+      unsubscribeForumUnread(1);
+    };
+  }, [sortByPopular, posts, onlyTownHallPosts, excludedForums]);
 
   useEffect(() => {
-    if (id) {
-      getTotalPosts(
-        id,
-        (totalPosts) => {
+    getTotalPosts(
+      onlyTownHallPosts ? 1 : undefined,
+      (totalPosts) => {
+        if (onlyTownHallPosts) {
           let request = getRecentPosts;
           if (sortByPopular) request = getPopularPosts;
           setTotalPosts(totalPosts);
-          request(id, setPosts, setError, null, null, 5);
-        },
-        setError
-      );
-    }
-  }, [id, sortByPopular]);
+          request(1, setPosts, setError, null, null, 5);
+        } else {
+          setTotalPosts(totalPosts);
+          getPosts(
+            setPosts,
+            setError,
+            null,
+            null,
+            excludedForums,
+            sortByPopular,
+            5
+          );
+        }
+      },
+      setError,
+      excludedForums
+    );
+  }, [onlyTownHallPosts, excludedForums, sortByPopular]);
 
   if (error) return JSON.stringify(error);
   if (!forum) return;
@@ -224,6 +274,14 @@ function ForumPage() {
       <button
         onClick={toggleNotifications}
       >{`Turn ${forum.notify ? 'off' : 'on'} notifications`}</button>
+      <button onClick={toggleFilterAll}>
+        {onlyTownHallPosts ? 'Show all posts' : 'Show only Town Hall posts'}
+      </button>
+      <ExcludedForums
+        excludedForums={excludedForums}
+        includeForum={includeForum}
+        clearFilter={clearFilter}
+      />
       <div className="contents">
         <Attendees />
         <div className="posts">
@@ -244,9 +302,11 @@ function ForumPage() {
                 key={`post-${post.id}`}
                 id={post.id}
                 postProp={post}
+                showForum
                 depth={0}
                 sortByPopularParent={sortByPopular}
                 sortParentList={sortPosts}
+                excludeForum={excludeForum}
               />
             ))}
           </ScrollLoader>
@@ -256,4 +316,4 @@ function ForumPage() {
   );
 }
 
-export default withAuth(ForumPage);
+export default withAuth(FeedPage);

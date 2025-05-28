@@ -100,11 +100,20 @@ class Profile {
       favorite: this.favorite
     };
     if (this.locationType === 'FORUM') {
-      json.forumLocation = this.location.toJSON();
+      json.forumLocation =
+        typeof this.location === 'number'
+          ? this.location
+          : this.location.toJSON();
     } else if (this.locationType === 'PROFILE') {
-      json.profileLocation = this.location.toJSON();
+      json.profileLocation =
+        typeof this.location === 'number'
+          ? this.location
+          : this.location.toJSON();
     } else if (this.locationType === 'POST') {
-      json.postLocation = this.location.toJSON();
+      json.postLocation =
+        typeof this.location === 'number'
+          ? this.location
+          : this.location.toJSON();
     }
     return json;
   }

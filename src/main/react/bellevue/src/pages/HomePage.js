@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import withAuth from '../utils/withAuth.js';
 import {
+  getForum,
   getForums,
   getMyFriends,
   getSuggestedFriends,
@@ -13,17 +14,11 @@ import Forum from '../components/Forum.js';
 
 function HomePage() {
   const navigate = useNavigate();
-  const [forums, setForums] = useState([]);
-  const [myFriends, setMyFriends] = useState([]);
-  const [suggestedFriends, setSuggestedFriends] = useState([]);
+  const [forums, setForums] = useState(undefined);
+  const [myFriends, setMyFriends] = useState(undefined);
+  const [suggestedFriends, setSuggestedFriends] = useState(undefined);
   const [filter, setFilter] = useState(false);
   const [error, setError] = useState(false);
-
-  useEffect(() => {
-    getForums(setForums, setError, 0, filter);
-    getMyFriends(setMyFriends, setError);
-    getSuggestedFriends(setSuggestedFriends, setError);
-  }, [setForums, filter]);
 
   const loadForumPage = (page) => {
     getForums(setForums, setError, page, filter);
@@ -41,6 +36,29 @@ function HomePage() {
     event.preventDefault();
     navigate('/profile/' + event.target.value);
   };
+
+  useEffect(() => {
+    getForums(setForums, setError, 0, filter);
+    getMyFriends(setMyFriends, setError);
+    getSuggestedFriends(setSuggestedFriends, setError);
+  }, [filter]);
+
+  useEffect(() => {
+    if (
+      forums &&
+      forums.content &&
+      !forums.content.find((forum) => forum.id === 1)
+    ) {
+      getForum(
+        1,
+        (forum) => {
+          forums.content.push(forum);
+          setForums({ ...forums });
+        },
+        setError
+      );
+    }
+  }, [forums]);
 
   if (error) return JSON.stringify(error);
 

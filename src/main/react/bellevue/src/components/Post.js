@@ -26,11 +26,13 @@ import ScrollLoader from './ScrollLoader.js';
 function Post({
   id,
   postProp,
+  showForum = false,
   selected = false,
   selectedChildId,
   getSelectedChild,
   sortByPopularParent = false,
   sortParentList,
+  excludeForum,
   depth = 0
 }) {
   const navigate = useNavigate();
@@ -255,6 +257,16 @@ function Post({
       <button onClick={toggleSort}>
         {sortByPopular ? 'Most recent' : 'Most popular'}
       </button>
+      {showForum && (
+        <button onClick={() => navigate(`/forum/${post?.forum.id}`)}>
+          Go to {post.forum.name}
+        </button>
+      )}
+      {excludeForum && (
+        <button onClick={() => excludeForum(post.forum.id)}>
+          Filter posts from {post.forum.name}
+        </button>
+      )}
       <form onSubmit={submitReply}>
         <textarea value={reply} onChange={(e) => setReply(e.target.value)} />
         <button type="submit">Reply</button>
@@ -274,6 +286,7 @@ function Post({
                   key={`post-${post.id}`}
                   id={post.id}
                   postProp={post}
+                  showForum={showForum}
                   depth={depth + 1}
                   sortByPopularParent={sortByPopular}
                   sortParentList={sortReplies}
@@ -290,11 +303,13 @@ function Post({
 Post.propTypes = {
   id: PropTypes.number,
   postProp: PropTypes.object,
+  showForum: PropTypes.bool,
   selected: PropTypes.bool,
   selectedChildId: PropTypes.number,
   getSelectedChild: PropTypes.func,
   sortByPopularParent: PropTypes.bool,
   sortParentList: PropTypes.func,
+  excludeForum: PropTypes.func,
   depth: PropTypes.number
 };
 

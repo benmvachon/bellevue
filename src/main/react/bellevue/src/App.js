@@ -7,6 +7,7 @@ import ProfilePage from './pages/ProfilePage';
 import HomePage from './pages/HomePage';
 import ForumPage from './pages/ForumPage.js';
 import PostPage from './pages/PostPage.js';
+import FeedPage from './pages/FeedPage.js';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/profile/:id" element={<ProfilePage />} />
             <Route path="/forum/:id" element={<ForumPage />} />
+            <Route path="/forum/1" element={<FeedPage />} />
             <Route path="/post/:id" element={<PostPage />} />
           </Routes>
         </LocationProvider>

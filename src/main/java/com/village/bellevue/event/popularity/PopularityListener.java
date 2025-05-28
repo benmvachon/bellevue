@@ -57,6 +57,9 @@ public class PopularityListener {
     AggregateRatingEntity rating = aggregateRatingRepository.findById(new AggregateRatingId(user, post)).orElseThrow(() -> new IllegalStateException("Aggregate rating not found"));
     PopularityMessageModel message = new PopularityMessageModel(post, rating.getPopularity());
     if (Objects.nonNull(parent)) messagingTemplate.convertAndSendToUser(user.toString(), "/topic/post/" + parent + "/popularity", message);
-    else messagingTemplate.convertAndSendToUser(user.toString(), "/topic/forum/" + forum + "/popularity", message);
+    else {
+      messagingTemplate.convertAndSendToUser(user.toString(), "/topic/forum/" + forum + "/popularity", message);
+      messagingTemplate.convertAndSendToUser(user.toString(), "/topic/feed/popularity", message);
+    }
   }
 }

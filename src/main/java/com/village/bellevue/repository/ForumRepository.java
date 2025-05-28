@@ -32,7 +32,7 @@ public interface ForumRepository extends JpaRepository<ForumEntity, Long> {
       "SELECT 1 FROM FriendEntity pf " +
       "WHERE pf.user = :user AND pf.friend.id = p.user.id AND pf.status = 'ACCEPTED' " +
     ")) " +
-    "WHERE f.user IS NULL OR f.user = 1 OR EXISTS ( " +
+    "WHERE f.id != 1 AND f.user IS NULL OR f.user = 1 OR EXISTS ( " +
       "SELECT 1 FROM FriendEntity ff " +
       "WHERE ff.user = :user AND ff.friend.id = f.user AND ff.status = 'ACCEPTED' " +
     ") GROUP BY f.id ORDER BY MAX(p.created) DESC, f.id ASC"
@@ -50,7 +50,7 @@ public interface ForumRepository extends JpaRepository<ForumEntity, Long> {
     "AND EXISTS ( " +
     "SELECT 1 FROM AggregateRatingEntity a " +
     "WHERE a.post = p.id AND a.user = :user AND a.read = false " +
-    ") WHERE f.user IS NULL OR f.user = :user OR EXISTS ( " +
+    ") WHERE f.id != 1 AND f.user IS NULL OR f.user = :user OR EXISTS ( " +
     "SELECT 1 FROM FriendEntity ff " +
     "WHERE ff.user = :user AND ff.friend.id = f.user AND ff.status = 'ACCEPTED' " +
     ") GROUP BY f.id HAVING COUNT(p.id) > 0 " +
@@ -78,4 +78,15 @@ public interface ForumRepository extends JpaRepository<ForumEntity, Long> {
   )
   @Transactional(readOnly = true)
   Long getUnreadCount(@Param("forum") Long forum, @Param("user") Long user);
+
+  @Query(
+    "SELECT COUNT(DISTINCT(p.id)) " +
+    "FROM PostEntity p " +
+    "LEFT JOIN AggregateRatingEntity a ON p.id = a.post " +
+    "LEFT JOIN FriendEntity f ON p.user.id = f.friend.id AND f.user = :user " +
+    "WHERE p.parent IS NULL AND a.read = false AND a.user = :user " +
+    "AND (f.status = 'ACCEPTED' OR p.user.id = :user)"
+  )
+  @Transactional(readOnly = true)
+  Long getUnreadCount(@Param("user") Long user);
 }

@@ -67,6 +67,9 @@ public class ForumServiceImpl implements ForumService {
 
     @Override
     public Long getUnreadCount(ForumEntity forum) {
+      if (forum.getId() == 1l) {
+        return forumRepository.getUnreadCount(getAuthenticatedUserId());
+      }
       return forumRepository.getUnreadCount(forum.getId(), getAuthenticatedUserId());
     }
 

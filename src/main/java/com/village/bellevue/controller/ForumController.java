@@ -56,7 +56,7 @@ public class ForumController {
   @GetMapping
   public ResponseEntity<PagedModel<EntityModel<ForumModel>>> readAll(
     @RequestParam(defaultValue = "0") int page,
-    @RequestParam(defaultValue = "10") int size
+    @RequestParam(defaultValue = "9") int size
   ) {
     Page<ForumModel> forums = forumService.readAll(page, size);
     PagedModel<EntityModel<ForumModel>> pagedModel = pagedForumAssembler.toModel(forums, forumModelAssembler);
@@ -66,7 +66,7 @@ public class ForumController {
   @GetMapping("/unread")
   public ResponseEntity<PagedModel<EntityModel<ForumModel>>> readUnread(
     @RequestParam(defaultValue = "0") int page,
-    @RequestParam(defaultValue = "10") int size
+    @RequestParam(defaultValue = "9") int size
   ) {
     Page<ForumModel> forums = forumService.readAllWithUnreadPosts(page, size);
     PagedModel<EntityModel<ForumModel>> pagedModel = pagedForumAssembler.toModel(forums, forumModelAssembler);

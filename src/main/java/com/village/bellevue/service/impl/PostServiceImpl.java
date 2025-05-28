@@ -140,6 +140,9 @@ public class PostServiceImpl implements PostService {
 
         @Override
         public Long getUnreadCount(ForumEntity forum) {
+          if (forum.getId() == 1l) {
+            return forumRepository.getUnreadCount(getAuthenticatedUserId());
+          }
           return forumRepository.getUnreadCount(forum.getId(), getAuthenticatedUserId());
         }
 
@@ -275,10 +278,11 @@ public class PostServiceImpl implements PostService {
   }
 
   @Override
-  public List<PostModel> readAll(Timestamp createdCursor, Long idCursor, Long limit) throws AuthorizationException {
+  public List<PostModel> readAll(List<Long> excludedForums, Timestamp createdCursor, Long idCursor, Long limit) throws AuthorizationException {
     Long user = getAuthenticatedUserId();
     List<PostEntity> postEntities = postRepository.findRecentTopLevel(
       user,
+      excludedForums,
       createdCursor,
       idCursor,
       limit
@@ -293,10 +297,11 @@ public class PostServiceImpl implements PostService {
   }
 
   @Override
-  public List<PostModel> readAll(Long popularityCursor, Long idCursor, Long limit) throws AuthorizationException {
+  public List<PostModel> readAll(List<Long> excludedForums, Long popularityCursor, Long idCursor, Long limit) throws AuthorizationException {
     Long user = getAuthenticatedUserId();
     List<PostEntity> postEntities = postRepository.findPopularTopLevel(
       user,
+      excludedForums,
       popularityCursor,
       idCursor,
       limit
@@ -308,6 +313,11 @@ public class PostServiceImpl implements PostService {
         return null;
       }
     }).collect(Collectors.toList());
+  }
+
+  @Override
+  public Long countAll(List<Long> excludedForums) throws AuthorizationException {
+    return postRepository.countTopLevel(getAuthenticatedUserId(), excludedForums);
   }
 
   @Override

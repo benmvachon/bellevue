@@ -22,6 +22,7 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
     "AND p.deleted = FALSE " +
     "AND (p.forum.user IS NULL OR p.forum.user = :user OR forumFriend.status = 'ACCEPTED') " +
     "AND (p.user.id = :user OR postFriend.status = 'ACCEPTED') " +
+    "AND (:excludedForums IS NULL OR p.forum.id NOT IN :excludedForums) " +
     "AND (p.created < :createdCursor " +
     "OR (p.created = :createdCursor AND p.id < :idCursor)) " +
     "ORDER BY p.created DESC, p.id DESC " +
@@ -30,6 +31,7 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
   @Transactional(readOnly = true)
   List<PostEntity> findRecentTopLevel(
     @Param("user") Long user,
+    @Param("excludedForums") List<Long> excludedForums,
     @Param("createdCursor") Timestamp createdCursor,
     @Param("idCursor") Long idCursor,
     @Param("limit") Long limit
@@ -44,6 +46,7 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
     "AND p.deleted = FALSE " +
     "AND (p.forum.user IS NULL OR p.forum.user = :user OR forumFriend.status = 'ACCEPTED') " +
     "AND (p.user.id = :user OR postFriend.status = 'ACCEPTED') " +
+    "AND (:excludedForums IS NULL OR p.forum.id NOT IN :excludedForums) " +
     "AND (a.popularity < :popularityCursor " +
     "OR (a.popularity = :popularityCursor AND p.id < :idCursor)) " +
     "ORDER BY a.popularity DESC, p.id DESC " +
@@ -52,10 +55,24 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
   @Transactional(readOnly = true)
   List<PostEntity> findPopularTopLevel(
     @Param("user") Long user,
+    @Param("excludedForums") List<Long> excludedForums,
     @Param("popularityCursor") Long popularityCursor,
     @Param("idCursor") Long idCursor,
     @Param("limit") Long limit
   );
+
+  @Query(
+    "SELECT COUNT(DISTINCT(p.id)) FROM PostEntity p " +
+    "LEFT JOIN FriendEntity forumFriend ON p.forum.user = forumFriend.friend.id AND forumFriend.user = :user " +
+    "LEFT JOIN FriendEntity postFriend ON p.user.id = postFriend.friend.id AND postFriend.user = :user " +
+    "WHERE p.parent IS NULL " +
+    "AND (:excludedForums IS NULL OR p.forum.id NOT IN :excludedForums) " +
+    "AND p.deleted = FALSE " +
+    "AND (p.forum.user IS NULL OR p.forum.user = :user OR forumFriend.status = 'ACCEPTED') " +
+    "AND (p.user.id = :user OR postFriend.status = 'ACCEPTED') "
+  )
+  @Transactional(readOnly = true)
+  Long countTopLevel(@Param("user") Long user, @Param("excludedForums") List<Long> excludedForums);
 
   @Query(
     "SELECT p FROM PostEntity p " +

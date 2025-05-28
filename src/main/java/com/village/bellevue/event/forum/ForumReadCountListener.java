@@ -43,11 +43,13 @@ public class ForumReadCountListener {
       else friends = friendRepository.findMutualFriends(event.getUser(), forumUser.getId());
       for (Long friend : friends) {
         messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/forum/unread/" + forum, "update");
-        messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/forum/unread", "update");
+        messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/feed/unread", "update");
       }
       if (Objects.nonNull(forumUser)) {
         messagingTemplate.convertAndSendToUser(forumUser.getId().toString(), "/topic/forum/unread/" + forum, "update");
-        messagingTemplate.convertAndSendToUser(forumUser.getId().toString(), "/topic/forum/unread", "update");
+        messagingTemplate.convertAndSendToUser(forumUser.getId().toString(), "/topic/feed/unread", "update");
+        messagingTemplate.convertAndSendToUser(event.getUser().toString(), "/topic/forum/unread/" + forum, "update");
+        messagingTemplate.convertAndSendToUser(event.getUser().toString(), "/topic/feed/unread", "update");
       }
     }
   }
@@ -64,6 +66,6 @@ public class ForumReadCountListener {
         messagingTemplate.convertAndSendToUser(user.toString(), "/topic/forum/unread/" + forum, "update");
       }
     }
-    messagingTemplate.convertAndSendToUser(user.toString(), "/topic/forum/unread", "update");
+    messagingTemplate.convertAndSendToUser(user.toString(), "/topic/feed/unread", "update");
   }
 }

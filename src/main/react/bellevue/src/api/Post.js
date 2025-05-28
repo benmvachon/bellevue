@@ -64,11 +64,11 @@ class Post {
   toJSON() {
     return {
       id: this.id,
-      user: this.user ? this.user.fromJSON() : null,
-      parent: this.parent ? this.parent.fromJSON() : null,
-      forum: this.forum ? this.forum.fromJSON() : null,
+      user: this.user ? this.user.toJSON() : null,
+      parent: this.parent ? this.parent.toJSON() : null,
+      forum: this.forum ? this.forum.toJSON() : null,
       content: this.content,
-      created: this.created?.toString(),
+      created: this.created?.toLocaleString(),
       children: this.children,
       rating: this.rating,
       ratingCount: this.ratingCount,

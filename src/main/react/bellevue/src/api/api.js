@@ -238,9 +238,15 @@ export const unsubscribeFriendshipStatus = (profile) => {
   unsubscribe(`/user/topic/friendshipStatus/${profile}`);
 };
 
-export const getForums = (callback, error, page = 0, onlyUnread = false) => {
+export const getForums = (
+  callback,
+  error,
+  page = 0,
+  onlyUnread = false,
+  size = 9
+) => {
   api
-    .get(`/forum${onlyUnread ? '/unread' : ''}?page=${page}`)
+    .get(`/forum${onlyUnread ? '/unread' : ''}?page=${page}&size=${size}`)
     .then((response) => {
       const page = Page.fromJSON(response.data, Forum.forumMapper);
       callback && callback(page);
@@ -270,37 +276,56 @@ export const setForumNotification = (forum, notify, callback, error) => {
 };
 
 export const onForumUpdate = (forum, onForumUpdate) => {
-  subscribe(`/topic/forum/${forum}`, (post) =>
-    onForumUpdate(Number.parseInt(post))
-  );
+  let uri = '/user/topic/feed';
+  if (forum) uri = `/topic/forum/${forum}`;
+  subscribe(uri, (post) => onForumUpdate(Number.parseInt(post)));
 };
 
 export const unsubscribeForum = (forum) => {
-  unsubscribe(`/topic/forum/${forum}`);
+  let uri = '/user/topic/feed';
+  if (forum) uri = `/topic/forum/${forum}`;
+  unsubscribe(uri);
 };
 
 export const onForumPopularityUpdate = (forum, onForumUpdate) => {
-  subscribe(`/user/topic/forum/${forum}/popularity`, (message) => {
+  let uri = '/user/topic/feed/popularity';
+  if (forum) uri = `/user/topic/forum/${forum}/popularity`;
+  subscribe(uri, (message) => {
     onForumUpdate(JSON.parse(message));
   });
 };
 
 export const unsubscribeForumPopularity = (forum) => {
-  unsubscribe(`/user/topic/forum/${forum}/popularity`);
+  let uri = '/user/topic/feed/popularity';
+  if (forum) uri = `/user/topic/forum/${forum}/popularity`;
+  unsubscribe(uri);
 };
 
-export const onForumUnreadUpdate = (forum, onForumUnreadUpdate) => {
-  subscribe(`/user/topic/forum/unread/${forum}`, (message) =>
-    onForumUnreadUpdate(message)
-  );
+export const onForumUnreadUpdate = (forum, onForumUpdate) => {
+  let uri = '/user/topic/feed/unread/';
+  if (forum) uri = `/user/topic/forum/unread/${forum}`;
+  subscribe(uri, (message) => onForumUpdate(message));
 };
 
 export const unsubscribeForumUnread = (forum) => {
-  unsubscribe(`/user/topic/forum/unread/${forum}`);
+  let uri = '/user/topic/feed/unread/';
+  if (forum) uri = `/user/topic/forum/unread/${forum}`;
+  unsubscribe(uri);
 };
 
-export const getPosts = (callback, error, sortByPopular = false, limit = 1) => {
+export const getPosts = (
+  callback,
+  error,
+  sortCursor,
+  idCursor,
+  excludedForums,
+  sortByPopular = false,
+  limit = 1
+) => {
   let uri = `/post?limit=${limit}&sortByPopular=${sortByPopular}`;
+  if (sortCursor) uri += `&sortCursor=${sortCursor}`;
+  if (idCursor) uri += `&idCursor=${idCursor}`;
+  if (excludedForums) uri += `&excludedForums=${excludedForums}`;
   api
     .get(uri)
     .then((response) => {
@@ -347,9 +372,12 @@ export const getPopularPosts = (
     .catch(error);
 };
 
-export const getTotalPosts = (forum, callback, error) => {
+export const getTotalPosts = (forum, callback, error, excludedForums) => {
+  let uri = '/post/count';
+  if (forum) uri = `/post/forum/${forum}/count`;
+  else if (excludedForums) uri += `?excludedForums=${excludedForums}`;
   api
-    .get(`/post/forum/${forum}/count`)
+    .get(uri)
     .then((response) => {
       callback && callback(response.data);
     })
@@ -475,13 +503,17 @@ export const markPostsRead = (callback, error) => {
 };
 
 export const onPostDelete = (forum, onPostDelete) => {
-  subscribe(`/user/topic/forum/${forum}/delete`, (message) => {
+  let uri = '/user/topic/feed/delete';
+  if (forum) uri = `/user/topic/forum/${forum}/delete`;
+  subscribe(uri, (message) => {
     onPostDelete(Number.parseInt(message));
   });
 };
 
 export const unsubscribePostDelete = (forum) => {
-  unsubscribe(`/user/topic/forum/${forum}/delete`);
+  let uri = '/user/topic/feed/delete';
+  if (forum) uri = `/user/topic/forum/${forum}/delete`;
+  unsubscribe(uri);
 };
 
 export const onReplyDelete = (post, onReplyDelete) => {
