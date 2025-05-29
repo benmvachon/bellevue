@@ -28,6 +28,13 @@ CREATE TABLE forum(
     INDEX           (name),                                                                                     -- Index on the name for fast look-up
     INDEX           (user)                                                                                      -- Index on the user for fast look-up
 );
+CREATE TABLE forum_tag(
+    forum           INT UNSIGNED NOT NULL,                                                                      -- Forum to which the tag applies
+    tag             VARCHAR(255) NOT NULL,                                                                      -- Tag for filtering and finding forums
+    PRIMARY KEY     (forum, tag),                                                                               -- Composite primary key to ensure m2m
+    FOREIGN KEY     (forum) REFERENCES forum(id) ON DELETE CASCADE,                                             -- forum is a reference to the forum table
+    INDEX           (tag)                                                                                       -- Index on the tag for fast look-up
+);
 CREATE TABLE notification_setting(
     user            INT UNSIGNED NOT NULL,                                                                      -- User to whom the setting applies
     forum           INT UNSIGNED NOT NULL,                                                                      -- Forum to which the setting applies

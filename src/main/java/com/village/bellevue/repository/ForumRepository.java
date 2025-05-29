@@ -26,6 +26,26 @@ public interface ForumRepository extends JpaRepository<ForumEntity, Long> {
   List<Long> findAll(@Param("user") Long user);
 
   @Query(
+    "SELECT DISTINCT f FROM ForumEntity f " +
+    "LEFT JOIN f.tags t " +
+    "WHERE (f.user IS NULL OR f.user = :user OR EXISTS ( " +
+      "SELECT 1 FROM FriendEntity ff " +
+      "WHERE ff.user = :user AND ff.friend.id = f.user AND ff.status = 'ACCEPTED' " +
+    ")) " +
+    "AND (:query IS NULL " +
+    "OR LOWER(t) LIKE LOWER(CONCAT(:query, '%')) " +
+    "OR LOWER(f.name) LIKE LOWER(CONCAT(:query, '%'))" +
+    "OR LOWER(f.description) LIKE LOWER(CONCAT(:query, '%'))) " +
+    "ORDER BY f.id ASC " +
+    "LIMIT 10"
+  )
+  @Transactional(readOnly = true)
+  List<ForumEntity> findAllByQuery(
+    @Param("user") Long user,
+    @Param("query") String query
+  );
+
+  @Query(
     "SELECT f FROM ForumEntity f " +
     "LEFT JOIN PostEntity p ON p.forum.id = f.id AND p.parent IS NULL " +
     "AND (p.user.id = :user OR EXISTS ( " +

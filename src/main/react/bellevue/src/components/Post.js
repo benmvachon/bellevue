@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import withAuth from '../utils/withAuth.js';
 import { useAuth } from '../utils/AuthContext.js';
 import {
-  addReply,
   getPost,
   ratePost,
   onPostUpdate,
@@ -22,6 +21,7 @@ import {
 } from '../api/api.js';
 import Rating from './Rating.js';
 import ScrollLoader from './ScrollLoader.js';
+import PostForm from './PostForm.js';
 
 function Post({
   id,
@@ -40,14 +40,8 @@ function Post({
   const [post, setPost] = useState(postProp);
   const [sortByPopular, setSortByPopular] = useState(sortByPopularParent);
   const [replies, setReplies] = useState([]);
-  const [reply, setReply] = useState(null);
   const [showReplies, setShowReplies] = useState(depth < 2);
   const [error, setError] = useState(false);
-
-  const submitReply = (event) => {
-    event.preventDefault();
-    addReply(post?.forum?.id, post?.id, reply, () => setReply(''), setError);
-  };
 
   const loadMore = () => {
     const cursor1 = sortByPopular
@@ -264,15 +258,12 @@ function Post({
           Go to {post.forum.name}
         </button>
       )}
-      {excludeForum && (
+      {excludeForum && post.forum.id !== 1 && (
         <button onClick={() => excludeForum(post.forum.id)}>
           Filter posts from {post.forum.name}
         </button>
       )}
-      <form onSubmit={submitReply}>
-        <textarea value={reply} onChange={(e) => setReply(e.target.value)} />
-        <button type="submit">Reply</button>
-      </form>
+      <PostForm forum={post.forum} parent={post} />
       {post.children > 0 && (
         <div className="post-children-container">
           <button onClick={() => setShowReplies(!showReplies)}>
@@ -292,6 +283,7 @@ function Post({
                   depth={depth + 1}
                   sortByPopularParent={sortByPopular}
                   sortParentList={sortReplies}
+                  excludeForum={excludeForum}
                 />
               ))}
             </ScrollLoader>

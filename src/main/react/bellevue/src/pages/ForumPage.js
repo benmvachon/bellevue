@@ -4,7 +4,6 @@ import withAuth from '../utils/withAuth.js';
 import {
   getForum,
   getTotalPosts,
-  addPost,
   favoriteForum,
   unfavoriteForum,
   setForumNotification,
@@ -25,6 +24,7 @@ import Post from '../components/Post.js';
 import Header from '../components/Header.js';
 import Attendees from '../components/Attendees.js';
 import ScrollLoader from '../components/ScrollLoader.js';
+import PostForm from '../components/PostForm.js';
 
 function ForumPage() {
   const { id } = useParams();
@@ -32,13 +32,7 @@ function ForumPage() {
   const [sortByPopular, setSortByPopular] = useState(false);
   const [posts, setPosts] = useState([]);
   const [totalPosts, setTotalPosts] = useState(0);
-  const [newPost, setNewPost] = useState(null);
   const [error, setError] = useState(false);
-
-  const submitPost = (event) => {
-    event.preventDefault();
-    addPost(id, newPost, () => setNewPost(''), setError);
-  };
 
   const loadMore = () => {
     const cursor1 = sortByPopular
@@ -231,13 +225,7 @@ function ForumPage() {
           <button onClick={toggleSort}>
             {sortByPopular ? 'Most recent' : 'Most popular'}
           </button>
-          <form onSubmit={submitPost}>
-            <textarea
-              value={newPost}
-              onChange={(e) => setNewPost(e.target.value)}
-            />
-            <button type="submit">Post</button>
-          </form>
+          <PostForm forum={forum} />
           <ScrollLoader total={totalPosts} loadMore={loadMore}>
             {posts?.map((post) => (
               <Post

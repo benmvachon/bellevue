@@ -1,5 +1,6 @@
 package com.village.bellevue.controller;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -71,6 +72,13 @@ public class ForumController {
     Page<ForumModel> forums = forumService.readAllWithUnreadPosts(page, size);
     PagedModel<EntityModel<ForumModel>> pagedModel = pagedForumAssembler.toModel(forums, forumModelAssembler);
     return ResponseEntity.status(HttpStatus.OK).body(pagedModel);
+  }
+
+  @GetMapping("/query")
+  public ResponseEntity<List<ForumModel>> query(
+    @RequestParam(defaultValue = "") String query
+  ) {
+    return ResponseEntity.status(HttpStatus.OK).body(forumService.readAll(query));
   }
 
   @GetMapping("/{id}")

@@ -1,5 +1,6 @@
 package com.village.bellevue.service;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -15,6 +16,8 @@ public interface ForumService {
   public Optional<ForumModel> read(Long id) throws AuthorizationException;
 
   public Page<ForumModel> readAll(int page, int size);
+
+  public List<ForumModel> readAll(String query);
 
   public Page<ForumModel> readAllWithUnreadPosts(int page, int size);
 

@@ -1,6 +1,7 @@
 package com.village.bellevue.model;
 
 import java.sql.Timestamp;
+import java.util.List;
 
 import com.village.bellevue.entity.ForumEntity;
 import com.village.bellevue.error.AuthorizationException;
@@ -20,6 +21,7 @@ public class ForumModel {
 
   private ProfileModel user;
   private Timestamp created;
+  private List<String> tags;
 
   private boolean favorite = false;
 
@@ -39,5 +41,6 @@ public class ForumModel {
     this.favorite = helper.isFavorite(forum);
     this.unreadCount = helper.getUnreadCount(forum);
     this.notify = helper.isNotify(forum);
+    this.tags = forum.getTags();
   }
 }

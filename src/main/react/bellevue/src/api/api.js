@@ -254,6 +254,15 @@ export const getForums = (
     .catch(error);
 };
 
+export const queryForums = (query, callback, error) => {
+  api
+    .get(`/forum/query?query=${query}`)
+    .then((response) => {
+      callback && callback(response.data.map((forum) => Forum.fromJSON(forum)));
+    })
+    .catch(error);
+};
+
 export const getForum = (id, callback, error) => {
   api
     .get(`/forum/${id}`)

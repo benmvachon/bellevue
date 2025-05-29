@@ -1,6 +1,7 @@
 package com.village.bellevue.integration;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -66,7 +67,8 @@ public class IntegrationTest extends IntegrationTestWrapper {
     null,
     "Test Forum",
     "A new test forum",
-    new Timestamp(System.currentTimeMillis())
+    new Timestamp(System.currentTimeMillis()),
+    new ArrayList<>()
   );
   // this forum will be added and then deleted
   private final PostEntity post = new PostEntity(
