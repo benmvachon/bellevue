@@ -57,4 +57,6 @@ Favorites.propTypes = {
   onClose: PropTypes.func.isRequired
 };
 
+Favorites.displayName = 'Favorites';
+
 export default withAuth(Favorites);

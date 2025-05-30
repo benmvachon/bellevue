@@ -67,7 +67,6 @@ function Header() {
   const closeMessages = () => {
     setShowMessages(false);
     setFriend(-1);
-    setShowThreads(true);
   };
 
   const openFavorites = () => {
@@ -105,5 +104,7 @@ function Header() {
     </div>
   );
 }
+
+Header.displayName = 'Header';
 
 export default withAuth(Header);

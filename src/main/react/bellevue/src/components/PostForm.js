@@ -9,6 +9,16 @@ const PostForm = ({ forum, parent, enableForumSelection = false }) => {
   const [disabled, setDisabled] = useState(false);
   const [error, setError] = useState(false);
 
+  const handleKeyDown = (e) => {
+    switch (e.key) {
+      case 'Enter':
+        if (newPost && selectedForum) submitPost(e);
+        break;
+      default:
+        break;
+    }
+  };
+
   const submitPost = (event) => {
     event.preventDefault();
     if (parent)
@@ -31,7 +41,11 @@ const PostForm = ({ forum, parent, enableForumSelection = false }) => {
 
   return (
     <form onSubmit={submitPost}>
-      <textarea value={newPost} onChange={(e) => setNewPost(e.target.value)} />
+      <textarea
+        value={newPost}
+        onChange={(e) => setNewPost(e.target.value)}
+        onKeyDown={handleKeyDown}
+      />
       {enableForumSelection && (
         <ForumTypeahead onSelect={setSelectedForum} defaultForum={forum} />
       )}
@@ -47,5 +61,7 @@ PostForm.propTypes = {
   parent: PropTypes.object,
   enableForumSelection: PropTypes.bool
 };
+
+PostForm.displayName = 'PostForm';
 
 export default PostForm;

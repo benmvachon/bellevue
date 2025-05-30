@@ -57,4 +57,6 @@ AuthProvider.propTypes = {
   children: PropTypes.node.isRequired
 };
 
+AuthContext.displayName = 'AuthContext';
+
 export const useAuth = () => useContext(AuthContext);

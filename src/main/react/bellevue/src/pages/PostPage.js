@@ -3,59 +3,72 @@ import { useNavigate, useParams } from 'react-router-dom';
 import withAuth from '../utils/withAuth.js';
 import { getPost } from '../api/api.js';
 import Post from '../components/Post.js';
-import Header from '../components/Header.js';
-import Attendees from '../components/Attendees.js';
+import asPage from '../utils/asPage.js';
 
 function PostPage() {
   const navigate = useNavigate();
   const { id } = useParams();
   const [post, setPost] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    if (id) getPost(id, setPost, setError);
+    setLoading(true);
+    if (id)
+      getPost(
+        id,
+        (post) => {
+          setPost(post);
+          setLoading(false);
+        },
+        (error) => {
+          setError(error);
+          setLoading(false);
+        }
+      );
   }, [id]);
 
   if (error) return JSON.stringify(error);
-  if (!post) return;
+  if (loading) return <p>Loading...</p>;
 
-  const getPostElement = (depth) => (
-    <Post id={post.id} postProp={post} depth={depth} selected />
-  );
-  let parent = post.parent;
-  let previousParent = post;
   const parentFuncs = [];
   let i = 0;
-  while (parent) {
-    const id = Number.parseInt('' + parent.id);
-    const previousId = Number.parseInt('' + previousParent.id);
-    const pointer = Number.parseInt('' + i);
-    const post = JSON.parse(JSON.stringify(parent));
-    parentFuncs[pointer] = (depth) => (
-      <Post
-        id={id}
-        postProp={post}
-        depth={depth}
-        selectedChildId={previousId}
-        getSelectedChild={
-          pointer < 1 ? getPostElement : parentFuncs[pointer - 1]
-        }
-      />
-    );
-    i++;
-    previousParent = parent;
-    parent = parent.parent;
+  const getPostElement = (depth) => (
+    <Post id={post?.id} postProp={post} depth={depth} selected />
+  );
+
+  if (post) {
+    let parent = post.parent;
+    let previousParent = post;
+    while (parent) {
+      const id = Number.parseInt('' + parent.id);
+      const previousId = Number.parseInt('' + previousParent.id);
+      const pointer = Number.parseInt('' + i);
+      const post = JSON.parse(JSON.stringify(parent));
+      parentFuncs[pointer] = (depth) => (
+        <Post
+          id={id}
+          postProp={post}
+          depth={depth}
+          selectedChildId={previousId}
+          getSelectedChild={
+            pointer < 1 ? getPostElement : parentFuncs[pointer - 1]
+          }
+        />
+      );
+      i++;
+      previousParent = parent;
+      parent = parent.parent;
+    }
   }
 
   return (
-    <div className="page post-page">
-      <Header />
+    <div className="page-contents">
       <h2>{post.forum.name}</h2>
       <button onClick={() => navigate(`/forum/${post.forum.id}`)}>
         Back to forum
       </button>
       <div className="contents">
-        <Attendees />
         <div className="posts">
           <h3>Posts</h3>
           {i > 0 ? parentFuncs[i - 1](0, true) : getPostElement(0, true)}
@@ -65,4 +78,6 @@ function PostPage() {
   );
 }
 
-export default withAuth(PostPage);
+PostPage.displayName = 'PostPage';
+
+export default withAuth(asPage(PostPage, 'post-page'));

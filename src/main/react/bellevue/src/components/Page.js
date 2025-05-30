@@ -30,4 +30,6 @@ Page.propTypes = {
   loadPage: PropTypes.func.isRequired
 };
 
+Page.displayName = 'Page';
+
 export default withAuth(Page);

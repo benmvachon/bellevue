@@ -57,4 +57,6 @@ Forum.propTypes = {
   forumProp: PropTypes.object
 };
 
+Forum.displayName = 'Forum';
+
 export default withAuth(Forum);

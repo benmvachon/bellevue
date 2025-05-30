@@ -14,6 +14,7 @@ import {
 } from '../api/api.js';
 import Thread from './Thread.js';
 import ScrollLoader from './ScrollLoader.js';
+import Modal from './Modal.js';
 
 function Threads({ show = false, onClose, openMessages }) {
   const { userId } = useAuth();
@@ -98,29 +99,27 @@ function Threads({ show = false, onClose, openMessages }) {
   if (!show) return;
 
   return (
-    <div className="modal-container">
-      <div className="modal threads-container">
-        <ScrollLoader
-          total={totalThreads}
-          loadMore={loadMore}
-          className="threads"
-        >
-          {threads?.map((thread) => (
-            <Thread
-              key={`thread-${thread.id}`}
-              thread={thread}
-              onClick={threadClick}
-            />
-          ))}
-        </ScrollLoader>
-        <div className="buttons">
-          <button onClick={onClose}>Close</button>
-          <button onClick={() => markThreadsRead(onClose, setError)}>
-            Mark all as read
-          </button>
-        </div>
+    <Modal className="threads-container" show={show} onClose={onClose}>
+      <ScrollLoader
+        total={totalThreads}
+        loadMore={loadMore}
+        className="threads"
+      >
+        {threads?.map((thread) => (
+          <Thread
+            key={`thread-${thread.id}`}
+            thread={thread}
+            onClick={threadClick}
+          />
+        ))}
+      </ScrollLoader>
+      <div className="buttons">
+        <button onClick={onClose}>Close</button>
+        <button onClick={() => markThreadsRead(onClose, setError)}>
+          Mark all as read
+        </button>
       </div>
-    </div>
+    </Modal>
   );
 }
 
@@ -129,5 +128,7 @@ Threads.propTypes = {
   onClose: PropTypes.func.isRequired,
   openMessages: PropTypes.func.isRequired
 };
+
+Threads.displayName = 'Threads';
 
 export default withAuth(Threads);

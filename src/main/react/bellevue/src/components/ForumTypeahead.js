@@ -152,4 +152,6 @@ ForumTypeahead.propTypes = {
   defaultForum: PropTypes.object
 };
 
+ForumTypeahead.displayName = 'ForumTypeahead';
+
 export default ForumTypeahead;

@@ -82,4 +82,6 @@ Notification.propTypes = {
   openMessages: PropTypes.func.isRequired
 };
 
+Notification.displayName = 'Notification';
+
 export default withAuth(Notification);

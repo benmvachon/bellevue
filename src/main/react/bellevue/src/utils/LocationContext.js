@@ -12,7 +12,7 @@ export const LocationProvider = ({ children }) => {
 
   // derive locationType and locationId immediately
   const parseLocation = (path) => {
-    const parts = path.split('/');
+    const parts = path.split('?')[0].split('/');
     const type = parts[1]?.toLowerCase();
     const id = parts[2] || null;
 
@@ -42,5 +42,7 @@ export const LocationProvider = ({ children }) => {
 LocationProvider.propTypes = {
   children: PropTypes.node.isRequired
 };
+
+LocationContext.displayName = 'LocationContext';
 
 export const useNotifyLocationChange = () => useContext(LocationContext);

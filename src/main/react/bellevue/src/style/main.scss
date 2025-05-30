@@ -23,6 +23,11 @@ html {
       font-family: 'Courier New', Courier, monospace;
     }
 
+    div.scroll-loader {
+      overflow-y: auto;
+      max-height: 100%;
+    }
+
     div.page {
       position: relative;
       height: min(100dvh, 100dvw);
@@ -34,6 +39,40 @@ html {
       align-items: center;
       overflow-y: auto;
 
+      button.show-map-slider {
+        height: 92%;
+        left: 0;
+        bottom: 0;
+        position: absolute;
+      }
+
+      div.map-slider {
+        bottom: 0;
+        height: 92%;
+        left: 0;
+        position: absolute;
+        background: white;
+        border-right: 1px solid;
+        z-index: 2;
+        padding: 0 24px;
+
+        button.hide-map-slider {
+          height: 100%;
+          right: 0;
+          bottom: 0;
+          position: absolute;
+        }
+      }
+
+      div.page-contents {
+        height: 92%;
+        width: 100%;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
       &.profile-page {
         form {
           display: flex;
@@ -43,21 +82,59 @@ html {
       }
 
       &.forum-page {
+        div.metadata {
+          display: flex;
+          height: 24%;
+          flex-direction: column;
+          align-items: center;
+
+          div.actions {
+            display: flex;
+          }
+
+          div.excluded-forums-container {
+            div.excluded-forums {
+              display: flex;
+            }
+          }
+
+          div.metadata-lists {
+            display: flex;
+            justify-content: space-evenly;
+            width: 100%;
+
+            div.attendees {
+              display: flex;
+              flex-direction: row;
+              align-items: center;
+              justify-content: center;
+              flex-wrap: wrap;
+  
+              h3 {
+                width: 100%;
+                text-align: center;
+              }
+            }
+          }
+        }
 
         div.contents {
           display: flex;
           flex-direction: column;
+          height: 76%;
+          overflow-y: auto;
 
-          div.attendees {
+          div.posts {
             display: flex;
-            flex-direction: row;
-            align-items: center;
-            justify-content: center;
-            flex-wrap: wrap;
+            flex-direction: column;
+            height: 100%;
 
-            h3 {
-              width: 100%;
-              text-align: center;
+            div.posts-header {
+              height: 24%;
+            }
+
+            div.scroll-loader {
+              height: 76%;
             }
           }
         }
@@ -185,6 +262,7 @@ html {
         top: 0;
         left: 0;
         background-color: #444c;
+        z-index: 1;
       }
 
       div.modal {
@@ -197,6 +275,16 @@ html {
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
+
+        button.modal-close {
+          position: absolute;
+          top: 0;
+          right: 0;
+          border: none;
+          background: white;
+          cursor: pointer;
+          font-size: 24px;
+        }
 
         div.buttons {
           display: flex;

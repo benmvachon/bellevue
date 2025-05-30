@@ -82,4 +82,6 @@ Equipment.propTypes = {
   refreshProfile: PropTypes.func.isRequired
 };
 
+Equipment.displayName = 'Equipment';
+
 export default withAuth(Equipment);

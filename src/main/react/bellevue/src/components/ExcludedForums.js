@@ -5,16 +5,18 @@ import ExcludedForum from './ExcludedForum.js';
 function ExcludedForums({ excludedForums, includeForum, clearFilter }) {
   if (!excludedForums || !excludedForums.length) return;
   return (
-    <div>
+    <div className="excluded-forums-container">
       <p>Excluded forums:</p>
-      {excludedForums.map((forum) => (
-        <ExcludedForum
-          key={`exclude-forum-${forum}`}
-          id={forum}
-          includeForum={includeForum}
-        />
-      ))}
-      <button onClick={clearFilter}>Show all</button>
+      <div className="excluded-forums">
+        {excludedForums.map((forum) => (
+          <ExcludedForum
+            key={`exclude-forum-${forum}`}
+            id={forum}
+            includeForum={includeForum}
+          />
+        ))}
+        <button onClick={clearFilter}>Show all</button>
+      </div>
     </div>
   );
 }
@@ -24,5 +26,7 @@ ExcludedForums.propTypes = {
   includeForum: PropTypes.func.isRequired,
   clearFilter: PropTypes.func.isRequired
 };
+
+ExcludedForums.displayName = 'ExcludedForums';
 
 export default withAuth(ExcludedForums);

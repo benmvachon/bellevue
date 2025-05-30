@@ -17,11 +17,11 @@ import {
   onFriendshipStatusUpdate,
   unsubscribeFriendshipStatus
 } from '../api/api.js';
-import Header from '../components/Header.js';
 import Messages from '../components/Messages.js';
 import Equipment from '../components/Equipment.js';
 import Attendees from '../components/Attendees.js';
 import Page from '../components/Page.js';
+import asPage from '../utils/asPage.js';
 
 function ProfilePage() {
   const navigate = useNavigate();
@@ -30,6 +30,7 @@ function ProfilePage() {
   const [profile, setProfile] = useState(null);
   const [friends, setFriends] = useState(null);
   const [showMessages, setShowMessages] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const [blackboard, setBlackboard] = useState('');
   const [showEquipment, setShowEquipment] = useState(false);
@@ -51,7 +52,18 @@ function ProfilePage() {
   };
 
   useEffect(() => {
-    getProfile(id, setProfile, setError);
+    setLoading(true);
+    getProfile(
+      id,
+      (profile) => {
+        setProfile(profile);
+        setLoading(false);
+      },
+      (error) => {
+        setError(error);
+        setLoading(false);
+      }
+    );
     getFriends(id, setFriends, setError);
     onProfileUpdate(id, (message) => {
       if (
@@ -84,7 +96,7 @@ function ProfilePage() {
   const closeEquipment = () => setShowEquipment(false);
 
   if (error) return JSON.stringify(error);
-  if (!profile) return;
+  if (loading) return <p>Loading...</p>;
 
   const buttons = [];
   switch (profile?.friendshipStatus) {
@@ -154,8 +166,7 @@ function ProfilePage() {
   }
 
   return (
-    <div className="page profile-page">
-      <Header />
+    <div className="page-contents">
       <h2>{profile?.name}</h2>
       <p>{profile?.username}</p>
       <p>
@@ -206,4 +217,6 @@ function ProfilePage() {
   );
 }
 
-export default withAuth(ProfilePage);
+ProfilePage.displayName = 'ProfilePage';
+
+export default withAuth(asPage(ProfilePage, 'profile-page'));

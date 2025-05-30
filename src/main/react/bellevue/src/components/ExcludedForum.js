@@ -31,4 +31,6 @@ ExcludedForum.propTypes = {
   includeForum: PropTypes.func.isRequired
 };
 
+ExcludedForum.displayName = 'ExcludedForum';
+
 export default withAuth(ExcludedForum);

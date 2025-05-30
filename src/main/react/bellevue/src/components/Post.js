@@ -307,4 +307,6 @@ Post.propTypes = {
   depth: PropTypes.number
 };
 
+Post.displayName = 'Post';
+
 export default withAuth(Post);

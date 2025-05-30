@@ -11,6 +11,7 @@ import {
   markMessageRead
 } from '../api/api.js';
 import ScrollLoader from './ScrollLoader.js';
+import Modal from './Modal.js';
 
 function Messages({ show = false, friend, onClose }) {
   const { userId } = useAuth();
@@ -47,7 +48,18 @@ function Messages({ show = false, friend, onClose }) {
     );
   };
 
-  const send = () => {
+  const handleKeyDown = (e) => {
+    switch (e.key) {
+      case 'Enter':
+        if (message) send(e);
+        break;
+      default:
+        break;
+    }
+  };
+
+  const send = (event) => {
+    event && event.preventDefault();
     sendMessage(friend, message, () => {
       setMessage('');
     });
@@ -96,33 +108,32 @@ function Messages({ show = false, friend, onClose }) {
   if (error) return JSON.stringify(error);
 
   return (
-    <div className="modal-container">
-      <div className="modal messages-container">
-        <ScrollLoader
-          total={totalMessages}
-          loadMore={loadMore}
-          className="messages"
-          topLoad
-        >
-          {messages.map((message) => (
-            <div
-              className={`message ${sentOrReceived(message)}`}
-              key={`message-${message.id}`}
-            >
-              <p>{message.message}</p>
-            </div>
-          ))}
-        </ScrollLoader>
-        <div className="buttons">
-          <textarea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-          />
-          <button onClick={onClose}>Close</button>
-          <button onClick={send}>Send</button>
-        </div>
+    <Modal className="messages-container" show={show} onClose={onClose}>
+      <ScrollLoader
+        total={totalMessages}
+        loadMore={loadMore}
+        className="messages"
+        topLoad
+      >
+        {messages.map((message) => (
+          <div
+            className={`message ${sentOrReceived(message)}`}
+            key={`message-${message.id}`}
+          >
+            <p>{message.message}</p>
+          </div>
+        ))}
+      </ScrollLoader>
+      <div className="buttons">
+        <textarea
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          onKeyDown={handleKeyDown}
+        />
+        <button onClick={onClose}>Close</button>
+        <button onClick={send}>Send</button>
       </div>
-    </div>
+    </Modal>
   );
 }
 
@@ -131,5 +142,7 @@ Messages.propTypes = {
   friend: PropTypes.number.isRequired,
   onClose: PropTypes.func.isRequired
 };
+
+Messages.displayName = 'Messages';
 
 export default withAuth(Messages);

@@ -89,4 +89,6 @@ Thread.propTypes = {
   onClick: PropTypes.func.isRequired
 };
 
+Thread.displayName = 'Thread';
+
 export default withAuth(Thread);

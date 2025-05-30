@@ -42,4 +42,6 @@ function Attendees() {
   );
 }
 
+Attendees.displayName = 'Attendees';
+
 export default withAuth(Attendees);

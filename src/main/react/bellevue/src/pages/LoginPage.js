@@ -65,4 +65,6 @@ function LoginPage() {
   );
 }
 
+LoginPage.displayName = 'LoginPage';
+
 export default LoginPage;

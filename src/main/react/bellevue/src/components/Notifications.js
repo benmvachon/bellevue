@@ -13,6 +13,7 @@ import {
 } from '../api/api.js';
 import Notification from './Notification.js';
 import ScrollLoader from './ScrollLoader.js';
+import Modal from './Modal.js';
 
 function Notifications({ show = false, onClose, openMessages }) {
   const [notifications, setNotifications] = useState([]);
@@ -76,28 +77,26 @@ function Notifications({ show = false, onClose, openMessages }) {
   if (!show) return;
 
   return (
-    <div className="modal-container">
-      <div className="modal notifications-container">
-        <ScrollLoader
-          total={totalNotifications}
-          loadMore={loadMore}
-          className="notifications"
-        >
-          {notifications?.map((notification) => (
-            <Notification
-              key={`notification-${notification.id}`}
-              notification={notification}
-              onClose={onClose}
-              openMessages={openMessages}
-            />
-          ))}
-        </ScrollLoader>
-        <div className="buttons">
-          <button onClick={onClose}>Close</button>
-          <button onClick={markAllAsRead}>Mark all as read</button>
-        </div>
+    <Modal className="notifications-container" show={show} onClose={onClose}>
+      <ScrollLoader
+        total={totalNotifications}
+        loadMore={loadMore}
+        className="notifications"
+      >
+        {notifications?.map((notification) => (
+          <Notification
+            key={`notification-${notification.id}`}
+            notification={notification}
+            onClose={onClose}
+            openMessages={openMessages}
+          />
+        ))}
+      </ScrollLoader>
+      <div className="buttons">
+        <button onClick={onClose}>Close</button>
+        <button onClick={markAllAsRead}>Mark all as read</button>
       </div>
-    </div>
+    </Modal>
   );
 }
 
@@ -106,5 +105,7 @@ Notifications.propTypes = {
   onClose: PropTypes.func.isRequired,
   openMessages: PropTypes.func.isRequired
 };
+
+Notifications.displayName = 'Notifications';
 
 export default withAuth(Notifications);

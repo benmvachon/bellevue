@@ -35,4 +35,6 @@ Rating.propTypes = {
   onClick: PropTypes.func
 };
 
+Rating.displayName = 'Rating';
+
 export default withAuth(Rating);
