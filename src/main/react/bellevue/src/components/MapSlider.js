@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import withAuth from '../utils/withAuth.js';
 import ForumsMap from '../components/ForumsMap.js';
 import FriendsMap from '../components/FriendsMap.js';
 import SuggestedFriendsMap from '../components/SuggestedFriendsMap.js';
@@ -40,4 +39,4 @@ function MapSlider() {
 
 MapSlider.displayName = 'MapSlider';
 
-export default withAuth(MapSlider);
+export default MapSlider;

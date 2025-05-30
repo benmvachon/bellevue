@@ -1,5 +1,4 @@
 import PropTypes from 'prop-types';
-import withAuth from '../utils/withAuth.js';
 
 function Rating({ rating = 0, ratingCount = 0, onClick }) {
   return (
@@ -37,4 +36,4 @@ Rating.propTypes = {
 
 Rating.displayName = 'Rating';
 
-export default withAuth(Rating);
+export default Rating;

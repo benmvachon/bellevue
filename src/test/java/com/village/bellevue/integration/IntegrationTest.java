@@ -68,6 +68,7 @@ public class IntegrationTest extends IntegrationTestWrapper {
     "Test Forum",
     "A new test forum",
     new Timestamp(System.currentTimeMillis()),
+    new ArrayList<>(),
     new ArrayList<>()
   );
   // this forum will be added and then deleted

@@ -1,5 +1,4 @@
 import PropTypes from 'prop-types';
-import withAuth from '../utils/withAuth.js';
 
 function Page({ page, renderItem, loadPage }) {
   if (!page) return;
@@ -32,4 +31,4 @@ Page.propTypes = {
 
 Page.displayName = 'Page';
 
-export default withAuth(Page);
+export default Page;

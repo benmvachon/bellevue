@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import withAuth from '../utils/withAuth.js';
 import { getForum } from '../api/api.js';
 
 function ExcludedForum({ id, includeForum }) {
@@ -33,4 +32,4 @@ ExcludedForum.propTypes = {
 
 ExcludedForum.displayName = 'ExcludedForum';
 
-export default withAuth(ExcludedForum);
+export default ExcludedForum;

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import withAuth from '../utils/withAuth.js';
 import { useAuth } from '../utils/AuthContext.js';
 import {
   getNotificationCount,
@@ -107,4 +106,4 @@ function Header() {
 
 Header.displayName = 'Header';
 
-export default withAuth(Header);
+export default Header;

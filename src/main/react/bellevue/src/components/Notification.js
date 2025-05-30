@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import withAuth from '../utils/withAuth.js';
 import {
   markNotificationRead,
   getNotification,
@@ -84,4 +83,4 @@ Notification.propTypes = {
 
 Notification.displayName = 'Notification';
 
-export default withAuth(Notification);
+export default Notification;

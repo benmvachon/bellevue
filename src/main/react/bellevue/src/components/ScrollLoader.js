@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
-import withAuth from '../utils/withAuth.js';
 
 function ScrollLoader({
   children,
@@ -118,4 +117,4 @@ ScrollLoader.propTypes = {
 
 ScrollLoader.displayName = 'ScrollLoader';
 
-export default withAuth(ScrollLoader);
+export default ScrollLoader;

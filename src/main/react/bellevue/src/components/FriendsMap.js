@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import withAuth from '../utils/withAuth.js';
 import { getMyFriends } from '../api/api.js';
 import Page from '../components/Page.js';
 
@@ -72,4 +71,4 @@ function FriendsMap() {
 
 FriendsMap.displayName = 'FriendsMap';
 
-export default withAuth(FriendsMap);
+export default FriendsMap;

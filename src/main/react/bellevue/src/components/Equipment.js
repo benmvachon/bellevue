@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import withAuth from '../utils/withAuth.js';
 import { getEquipment, equipItem, unequipItem } from '../api/api.js';
 import Page from './Page.js';
 
@@ -84,4 +83,4 @@ Equipment.propTypes = {
 
 Equipment.displayName = 'Equipment';
 
-export default withAuth(Equipment);
+export default Equipment;

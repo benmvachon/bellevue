@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import withAuth from '../utils/withAuth.js';
 import {
   getTotalPosts,
   getPost,
@@ -264,4 +263,4 @@ PostsList.propTypes = {
 
 PostsList.displayName = 'PostsList';
 
-export default withAuth(PostsList);
+export default PostsList;

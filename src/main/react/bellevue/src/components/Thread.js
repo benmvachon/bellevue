@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import withAuth from '../utils/withAuth.js';
 import { useAuth } from '../utils/AuthContext.js';
 import {
   getMessage,
@@ -91,4 +90,4 @@ Thread.propTypes = {
 
 Thread.displayName = 'Thread';
 
-export default withAuth(Thread);
+export default Thread;

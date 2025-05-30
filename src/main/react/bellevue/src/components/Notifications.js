@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import withAuth from '../utils/withAuth.js';
 import {
   getNotifications,
   getNotificationTotal,
@@ -129,4 +128,4 @@ Notifications.propTypes = {
 
 Notifications.displayName = 'Notifications';
 
-export default withAuth(Notifications);
+export default Notifications;

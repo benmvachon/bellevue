@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
-import withAuth from '../utils/withAuth.js';
 import { useAuth } from '../utils/AuthContext.js';
 import {
   getPost,
@@ -309,4 +308,4 @@ Post.propTypes = {
 
 Post.displayName = 'Post';
 
-export default withAuth(Post);
+export default Post;

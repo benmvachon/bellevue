@@ -16,6 +16,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -49,6 +51,14 @@ public class ForumEntity {
   )
   @Column(name = "tag")
   private List<String> tags;
+
+  @ManyToMany(fetch = FetchType.LAZY)
+  @JoinTable(
+    name = "forum_security",
+    joinColumns = @JoinColumn(name = "forum"),
+    inverseJoinColumns = @JoinColumn(name = "user")
+  )
+  private List<UserProfileEntity> users;
 
   public ForumEntity(ForumModel model) {
     this.id = model.getId();

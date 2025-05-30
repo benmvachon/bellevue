@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import withAuth from '../utils/withAuth.js';
 import { getFavorites } from '../api/api.js';
 import Page from './Page.js';
 import Modal from './Modal.js';
@@ -79,4 +78,4 @@ Favorites.propTypes = {
 
 Favorites.displayName = 'Favorites';
 
-export default withAuth(Favorites);
+export default Favorites;

@@ -5,9 +5,9 @@ import MapSlider from '../components/MapSlider.js';
 const asPage = (WrappedComponent, className) => {
   const PageComponent = (props) => {
     return (
-      <div className={`page ${className}`}>
-        <Header />
-        <MapSlider />
+      <div key="main-page-container" className={`page ${className}`}>
+        <Header key="page-header" />
+        <MapSlider key="page-map-slider" />
         <WrappedComponent {...props} />
       </div>
     );

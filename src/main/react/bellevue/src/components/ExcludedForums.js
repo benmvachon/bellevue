@@ -1,5 +1,4 @@
 import PropTypes from 'prop-types';
-import withAuth from '../utils/withAuth.js';
 import ExcludedForum from './ExcludedForum.js';
 
 function ExcludedForums({ excludedForums, includeForum, clearFilter }) {
@@ -29,4 +28,4 @@ ExcludedForums.propTypes = {
 
 ExcludedForums.displayName = 'ExcludedForums';
 
-export default withAuth(ExcludedForums);
+export default ExcludedForums;

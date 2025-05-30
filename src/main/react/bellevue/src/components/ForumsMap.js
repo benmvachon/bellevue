@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import withAuth from '../utils/withAuth.js';
 import { getForum, getForums, markPostsRead } from '../api/api.js';
 import Page from '../components/Page.js';
 import Forum from '../components/Forum.js';
@@ -89,4 +88,4 @@ function ForumsMap() {
 
 ForumsMap.displayName = 'ForumsMap';
 
-export default withAuth(ForumsMap);
+export default ForumsMap;

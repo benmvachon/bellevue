@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
-import withAuth from '../utils/withAuth.js';
 
 function Modal({ show = false, onClose, children, className }) {
   const containerRef = useRef();
@@ -38,4 +37,4 @@ Modal.propTypes = {
 
 Modal.displayName = 'Modal';
 
-export default withAuth(Modal);
+export default Modal;

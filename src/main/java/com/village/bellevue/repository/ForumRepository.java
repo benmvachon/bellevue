@@ -17,7 +17,7 @@ public interface ForumRepository extends JpaRepository<ForumEntity, Long> {
 
   @Query(
     "SELECT f.id FROM ForumEntity f " +
-    "WHERE f.user IS NULL OR f.user = 1 OR EXISTS ( " +
+    "WHERE f.user IS NULL OR f.user = :user OR EXISTS ( " +
       "SELECT 1 FROM FriendEntity ff " +
       "WHERE ff.user = :user AND ff.friend.id = f.user AND ff.status = 'ACCEPTED' " +
     ")"

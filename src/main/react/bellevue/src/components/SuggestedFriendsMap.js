@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import withAuth from '../utils/withAuth.js';
 import { getSuggestedFriends } from '../api/api.js';
 import Page from '../components/Page.js';
 
@@ -72,4 +71,4 @@ function SuggestedFriendsMap() {
 
 SuggestedFriendsMap.displayName = 'SuggestedFriendsMap';
 
-export default withAuth(SuggestedFriendsMap);
+export default SuggestedFriendsMap;

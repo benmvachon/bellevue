@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import withAuth from '../utils/withAuth.js';
 import { useNotifyLocationChange } from '../utils/LocationContext.js';
 import {
   getFriendsInLocation,
@@ -44,4 +43,4 @@ function Attendees() {
 
 Attendees.displayName = 'Attendees';
 
-export default withAuth(Attendees);
+export default Attendees;

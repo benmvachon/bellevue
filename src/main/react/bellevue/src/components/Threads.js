@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import withAuth from '../utils/withAuth.js';
 import { useAuth } from '../utils/AuthContext.js';
 import {
   getThreadCount,
@@ -134,7 +133,7 @@ function Threads({ show = false, onClose, openMessages }) {
           ))}
         </ScrollLoader>
       ) : (
-        <p>No threads</p>
+        <p>No messages</p>
       )}
       <div className="buttons">
         <button onClick={onClose}>Close</button>
@@ -154,4 +153,4 @@ Threads.propTypes = {
 
 Threads.displayName = 'Threads';
 
-export default withAuth(Threads);
+export default Threads;

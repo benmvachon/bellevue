@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import withAuth from '../utils/withAuth.js';
 import { useAuth } from '../utils/AuthContext.js';
 import {
   getMessages,
@@ -160,4 +159,4 @@ Messages.propTypes = {
 
 Messages.displayName = 'Messages';
 
-export default withAuth(Messages);
+export default Messages;

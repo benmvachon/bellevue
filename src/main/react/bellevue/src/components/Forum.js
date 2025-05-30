@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import withAuth from '../utils/withAuth.js';
 import {
   getForum,
   markForumRead,
@@ -59,4 +58,4 @@ Forum.propTypes = {
 
 Forum.displayName = 'Forum';
 
-export default withAuth(Forum);
+export default Forum;
