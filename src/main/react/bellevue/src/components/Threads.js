@@ -20,6 +20,7 @@ function Threads({ show = false, onClose, openMessages }) {
   const { userId } = useAuth();
   const [threads, setThreads] = useState(null);
   const [totalThreads, setTotalThreads] = useState(0);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
   const loadMore = () => {
@@ -52,10 +53,26 @@ function Threads({ show = false, onClose, openMessages }) {
 
   useEffect(() => {
     if (show) {
-      getThreadCount((totalThreads) => {
-        setTotalThreads(totalThreads);
-        getThreads(setThreads, setError);
-      }, setError);
+      setLoading(true);
+      getThreadCount(
+        (totalThreads) => {
+          getThreads(
+            (threads) => {
+              setTotalThreads(totalThreads);
+              setThreads(threads);
+              setLoading(false);
+            },
+            (error) => {
+              setError(error);
+              setLoading(false);
+            }
+          );
+        },
+        (error) => {
+          setError(error);
+          setLoading(false);
+        }
+      );
     }
   }, [show]);
 
@@ -100,19 +117,25 @@ function Threads({ show = false, onClose, openMessages }) {
 
   return (
     <Modal className="threads-container" show={show} onClose={onClose}>
-      <ScrollLoader
-        total={totalThreads}
-        loadMore={loadMore}
-        className="threads"
-      >
-        {threads?.map((thread) => (
-          <Thread
-            key={`thread-${thread.id}`}
-            thread={thread}
-            onClick={threadClick}
-          />
-        ))}
-      </ScrollLoader>
+      {loading ? (
+        <p>Loading...</p>
+      ) : totalThreads > 0 ? (
+        <ScrollLoader
+          total={totalThreads}
+          loadMore={loadMore}
+          className="threads"
+        >
+          {threads?.map((thread) => (
+            <Thread
+              key={`thread-${thread.id}`}
+              thread={thread}
+              onClick={threadClick}
+            />
+          ))}
+        </ScrollLoader>
+      ) : (
+        <p>No threads</p>
+      )}
       <div className="buttons">
         <button onClick={onClose}>Close</button>
         <button onClick={() => markThreadsRead(onClose, setError)}>

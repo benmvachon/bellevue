@@ -18,6 +18,7 @@ function Messages({ show = false, friend, onClose }) {
   const [messages, setMessages] = useState([]);
   const [totalMessages, setTotalMessages] = useState(0);
   const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
   const sentOrReceived = (message) => {
@@ -87,6 +88,7 @@ function Messages({ show = false, friend, onClose }) {
 
   useEffect(() => {
     if (show) {
+      setLoading(true);
       getMessageCount(
         friend,
         (totalMessages) => {
@@ -95,11 +97,18 @@ function Messages({ show = false, friend, onClose }) {
             (messages) => {
               setTotalMessages(totalMessages);
               setMessages(messages ? messages.reverse() : []);
+              setLoading(false);
             },
-            setError
+            (error) => {
+              setError(error);
+              setLoading(false);
+            }
           );
         },
-        setError
+        (error) => {
+          setError(error);
+          setLoading(false);
+        }
       );
     }
   }, [show, friend]);
@@ -109,21 +118,27 @@ function Messages({ show = false, friend, onClose }) {
 
   return (
     <Modal className="messages-container" show={show} onClose={onClose}>
-      <ScrollLoader
-        total={totalMessages}
-        loadMore={loadMore}
-        className="messages"
-        topLoad
-      >
-        {messages.map((message) => (
-          <div
-            className={`message ${sentOrReceived(message)}`}
-            key={`message-${message.id}`}
-          >
-            <p>{message.message}</p>
-          </div>
-        ))}
-      </ScrollLoader>
+      {loading ? (
+        <p>Loading...</p>
+      ) : totalMessages > 0 ? (
+        <ScrollLoader
+          total={totalMessages}
+          loadMore={loadMore}
+          className="messages"
+          topLoad
+        >
+          {messages.map((message) => (
+            <div
+              className={`message ${sentOrReceived(message)}`}
+              key={`message-${message.id}`}
+            >
+              <p>{message.message}</p>
+            </div>
+          ))}
+        </ScrollLoader>
+      ) : (
+        <p>No messages</p>
+      )}
       <div className="buttons">
         <textarea
           value={message}

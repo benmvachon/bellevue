@@ -18,6 +18,7 @@ import Modal from './Modal.js';
 function Notifications({ show = false, onClose, openMessages }) {
   const [notifications, setNotifications] = useState([]);
   const [totalNotifications, setTotalNotifications] = useState(0);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
   const loadMore = () => {
@@ -45,12 +46,26 @@ function Notifications({ show = false, onClose, openMessages }) {
 
   useEffect(() => {
     if (show) {
-      getNotificationTotal((totalNotifications) => {
-        getNotifications((notifications) => {
-          setTotalNotifications(totalNotifications);
-          setNotifications(notifications);
-        }, setError);
-      }, setError);
+      setLoading(true);
+      getNotificationTotal(
+        (totalNotifications) => {
+          getNotifications(
+            (notifications) => {
+              setTotalNotifications(totalNotifications);
+              setNotifications(notifications);
+              setLoading(false);
+            },
+            (error) => {
+              setError(error);
+              setLoading(false);
+            }
+          );
+        },
+        (error) => {
+          setError(error);
+          setLoading(false);
+        }
+      );
     }
   }, [show]);
 
@@ -78,20 +93,26 @@ function Notifications({ show = false, onClose, openMessages }) {
 
   return (
     <Modal className="notifications-container" show={show} onClose={onClose}>
-      <ScrollLoader
-        total={totalNotifications}
-        loadMore={loadMore}
-        className="notifications"
-      >
-        {notifications?.map((notification) => (
-          <Notification
-            key={`notification-${notification.id}`}
-            notification={notification}
-            onClose={onClose}
-            openMessages={openMessages}
-          />
-        ))}
-      </ScrollLoader>
+      {loading ? (
+        <p>Loading...</p>
+      ) : totalNotifications > 0 ? (
+        <ScrollLoader
+          total={totalNotifications}
+          loadMore={loadMore}
+          className="notifications"
+        >
+          {notifications?.map((notification) => (
+            <Notification
+              key={`notification-${notification.id}`}
+              notification={notification}
+              onClose={onClose}
+              openMessages={openMessages}
+            />
+          ))}
+        </ScrollLoader>
+      ) : (
+        <p>No notifications</p>
+      )}
       <div className="buttons">
         <button onClick={onClose}>Close</button>
         <button onClick={markAllAsRead}>Mark all as read</button>

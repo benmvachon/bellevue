@@ -10,6 +10,7 @@ import {
   onForumUnreadUpdate,
   unsubscribeForumUnread
 } from '../api/api.js';
+import { updateSearchParams } from '../utils/updateSearchParams.js';
 import Attendees from '../components/Attendees.js';
 import ExcludedForums from '../components/ExcludedForums.js';
 import PostsList from '../components/PostsList.js';
@@ -60,7 +61,7 @@ function ForumPage() {
   const toggleSort = () => {
     const toggled = !sortByPopular;
     setSortByPopular(toggled);
-    updateSearchParams({ popular: toggled });
+    updateSearchParams({ popular: toggled }, searchParams, setSearchParams);
   };
 
   const toggleFilterAll = () => {
@@ -69,44 +70,24 @@ function ForumPage() {
       clearFilter();
     }
     setOnlyTownHallPosts(townhall);
-    updateSearchParams({ townhall });
+    updateSearchParams({ townhall }, searchParams, setSearchParams);
   };
 
   const excludeForum = (forum) => {
     const excluded = excludedForums.concat([forum]);
     setExcludedForums(excluded);
-    updateSearchParams({ excluded });
+    updateSearchParams({ excluded }, searchParams, setSearchParams);
   };
 
   const includeForum = (forum) => {
     const excluded = excludedForums.filter((id) => forum !== id);
     setExcludedForums(excluded);
-    updateSearchParams({ excluded });
+    updateSearchParams({ excluded }, searchParams, setSearchParams);
   };
 
   const clearFilter = () => {
     setExcludedForums([]);
-    updateSearchParams({ excluded: [] });
-  };
-
-  const updateSearchParams = (updates) => {
-    const newParams = new URLSearchParams(searchParams);
-    Object.entries(updates).forEach(([key, value]) => {
-      if (
-        value === undefined ||
-        value === null ||
-        value === false ||
-        (Array.isArray(value) && value.length === 0)
-      ) {
-        newParams.delete(key);
-      } else {
-        newParams.set(
-          key,
-          Array.isArray(value) ? value.join(',') : value.toString()
-        );
-      }
-    });
-    setSearchParams(newParams);
+    updateSearchParams({ excluded: [] }, searchParams, setSearchParams);
   };
 
   useEffect(() => {

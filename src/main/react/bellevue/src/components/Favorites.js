@@ -4,14 +4,28 @@ import PropTypes from 'prop-types';
 import withAuth from '../utils/withAuth.js';
 import { getFavorites } from '../api/api.js';
 import Page from './Page.js';
+import Modal from './Modal.js';
 
 function Favorites({ show = false, onClose }) {
   const navigate = useNavigate();
-  const [favorites, setFavorites] = useState(null);
+  const [favorites, setFavorites] = useState(undefined);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    if (show) getFavorites(setFavorites, setError);
+    if (show) {
+      setLoading(true);
+      getFavorites(
+        (favorites) => {
+          setFavorites(favorites);
+          setLoading(false);
+        },
+        (error) => {
+          setError(error);
+          setLoading(false);
+        }
+      );
+    }
   }, [show]);
 
   const loadPage = (page) => {
@@ -27,27 +41,33 @@ function Favorites({ show = false, onClose }) {
   if (error) return JSON.stringify(error);
 
   return (
-    <div className="modal-container">
-      <div className="modal favorites-container">
+    <Modal className="favorites-container" show={show} onClose={onClose}>
+      {loading ? (
+        <p>Loading...</p>
+      ) : (
         <div className="favorites">
-          <Page
-            page={favorites}
-            renderItem={(favorite) => (
-              <div className="favorite" key={`favorite-${favorite.id}`}>
-                <button onClick={() => navigateToFavorite(favorite)}>
-                  {favorite.type} - {favorite.entity}
-                </button>
-              </div>
-            )}
-            loadPage={loadPage}
-            reverse
-          />
+          {favorites?.content?.length ? (
+            <Page
+              page={favorites}
+              renderItem={(favorite) => (
+                <div className="favorite" key={`favorite-${favorite.id}`}>
+                  <button onClick={() => navigateToFavorite(favorite)}>
+                    {favorite.type} - {favorite.entity}
+                  </button>
+                </div>
+              )}
+              loadPage={loadPage}
+              reverse
+            />
+          ) : (
+            <p>No favorites</p>
+          )}
         </div>
-        <div className="buttons">
-          <button onClick={onClose}>Close</button>
-        </div>
+      )}
+      <div className="buttons">
+        <button onClick={onClose}>Close</button>
       </div>
-    </div>
+    </Modal>
   );
 }
 
