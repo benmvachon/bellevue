@@ -226,7 +226,6 @@ function PostsList({
   return (
     <div className="posts">
       <div className="posts-header">
-        <h3>Posts</h3>
         <button onClick={toggleSort}>
           {sortByPopular ? 'Most recent' : 'Most popular'}
         </button>
