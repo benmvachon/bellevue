@@ -18,6 +18,29 @@ export const api = axios.create({
   withCredentials: true
 });
 
+api.interceptors.response.use(
+  (response) => {
+    // If the server returned an HTML page instead of JSON, assume redirection
+    if (
+      response.headers['content-type'] &&
+      response.headers['content-type'].includes('text/html')
+    ) {
+      console.warn('Session expired. Redirecting to login...');
+      window.location.href = response.request.responseURL;
+    }
+
+    return response;
+  },
+  (error) => {
+    // Handle 401 Unauthorized explicitly
+    if (error.response && error.response.status === 401) {
+      console.warn('Unauthorized. Redirecting to login...');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
 let reconnectTimeout = null;
 let isCreatingClient = false;
 
