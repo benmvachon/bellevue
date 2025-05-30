@@ -65,10 +65,10 @@ function ForumsMap() {
   return (
     <div className="forums">
       <h2>
+        Forums
         <button onClick={() => setFilter(!filter)}>
           {filter ? 'Show all' : 'Show unread'}
         </button>
-        Forums
         <button onClick={markPostsRead}>Mark all as read</button>
       </h2>
       <div>

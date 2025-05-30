@@ -50,12 +50,39 @@ html {
       div.map-slider {
         bottom: 0;
         height: 92%;
+        width: 300px;
         left: 0;
         position: absolute;
         background: white;
         border-right: 1px solid;
         z-index: 2;
         padding: 0 24px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-around;
+
+        div.forums {
+          display: flex;
+          height: 40%;
+          width: 100%;
+          flex-direction: column;
+          align-items: center;
+
+          h2 {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+          }
+        }
+
+        div.friends, div.suggested-friends {
+          display: flex;
+          height: 30%;
+          width: 100%;
+          flex-direction: column;
+          align-items: center;
+        }
 
         button.hide-map-slider {
           height: 100%;
