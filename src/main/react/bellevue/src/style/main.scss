@@ -270,7 +270,7 @@ html {
         div.post {
           display: flex;
           flex-direction: column;
-          margin-left: 32px;
+          margin: 8px 0 8px 16px;
           background: white;
 
           &.selected {
@@ -284,7 +284,7 @@ html {
           div.post-header {
             display: flex;
             flex-direction: row;
-            justify-content: space-evenly;
+            justify-content: space-between;
             align-items: center;
 
             div.rating {
@@ -298,6 +298,11 @@ html {
                 background-color: white;
               }
             }
+          }
+
+          div.post-children-container {
+            display: flex;
+            flex-direction: column;
           }
         }
       }

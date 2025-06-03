@@ -226,7 +226,6 @@ function Post({
         <button onClick={() => navigate(`/profile/${post?.user.id}`)}>
           {post?.user.name}
         </button>
-        <p>{post?.created?.toLocaleString()}</p>
         <Rating
           rating={post?.rating}
           ratingCount={post?.ratingCount}
@@ -247,24 +246,24 @@ function Post({
         {post.user.id === userId && (
           <button onClick={() => deletePost(id)}>Delete</button>
         )}
+        {showForum && (
+          <button onClick={() => navigate(`/forum/${post?.forum.id}`)}>
+            Go to {post.forum.name}
+          </button>
+        )}
+        {excludeForum && post.forum.id !== 1 && (
+          <button onClick={() => excludeForum(post.forum.id)}>
+            Filter posts from {post.forum.name}
+          </button>
+        )}
       </div>
       <p>{post?.content}</p>
-      <button onClick={toggleSort}>
-        {sortByPopular ? 'Most recent' : 'Most popular'}
-      </button>
-      {showForum && (
-        <button onClick={() => navigate(`/forum/${post?.forum.id}`)}>
-          Go to {post.forum.name}
-        </button>
-      )}
-      {excludeForum && post.forum.id !== 1 && (
-        <button onClick={() => excludeForum(post.forum.id)}>
-          Filter posts from {post.forum.name}
-        </button>
-      )}
       <PostForm forum={post.forum} parent={post} />
       {post.children > 0 && (
         <div className="post-children-container">
+          <button onClick={toggleSort}>
+            {sortByPopular ? 'Most recent' : 'Most popular'}
+          </button>
           <button onClick={() => setShowReplies(!showReplies)}>
             {showReplies
               ? `Hide (${post.children}) replies`

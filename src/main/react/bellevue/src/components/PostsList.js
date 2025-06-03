@@ -225,10 +225,10 @@ function PostsList({
   return (
     <div className="posts">
       <div className="posts-header">
+        <PostForm forum={forum} enableForumSelection={feed} />
         <button onClick={toggleSort}>
           {sortByPopular ? 'Most recent' : 'Most popular'}
         </button>
-        <PostForm forum={forum} enableForumSelection={feed} />
       </div>
       {loading ? (
         <p>Loading...</p>
