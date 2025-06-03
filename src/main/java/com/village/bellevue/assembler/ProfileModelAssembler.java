@@ -31,7 +31,7 @@ public class ProfileModelAssembler implements RepresentationModelAssembler<Profi
         profile,
         linkTo(methodOn(FriendController.class).block(profile.getId())).withRel("block"),
         linkTo(methodOn(FriendController.class).remove(profile.getId())).withRel("remove"),
-        linkTo(methodOn(FriendController.class).read(profile.getId(), 0, 10)).withRel("friends"),
+        linkTo(methodOn(FriendController.class).read(profile.getId(), "", 0, 10)).withRel("friends"),
         linkTo(methodOn(MessageController.class).message(profile.getId(), null)).withRel("message")
       );
       case "PENDING_YOU" -> EntityModel.of(

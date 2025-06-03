@@ -195,9 +195,18 @@ export const updateLocation = (location, locationType, callback, error) => {
   }
 };
 
-export const getMyFriends = (callback, error, page = 0, size = 10) => {
+export const getMyFriends = (
+  callback,
+  error,
+  query = '',
+  excluded = [],
+  page = 0,
+  size = 10
+) => {
   api
-    .get(`/friend?page=${page}&size=${size}`)
+    .get(
+      `/friend?query=${query}&excluded=${excluded}&page=${page}&size=${size}`
+    )
     .then((response) => {
       const page = Page.fromJSON(response.data, Profile.profileMapper);
       callback && callback(page);
@@ -218,6 +227,16 @@ export const getSuggestedFriends = (callback, error, page = 0, size = 10) => {
 export const getFriends = (friend, callback, error, page = 0, size = 10) => {
   api
     .get(`/friend/${friend}/friends?page=${page}&size=${size}`)
+    .then((response) => {
+      const page = Page.fromJSON(response.data, Profile.profileMapper);
+      callback && callback(page);
+    })
+    .catch(error);
+};
+
+export const findUsers = (query, callback, error, page = 0, size = 10) => {
+  api
+    .get(`/user/search/${query}?page=${page}&size=${size}`)
     .then((response) => {
       const page = Page.fromJSON(response.data, Profile.profileMapper);
       callback && callback(page);
@@ -264,12 +283,13 @@ export const unsubscribeFriendshipStatus = (profile) => {
 export const getForums = (
   callback,
   error,
+  unread = false,
+  query = '',
   page = 0,
-  onlyUnread = false,
   size = 9
 ) => {
   api
-    .get(`/forum${onlyUnread ? '/unread' : ''}?page=${page}&size=${size}`)
+    .get(`/forum?unread=${unread}&query=${query}&page=${page}&size=${size}`)
     .then((response) => {
       const page = Page.fromJSON(response.data, Forum.forumMapper);
       callback && callback(page);
@@ -277,11 +297,16 @@ export const getForums = (
     .catch(error);
 };
 
-export const queryForums = (query, callback, error) => {
+export const getTags = (callback, error, query = '', page = 0, size = 10) => {
   api
-    .get(`/forum/query?query=${query}`)
+    .get(`/forum/tags?&query=${query}&page=${page}&size=${size}`)
     .then((response) => {
-      callback && callback(response.data.map((forum) => Forum.fromJSON(forum)));
+      const page = Page.fromJSON(response.data, {
+        fromPage: (_embedded) => {
+          return _embedded?.stringList || [];
+        }
+      });
+      callback && callback(page);
     })
     .catch(error);
 };
@@ -293,11 +318,36 @@ export const getForum = (id, callback, error) => {
     .catch(error);
 };
 
-export const addForum = (category, name, callback, error) => {
+export const addForum = (name, description, tags, users, callback, error) => {
   api
-    .post('/forum', new Forum(undefined, category, name).toJSON())
+    .post(
+      '/forum',
+      new Forum(undefined, undefined, name, description, tags, users).toJSON()
+    )
     .then((response) => callback && callback(Forum.fromJSON(response.data)))
     .catch(error);
+};
+
+export const updateForum = (
+  id,
+  name,
+  description,
+  tags,
+  users,
+  callback,
+  error
+) => {
+  api
+    .put(
+      `/forum/${id}`,
+      new Forum(undefined, undefined, name, description, tags, users).toJSON()
+    )
+    .then((response) => callback && callback(Forum.fromJSON(response.data)))
+    .catch(error);
+};
+
+export const deleteForum = (id, callback, error) => {
+  api.delete(`/forum/${id}`).then(callback).catch(error);
 };
 
 export const setForumNotification = (forum, notify, callback, error) => {

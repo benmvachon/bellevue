@@ -3,6 +3,7 @@ package com.village.bellevue.service.impl;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Optional;
 
 import javax.sql.DataSource;
@@ -203,10 +204,10 @@ public class FriendServiceImpl implements FriendService {
   }
 
   @Override
-  public Page<ProfileModel> readAll(int page, int size) throws FriendshipException {
-    Page<FriendEntity> friendEntities = friendRepository.findFriends(getAuthenticatedUserId(), PageRequest.of(page, size));
-    return friendEntities.map(friendEntity -> {
-      return new ProfileModel(friendEntity.getFriend(), profileModelProvider);
+  public Page<ProfileModel> readAll(String query, List<Long> excluded, int page, int size) throws FriendshipException {
+    Page<UserProfileEntity> entities = friendRepository.findFriends(getAuthenticatedUserId(), query, excluded, PageRequest.of(page, size));
+    return entities.map(entity -> {
+      return new ProfileModel(entity, profileModelProvider);
     });
   }
 
@@ -219,10 +220,10 @@ public class FriendServiceImpl implements FriendService {
   }
 
   @Override
-  public Page<ProfileModel> readAll(Long user, int page, int size) throws FriendshipException {
-    Page<FriendEntity> friendEntities = friendRepository.findFriendsExcludingBlocked(user, getAuthenticatedUserId(), PageRequest.of(page, size));
-    return friendEntities.map(friendEntity -> {
-      return new ProfileModel(friendEntity.getFriend(), profileModelProvider);
+  public Page<ProfileModel> readAll(Long user, String query, int page, int size) throws FriendshipException {
+    Page<UserProfileEntity> entities = friendRepository.findFriendsExcludingBlocked(user, getAuthenticatedUserId(), query, PageRequest.of(page, size));
+    return entities.map(entity -> {
+      return new ProfileModel(entity, profileModelProvider);
     });
   }
 

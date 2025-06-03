@@ -47,7 +47,10 @@ const PostForm = ({ forum, parent, enableForumSelection = false }) => {
         onKeyDown={handleKeyDown}
       />
       {enableForumSelection && (
-        <ForumTypeahead onSelect={setSelectedForum} defaultForum={forum} />
+        <ForumTypeahead
+          onSelect={setSelectedForum}
+          selectedForum={selectedForum}
+        />
       )}
       <button disabled={disabled} type="submit">
         {parent ? 'Reply' : 'Post'}

@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
+import PropTypes from 'prop-types';
 import ForumsMap from '../components/ForumsMap.js';
 import FriendsMap from '../components/FriendsMap.js';
 import SuggestedFriendsMap from '../components/SuggestedFriendsMap.js';
 
-function MapSlider() {
+function MapSlider({ setShowForumForm }) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef();
 
@@ -26,7 +27,7 @@ function MapSlider() {
   } else {
     return (
       <div ref={containerRef} className="map-slider">
-        <ForumsMap />
+        <ForumsMap setShowForumForm={setShowForumForm} />
         <FriendsMap />
         <SuggestedFriendsMap />
         <button className="hide-map-slider" onClick={() => setOpen(false)}>
@@ -38,5 +39,9 @@ function MapSlider() {
 }
 
 MapSlider.displayName = 'MapSlider';
+
+MapSlider.propTypes = {
+  setShowForumForm: PropTypes.func.isRequired
+};
 
 export default MapSlider;

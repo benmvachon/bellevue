@@ -22,10 +22,10 @@ public interface UserProfileRepository extends JpaRepository<UserProfileEntity, 
     "   OR LOWER(u.username) LIKE LOWER(CONCAT(:prefix, '%'))) " +
     "AND u.id NOT IN (" +
     "   SELECT f.friend.id FROM FriendEntity f " +
-    "   WHERE f.user = :user AND f.status = 'BLOCKED_THEM' " +
+    "   WHERE f.user = :user AND (f.status = 'BLOCKED_THEM' OR f.status = 'ACCEPTED') " +
     "   UNION " +
     "   SELECT f.user FROM FriendEntity f " +
-    "   WHERE f.friend.id = :user AND f.status = 'BLOCKED_YOU'" +
+    "   WHERE f.friend.id = :user AND (f.status = 'BLOCKED_YOU' OR f.status = 'ACCEPTED')" +
     ")"
   )
   @Transactional(readOnly = true)

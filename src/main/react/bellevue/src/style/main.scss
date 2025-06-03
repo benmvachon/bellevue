@@ -19,6 +19,10 @@ html {
       font-family: 'Courier New', Courier, monospace;
     }
 
+    input {
+      font-family: 'Courier New', Courier, monospace;
+    }
+
     button {
       font-family: 'Courier New', Courier, monospace;
     }
@@ -26,6 +30,18 @@ html {
     div.scroll-loader {
       overflow-y: auto;
       max-height: 100%;
+    }
+
+    div.forum-form-container {
+      display: flex;
+      flex-direction: column;
+
+      form {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-evenly;
+        height: 100%;
+      }
     }
 
     div.page {
@@ -45,6 +61,8 @@ html {
         bottom: 0;
         position: absolute;
         z-index: 1;
+        border: 0;
+        border-right: 1px solid;
       }
 
       div.map-slider {
@@ -54,7 +72,6 @@ html {
         left: 0;
         position: absolute;
         background: white;
-        border-right: 1px solid;
         z-index: 2;
         padding: 0 24px;
         display: flex;
@@ -91,6 +108,7 @@ html {
           right: 0;
           bottom: 0;
           position: absolute;
+          border-width: 0 1px;
         }
       }
 
@@ -118,6 +136,7 @@ html {
           flex-direction: column;
           align-items: center;
           justify-content: space-evenly;
+          width: calc(100% - 64px);
 
           h2, h3 {
             margin: 0;
@@ -158,6 +177,7 @@ html {
           flex-direction: column;
           height: 76%;
           overflow-y: auto;
+          width: calc(100% - 64px);
 
           div.posts {
             display: flex;
@@ -178,45 +198,52 @@ html {
         }
       }
 
-      div.forum-select {
+      div.typeahead-container {
         position: relative;
         display: flex;
+        flex-direction: column;
 
-        input.forum-select-input {
-          width: 100%;
+        input.typeahead-input {
+          width: calc(100% - 20px);
           padding: 4px 8px;
         }
         
-        ul.forum-select-dropdown {
+        ul.typeahead-dropdown {
           list-style: none;
           padding: 0;
-          margin: 4px 0 0;
+          margin: 0;
           position: absolute;
           top: 100%;
           left: 0;
-          width: 100%;
+          width: calc(100% - 2px);
           background-color: white;
           border: 1px solid #ccc;
           border-radius: 4px;
           max-height: 200px;
           overflow-y: auto;
           z-index: 10;
+          display: flex;
+          flex-direction: column;
 
-          li.forum-select-item {
+          li.typeahead-item {
             padding: 4px;
             cursor: pointer;
             background-color: white;
             border-bottom: 1px solid #eee;
+            display: flex;
 
             p {
+              display: flex;
+              justify-content: space-between;
               margin: 4px 0;
+              width: 100%;
 
-              &.name {
+              span.name {
                 font-size: 14px;
                 font-weight: 500;
               }
   
-              &.description {
+              span.description {
                 font-size: 10px;
               }
             }
@@ -398,6 +425,21 @@ html {
 
           div.favorite {
             display: flex;
+          }
+        }
+      }
+
+      div.equipment-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+
+        div.equipment {
+          overflow-y: auto;
+
+          div.item {
+            display: flex;
+            justify-content: space-evenly;
           }
         }
       }

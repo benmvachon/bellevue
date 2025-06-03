@@ -4,7 +4,6 @@ import java.sql.Timestamp;
 import java.util.List;
 
 import com.village.bellevue.entity.ForumEntity;
-import com.village.bellevue.entity.UserProfileEntity;
 import com.village.bellevue.error.AuthorizationException;
 
 import lombok.AllArgsConstructor;
@@ -23,7 +22,7 @@ public class ForumModel {
   private ProfileModel user;
   private Timestamp created;
   private List<String> tags;
-  private List<UserProfileEntity> users;
+  private List<ProfileModel> users;
 
   private boolean favorite = false;
 
@@ -44,6 +43,6 @@ public class ForumModel {
     this.unreadCount = helper.getUnreadCount(forum);
     this.notify = helper.isNotify(forum);
     this.tags = forum.getTags();
-    this.users = forum.getUsers();
+    this.users = forum.getUsers().stream().map((user) -> helper.getProfile(user).orElse(null)).toList();
   }
 }

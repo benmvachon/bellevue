@@ -6,6 +6,7 @@ import Page from '../components/Page.js';
 function FriendsMap() {
   const navigate = useNavigate();
   const [myFriends, setMyFriends] = useState(undefined);
+  const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -20,6 +21,8 @@ function FriendsMap() {
         setError(error);
         setLoading(false);
       },
+      query,
+      [],
       page
     );
   };
@@ -39,15 +42,23 @@ function FriendsMap() {
       (error) => {
         setError(error);
         setLoading(false);
-      }
+      },
+      query
     );
-  }, []);
+  }, [query]);
 
   if (error) return JSON.stringify(error);
 
   return (
     <div className="friends">
       <h2>Friends</h2>
+      <input
+        type="text"
+        placeholder="Search friends..."
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        className="friends-select-input"
+      />
       <div>
         {loading ? (
           <p>Loading...</p>

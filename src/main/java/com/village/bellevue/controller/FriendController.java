@@ -1,5 +1,7 @@
 package com.village.bellevue.controller;
 
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -53,11 +55,14 @@ public class FriendController {
 
   @GetMapping
   public ResponseEntity<PagedModel<EntityModel<ProfileModel>>> read(
+    @RequestParam(defaultValue = "") String query,
+    @RequestParam(required = false) List<Long> excluded,
     @RequestParam(defaultValue = "0") int page,
     @RequestParam(defaultValue = "10") int size
   ) {
     try {
-      Page<ProfileModel> friends = friendService.readAll(page, size);
+      if (Objects.nonNull(query) && query.trim().isEmpty()) query = null;
+      Page<ProfileModel> friends = friendService.readAll(query, excluded, page, size);
       PagedModel<EntityModel<ProfileModel>> pagedModel = pagedAssembler.toModel(friends, profileModelAssembler);
       return ResponseEntity.ok(pagedModel);
     } catch (FriendshipException e) {
@@ -98,11 +103,13 @@ public class FriendController {
   @GetMapping("/{user}/friends")
   public ResponseEntity<PagedModel<EntityModel<ProfileModel>>> read(
     @PathVariable Long user,
+    @RequestParam(defaultValue = "") String query,
     @RequestParam(defaultValue = "0") int page,
     @RequestParam(defaultValue = "10") int size
   ) {
     try {
-      Page<ProfileModel> friends = friendService.readAll(user, page, size);
+      if (Objects.nonNull(query) && query.trim().isEmpty()) query = null;
+      Page<ProfileModel> friends = friendService.readAll(user, query, page, size);
       PagedModel<EntityModel<ProfileModel>> pagedModel = pagedAssembler.toModel(friends, profileModelAssembler);
       return ResponseEntity.ok(pagedModel);
     } catch (FriendshipException e) {

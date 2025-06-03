@@ -35,7 +35,7 @@ function ProfilePage() {
   const [blackboard, setBlackboard] = useState('');
   const [showEquipment, setShowEquipment] = useState(false);
 
-  const self = userId === id;
+  const self = userId === Number.parseInt(id);
 
   const refresh = () => getProfile(id, setProfile, setError);
 
@@ -49,6 +49,11 @@ function ProfilePage() {
 
   const loadFriendsPage = (page) => {
     getFriends(id, setFriends, setError, page);
+  };
+
+  const submitBlackBoard = (event) => {
+    event && event.preventDefault();
+    updateBlackboard(blackboard, refresh, setError);
   };
 
   useEffect(() => {
@@ -101,7 +106,11 @@ function ProfilePage() {
   const buttons = [];
   switch (profile?.friendshipStatus) {
     case 'SELF':
-      buttons.push(<button onClick={openEquipment}>Equipment</button>);
+      buttons.push(
+        <button onClick={openEquipment} key="equipment">
+          Equipment
+        </button>
+      );
       break;
     case 'ACCEPTED':
       buttons.push(
@@ -178,7 +187,7 @@ function ProfilePage() {
       </p>
       {buttons}
       {self ? (
-        <form onSubmit={() => updateBlackboard(blackboard, refresh, setError)}>
+        <form onSubmit={submitBlackBoard}>
           <textarea
             value={blackboard}
             onChange={(e) => {

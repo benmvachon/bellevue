@@ -1,6 +1,6 @@
 package com.village.bellevue.controller;
 
-import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -22,23 +22,28 @@ import org.springframework.web.bind.annotation.RestController;
 import com.village.bellevue.assembler.ForumModelAssembler;
 import com.village.bellevue.entity.ForumEntity;
 import com.village.bellevue.error.AuthorizationException;
+import com.village.bellevue.error.ForumException;
 import com.village.bellevue.model.ForumModel;
 import com.village.bellevue.service.ForumService;
+import com.village.bellevue.service.ForumTagService;
 
 @RestController
 @RequestMapping("/api/forum")
 public class ForumController {
 
   private final ForumService forumService;
+  private final ForumTagService tagService;
   private final ForumModelAssembler forumModelAssembler;
   private final PagedResourcesAssembler<ForumModel> pagedForumAssembler;
 
   public ForumController(
     ForumService forumService,
+    ForumTagService tagService,
     ForumModelAssembler forumModelAssembler,
     PagedResourcesAssembler<ForumModel> pagedForumAssembler
   ) {
     this.forumService = forumService;
+    this.tagService = tagService;
     this.forumModelAssembler = forumModelAssembler;
     this.pagedForumAssembler = pagedForumAssembler;
   }
@@ -52,33 +57,38 @@ public class ForumController {
     } catch (AuthorizationException e) {
       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
+    catch (ForumException e) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    }
   }
 
   @GetMapping
   public ResponseEntity<PagedModel<EntityModel<ForumModel>>> readAll(
+    @RequestParam(defaultValue = "") String query,
+    @RequestParam(defaultValue = "false") boolean unread,
     @RequestParam(defaultValue = "0") int page,
     @RequestParam(defaultValue = "9") int size
   ) {
-    Page<ForumModel> forums = forumService.readAll(page, size);
+    if (Objects.nonNull(query) && query.trim().isEmpty()) query = null;
+    Page<ForumModel> forums = forumService.readAll(query, unread, page, size);
     PagedModel<EntityModel<ForumModel>> pagedModel = pagedForumAssembler.toModel(forums, forumModelAssembler);
     return ResponseEntity.status(HttpStatus.OK).body(pagedModel);
   }
 
-  @GetMapping("/unread")
-  public ResponseEntity<PagedModel<EntityModel<ForumModel>>> readUnread(
+  @GetMapping("/tags")
+  public ResponseEntity<PagedModel<String>> findTags(
+    @RequestParam(defaultValue = "") String query,
     @RequestParam(defaultValue = "0") int page,
     @RequestParam(defaultValue = "9") int size
   ) {
-    Page<ForumModel> forums = forumService.readAllWithUnreadPosts(page, size);
-    PagedModel<EntityModel<ForumModel>> pagedModel = pagedForumAssembler.toModel(forums, forumModelAssembler);
-    return ResponseEntity.status(HttpStatus.OK).body(pagedModel);
-  }
-
-  @GetMapping("/query")
-  public ResponseEntity<List<ForumModel>> query(
-    @RequestParam(defaultValue = "") String query
-  ) {
-    return ResponseEntity.status(HttpStatus.OK).body(forumService.readAll(query));
+    Page<String> tags = tagService.searchTags(query, page, size);
+  
+    PagedModel.PageMetadata metadata = new PagedModel.PageMetadata(
+      tags.getSize(), tags.getNumber(), tags.getTotalElements(), tags.getTotalPages()
+    );
+  
+    PagedModel<String> pagedModel = PagedModel.of(tags.getContent(), metadata);
+    return ResponseEntity.ok(pagedModel);
   }
 
   @GetMapping("/{id}")
@@ -90,6 +100,23 @@ public class ForumController {
         .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     } catch (AuthorizationException e) {
       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+  }
+
+  @PutMapping("/{id}")
+  public ResponseEntity<EntityModel<ForumModel>> update(
+    @PathVariable Long id,
+    @RequestBody ForumEntity forum
+  ) {
+    try {
+      ForumModel createdForum = forumService.update(id, forum);
+      EntityModel<ForumModel> entityModel = forumModelAssembler.toModel(createdForum);
+      return ResponseEntity.status(HttpStatus.CREATED).body(entityModel);
+    } catch (AuthorizationException e) {
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+    catch (ForumException e) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
   }
 

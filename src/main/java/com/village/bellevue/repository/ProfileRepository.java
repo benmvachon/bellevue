@@ -16,26 +16,26 @@ import com.village.bellevue.entity.ProfileEntity.LocationType;
 public interface ProfileRepository extends JpaRepository<ProfileEntity, Long> {
 
   @Modifying
-  @Query("UPDATE ProfileEntity p SET p.status = 'ACTIVE' WHERE p.id = :user AND p.status != 'ACTIVE'")
+  @Query("UPDATE ProfileEntity p SET p.status = 'ACTIVE' WHERE p.user = :user AND p.status != 'ACTIVE'")
   @Transactional
   int setStatusOnline(Long user);
 
   @Modifying
-  @Query("UPDATE ProfileEntity p SET p.status = 'OFFLINE', p.location = null, p.locationType = null WHERE p.id = :user AND p.status != 'OFFLINE'")
+  @Query("UPDATE ProfileEntity p SET p.status = 'OFFLINE', p.location = null, p.locationType = null WHERE p.user = :user AND p.status != 'OFFLINE'")
   @Transactional
   int setStatusOffline(Long user);
 
   @Modifying
-  @Query("UPDATE ProfileEntity p SET p.status = 'IDLE' WHERE p.id = :user AND p.status != 'IDLE'")
+  @Query("UPDATE ProfileEntity p SET p.status = 'IDLE' WHERE p.user = :user AND p.status != 'IDLE'")
   @Transactional
   int setStatusIdle(Long user);
 
   @Modifying
-  @Query("UPDATE ProfileEntity p SET p.lastSeen = :lastSeen WHERE p.id = :user")
+  @Query("UPDATE ProfileEntity p SET p.lastSeen = :lastSeen WHERE p.user = :user")
   @Transactional
   int setLastSeen(Long user, Timestamp lastSeen);
 
-  @Query("SELECT p.lastSeen FROM ProfileEntity p WHERE p.id = :user")
+  @Query("SELECT p.lastSeen FROM ProfileEntity p WHERE p.user = :user")
   @Transactional(readOnly = true)
   Timestamp getLastSeen(Long user);
 
@@ -44,12 +44,12 @@ public interface ProfileRepository extends JpaRepository<ProfileEntity, Long> {
   List<Long> getUsersToMarkIdle(Timestamp lastSeen);
 
   @Modifying
-  @Query("UPDATE ProfileEntity p SET p.location = :location, p.locationType = :locationType WHERE p.id = :user")
+  @Query("UPDATE ProfileEntity p SET p.location = :location, p.locationType = :locationType WHERE p.user = :user")
   @Transactional
   int setLocation(Long user, Long location, LocationType locationType);
 
   @Modifying
-  @Query("UPDATE ProfileEntity p SET p.blackboard = :blackboard WHERE p.id = :user")
+  @Query("UPDATE ProfileEntity p SET p.blackboard = :blackboard WHERE p.user = :user")
   @Transactional
   int setBlackboard(Long user, String blackboard);
 }

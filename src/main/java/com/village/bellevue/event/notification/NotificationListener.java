@@ -25,6 +25,7 @@ import com.village.bellevue.event.type.RatingEvent;
 import com.village.bellevue.event.type.RequestEvent;
 import com.village.bellevue.model.ForumModel;
 import com.village.bellevue.model.PostModel;
+import com.village.bellevue.model.ProfileModel;
 import com.village.bellevue.repository.FriendRepository;
 import com.village.bellevue.repository.NotificationRepository;
 import com.village.bellevue.repository.NotificationSettingRepository;
@@ -58,7 +59,8 @@ public class NotificationListener {
     Long user = event.getUser();
     ForumModel forum = event.getForum();
     if (forum != null) {
-      notifyFriends(user, NotificationType.FORUM, forum.getId());
+      for (ProfileModel friend : forum.getUsers())
+        notifyFriend(user, friend.getId(), NotificationType.FORUM, forum.getId());
     }
   }
 

@@ -19,7 +19,7 @@ public class FriendModelAssembler implements RepresentationModelAssembler<Friend
       return EntityModel.of(
         friend,
         linkTo(methodOn(UserController.class).read(friend.getFriend().getUser())).withRel("user"),
-        linkTo(methodOn(FriendController.class).read(friend.getFriend().getUser(), 0, 10)).withRel("friends")
+        linkTo(methodOn(FriendController.class).read(friend.getFriend().getUser(), "", 0, 10)).withRel("friends")
       );
     return EntityModel.of(friend);
   }

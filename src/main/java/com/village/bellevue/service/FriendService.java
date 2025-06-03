@@ -1,5 +1,6 @@
 package com.village.bellevue.service;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -17,11 +18,11 @@ public interface FriendService {
 
   public boolean isBlockedBy(Long user) throws FriendshipException;
 
-  public Page<ProfileModel> readAll(int page, int size) throws FriendshipException;
+  public Page<ProfileModel> readAll(String query, List<Long> excluded, int page, int size) throws FriendshipException;
 
   public Page<ProfileModel> readSuggestions(int page, int size) throws FriendshipException;
 
-  public Page<ProfileModel> readAll(Long user, int page, int size) throws FriendshipException;
+  public Page<ProfileModel> readAll(Long user, String query, int page, int size) throws FriendshipException;
 
   public void accept(Long user) throws FriendshipException;
 

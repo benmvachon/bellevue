@@ -1,10 +1,9 @@
 package com.village.bellevue.service.impl;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -21,6 +20,7 @@ import com.village.bellevue.entity.NotificationSettingEntity;
 import com.village.bellevue.entity.id.FavoriteId;
 import com.village.bellevue.entity.id.NotificationSettingId;
 import com.village.bellevue.error.AuthorizationException;
+import com.village.bellevue.error.ForumException;
 import com.village.bellevue.error.FriendshipException;
 import com.village.bellevue.event.type.ForumEvent;
 import com.village.bellevue.model.ForumModel;
@@ -28,6 +28,7 @@ import com.village.bellevue.model.ForumModelProvider;
 import com.village.bellevue.model.ProfileModel;
 import com.village.bellevue.repository.FavoriteRepository;
 import com.village.bellevue.repository.ForumRepository;
+import com.village.bellevue.repository.FriendRepository;
 import com.village.bellevue.repository.NotificationSettingRepository;
 import com.village.bellevue.service.ForumService;
 import com.village.bellevue.service.UserProfileService;
@@ -36,6 +37,7 @@ import com.village.bellevue.service.UserProfileService;
 public class ForumServiceImpl implements ForumService {
 
   public static final String CAN_READ_CACHE_KEY = "canRead";
+  public static final String CAN_UPDATE_CACHE_KEY = "canUpdate";
 
   public ForumModelProvider forumModelProvider = new ForumModelProvider() {
     @Override
@@ -85,6 +87,7 @@ public class ForumServiceImpl implements ForumService {
   private final ForumRepository forumRepository;
   private final UserProfileService userProfileService;
   private final FavoriteRepository favoriteRepository;
+  private final FriendRepository friendRepository;
   private final NotificationSettingRepository notificationSettingRepository;
   private final ApplicationEventPublisher publisher;
 
@@ -92,21 +95,28 @@ public class ForumServiceImpl implements ForumService {
     ForumRepository forumRepository,
     UserProfileService userProfileService,
     FavoriteRepository favoriteRepository,
+    FriendRepository friendRepository,
     NotificationSettingRepository notificationSettingRepository,
     ApplicationEventPublisher publisher
   ) {
     this.forumRepository = forumRepository;
     this.userProfileService = userProfileService;
     this.favoriteRepository = favoriteRepository;
+    this.friendRepository = friendRepository;
     this.notificationSettingRepository = notificationSettingRepository;
     this.publisher = publisher;
   }
 
   @Override
   @Transactional(timeout = 30)
-  public ForumModel create(ForumEntity forum) throws AuthorizationException {
+  public ForumModel create(ForumEntity forum) throws AuthorizationException, ForumException {
     ForumModel model = null;
     try {
+      if (Objects.isNull(forum)) throw new ForumException("Cannot save empty forum");
+      if (StringUtils.isBlank(forum.getName())) throw new ForumException("'name' field is required for new forum");
+      if (StringUtils.isBlank(forum.getDescription())) throw new ForumException("'description' field is required for new forum");
+      if (Objects.isNull(forum.getUsers()) || forum.getUsers().isEmpty()) throw new ForumException("'users' field is required for new forum");
+      if (friendRepository.containsBlockingUsers(forum.getUsers())) throw new ForumException("'users' field contains users who block eachother");
       model = new ForumModel(save(forum), forumModelProvider);
       return model;
     } finally {
@@ -125,8 +135,8 @@ public class ForumServiceImpl implements ForumService {
   }
 
   @Override
-  public Page<ForumModel> readAll(int page, int size) {
-    Page<ForumEntity> forums = forumRepository.findAll(getAuthenticatedUserId(), PageRequest.of(page, size));
+  public Page<ForumModel> readAll(String query, boolean unread, int page, int size) {
+    Page<ForumEntity> forums = forumRepository.searchForums(getAuthenticatedUserId(), query, unread, PageRequest.of(page, size));
     return forums.map(forum -> {
       try {
         return new ForumModel(forum, forumModelProvider);
@@ -137,26 +147,22 @@ public class ForumServiceImpl implements ForumService {
   }
 
   @Override
-  public List<ForumModel> readAll(String query) {
-    return forumRepository.findAllByQuery(getAuthenticatedUserId(), query).stream().map(forum -> {
-      try {
-        return new ForumModel(forum, forumModelProvider);
-      } catch (AuthorizationException e) {
-        return null;
-      }
-    }).collect(Collectors.toList());
-  }
-
-  @Override
-  public Page<ForumModel> readAllWithUnreadPosts(int page, int size) {
-    Page<ForumEntity> forums = forumRepository.findUnread(getAuthenticatedUserId(), PageRequest.of(page, size));
-    return forums.map(forum -> {
-      try {
-        return new ForumModel(forum, forumModelProvider);
-      } catch (AuthorizationException e) {
-        return null;
-      }
-    });
+  @Transactional(timeout = 30)
+  public ForumModel update(Long id, ForumEntity forum) throws AuthorizationException, ForumException {
+    if (!canUpdate(id)) throw new AuthorizationException("Currently authenticated user is not authorized to update forum");
+    ForumModel model = null;
+    try {
+      if (Objects.isNull(forum)) throw new ForumException("Cannot save empty forum");
+      if (StringUtils.isBlank(forum.getName())) throw new ForumException("'name' field is required for new forum");
+      if (StringUtils.isBlank(forum.getDescription())) throw new ForumException("'description' field is required for new forum");
+      if (Objects.isNull(forum.getUsers()) || forum.getUsers().isEmpty()) throw new ForumException("'users' field is required for new forum");
+      if (friendRepository.containsBlockingUsers(forum.getUsers())) throw new ForumException("'users' field contains users who block eachother");
+      forum.setId(id);
+      model = new ForumModel(save(forum), forumModelProvider);
+      return model;
+    } finally {
+      if (Objects.nonNull(model)) publisher.publishEvent(new ForumEvent(getAuthenticatedUserId(), model));
+    }
   }
 
   @Override
@@ -198,5 +204,14 @@ public class ForumServiceImpl implements ForumService {
   @Override
   public boolean canRead(Long id) {
     return forumRepository.canRead(id, getAuthenticatedUserId());
+  }
+
+  @Cacheable(
+    value = POST_SECURITY_CACHE_NAME,
+    key =
+        "T(com.village.bellevue.config.CacheConfig).getCacheKey(T(com.village.bellevue.service.impl.ForumServiceImpl).CAN_UPDATE_CACHE_KEY, T(com.village.bellevue.config.security.SecurityConfig).getAuthenticatedUserId(), #id)")
+  @Override
+  public boolean canUpdate(Long id) {
+    return forumRepository.canUpdate(id, getAuthenticatedUserId());
   }
 }

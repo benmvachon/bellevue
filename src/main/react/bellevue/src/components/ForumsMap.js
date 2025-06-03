@@ -1,11 +1,13 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
 import { getForum, getForums, markPostsRead } from '../api/api.js';
 import Page from '../components/Page.js';
 import Forum from '../components/Forum.js';
 
-function ForumsMap() {
+function ForumsMap({ setShowForumForm }) {
   const [forums, setForums] = useState(undefined);
   const [filter, setFilter] = useState(false);
+  const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -20,8 +22,9 @@ function ForumsMap() {
         setError(error);
         setLoading(false);
       },
-      page,
-      filter
+      filter,
+      query,
+      page
     );
   };
 
@@ -36,10 +39,11 @@ function ForumsMap() {
         setError(error);
         setLoading(false);
       },
-      0,
-      filter
+      filter,
+      query,
+      0
     );
-  }, [filter]);
+  }, [filter, query]);
 
   useEffect(() => {
     if (
@@ -69,7 +73,15 @@ function ForumsMap() {
         <button onClick={() => setFilter(!filter)}>
           {filter ? 'Show all' : 'Show unread'}
         </button>
+        <input
+          type="text"
+          placeholder="Search forums..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="forum-select-input"
+        />
         <button onClick={markPostsRead}>Mark all as read</button>
+        <button onClick={() => setShowForumForm(true)}>New Forum</button>
       </h2>
       <div>
         {loading ? (
@@ -85,6 +97,10 @@ function ForumsMap() {
     </div>
   );
 }
+
+ForumsMap.propTypes = {
+  setShowForumForm: PropTypes.func.isRequired
+};
 
 ForumsMap.displayName = 'ForumsMap';
 

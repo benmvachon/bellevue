@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
+import { useAuth } from '../utils/AuthContext.js';
 import withAuth from '../utils/withAuth.js';
 import {
   getForum,
+  deleteForum,
   favoriteForum,
   unfavoriteForum,
   setForumNotification,
@@ -15,9 +17,11 @@ import Attendees from '../components/Attendees.js';
 import ExcludedForums from '../components/ExcludedForums.js';
 import PostsList from '../components/PostsList.js';
 import asPage from '../utils/asPage.js';
+import ForumForm from '../components/ForumForm.js';
 
 function ForumPage() {
   const { id = '1' } = useParams();
+  const { userId } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [forum, setForum] = useState(null);
   const [sortByPopular, setSortByPopular] = useState(
@@ -30,6 +34,7 @@ function ForumPage() {
     const param = searchParams.get('excluded');
     return param ? param.split(',') : [];
   });
+  const [showForumForm, setShowForumForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -90,6 +95,15 @@ function ForumPage() {
     updateSearchParams({ excluded: [] }, searchParams, setSearchParams);
   };
 
+  const handleDelete = () => {
+    deleteForum(forum.id);
+  };
+
+  const closeForumEditor = () => {
+    setShowForumForm(false);
+    getForum(forum.id, setForum, setError);
+  };
+
   useEffect(() => {
     if (id) {
       const forum = id === '1' ? (onlyTownHallPosts ? 1 : undefined) : id;
@@ -147,6 +161,12 @@ function ForumPage() {
                 : 'Show only Town Hall posts'}
             </button>
           )}
+          {forum?.user?.id === userId && (
+            <button onClick={() => setShowForumForm(true)}>Edit Forum</button>
+          )}
+          {forum?.user?.id === userId && (
+            <button onClick={handleDelete}>Delete Forum</button>
+          )}
         </div>
         <div className="metadata-lists">
           {id === '1' && (
@@ -169,6 +189,11 @@ function ForumPage() {
           excludeForum={excludeForum}
         />
       </div>
+      <ForumForm
+        forum={forum}
+        show={showForumForm}
+        onClose={closeForumEditor}
+      />
     </div>
   );
 }

@@ -16,15 +16,19 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
 
   @Query(
     "SELECT p FROM PostEntity p " +
-    "LEFT JOIN FriendEntity forumFriend ON p.forum.user = forumFriend.friend.id AND forumFriend.user = :user " +
-    "LEFT JOIN FriendEntity postFriend ON p.user.id = postFriend.friend.id AND postFriend.user = :user " +
+    "LEFT JOIN FriendEntity forumFriend ON p.forum.user = forumFriend.friend.id AND forumFriend.user = :user AND forumFriend.status = 'ACCEPTED' " +
+    "LEFT JOIN FriendEntity postFriend ON p.user.id = postFriend.friend.id AND postFriend.user = :user AND postFriend.status = 'ACCEPTED' " +
+    "LEFT JOIN ForumSecurityEntity fs ON fs.forum = p.forum.id AND fs.user.id = :user " +
     "WHERE p.parent IS NULL " +
     "AND p.deleted = FALSE " +
-    "AND (p.forum.user IS NULL OR p.forum.user = :user OR forumFriend.status = 'ACCEPTED') " +
-    "AND (p.user.id = :user OR postFriend.status = 'ACCEPTED') " +
+    "AND (" +
+      "(p.forum.user IS NULL AND (p.user.id = :user OR postFriend.id IS NOT NULL)) " +
+      "OR (p.forum.user = :user) " +
+      "OR (forumFriend.id IS NOT NULL AND fs.user.id IS NOT NULL) " +
+    ") " +
     "AND (:excludedForums IS NULL OR p.forum.id NOT IN :excludedForums) " +
     "AND (p.created < :createdCursor " +
-    "OR (p.created = :createdCursor AND p.id < :idCursor)) " +
+      "OR (p.created = :createdCursor AND p.id < :idCursor)) " +
     "ORDER BY p.created DESC, p.id DESC " +
     "LIMIT :limit"
   )
@@ -39,13 +43,17 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
 
   @Query(
     "SELECT p FROM PostEntity p " +
-    "LEFT JOIN FriendEntity forumFriend ON p.forum.user = forumFriend.friend.id AND forumFriend.user = :user " +
-    "LEFT JOIN FriendEntity postFriend ON p.user.id = postFriend.friend.id AND postFriend.user = :user " +
+    "LEFT JOIN FriendEntity forumFriend ON p.forum.user = forumFriend.friend.id AND forumFriend.user = :user AND forumFriend.status = 'ACCEPTED' " +
+    "LEFT JOIN FriendEntity postFriend ON p.user.id = postFriend.friend.id AND postFriend.user = :user AND postFriend.status = 'ACCEPTED' " +
     "LEFT JOIN AggregateRatingEntity a ON a.post = p.id AND a.user = :user " +
+    "LEFT JOIN ForumSecurityEntity fs ON fs.forum = p.forum.id AND fs.user.id = :user " +
     "WHERE p.parent IS NULL " +
     "AND p.deleted = FALSE " +
-    "AND (p.forum.user IS NULL OR p.forum.user = :user OR forumFriend.status = 'ACCEPTED') " +
-    "AND (p.user.id = :user OR postFriend.status = 'ACCEPTED') " +
+    "AND (" +
+      "(p.forum.user IS NULL AND (p.user.id = :user OR postFriend.id IS NOT NULL)) " +
+      "OR (p.forum.user = :user) " +
+      "OR (forumFriend.id IS NOT NULL AND fs.user.id IS NOT NULL) " +
+    ") " +
     "AND (:excludedForums IS NULL OR p.forum.id NOT IN :excludedForums) " +
     "AND (a.popularity < :popularityCursor " +
     "OR (a.popularity = :popularityCursor AND p.id < :idCursor)) " +
@@ -63,26 +71,34 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
 
   @Query(
     "SELECT COUNT(DISTINCT(p.id)) FROM PostEntity p " +
-    "LEFT JOIN FriendEntity forumFriend ON p.forum.user = forumFriend.friend.id AND forumFriend.user = :user " +
-    "LEFT JOIN FriendEntity postFriend ON p.user.id = postFriend.friend.id AND postFriend.user = :user " +
+    "LEFT JOIN FriendEntity forumFriend ON p.forum.user = forumFriend.friend.id AND forumFriend.user = :user AND forumFriend.status = 'ACCEPTED' " +
+    "LEFT JOIN FriendEntity postFriend ON p.user.id = postFriend.friend.id AND postFriend.user = :user AND postFriend.status = 'ACCEPTED' " +
+    "LEFT JOIN ForumSecurityEntity fs ON fs.forum = p.forum.id AND fs.user.id = :user " +
     "WHERE p.parent IS NULL " +
     "AND (:excludedForums IS NULL OR p.forum.id NOT IN :excludedForums) " +
     "AND p.deleted = FALSE " +
-    "AND (p.forum.user IS NULL OR p.forum.user = :user OR forumFriend.status = 'ACCEPTED') " +
-    "AND (p.user.id = :user OR postFriend.status = 'ACCEPTED') "
+    "AND (" +
+      "(p.forum.user IS NULL AND (p.user.id = :user OR postFriend.id IS NOT NULL)) " +
+      "OR (p.forum.user = :user) " +
+      "OR (forumFriend.id IS NOT NULL AND fs.user.id IS NOT NULL) " +
+    ")"
   )
   @Transactional(readOnly = true)
   Long countTopLevel(@Param("user") Long user, @Param("excludedForums") List<Long> excludedForums);
 
   @Query(
     "SELECT p FROM PostEntity p " +
-    "LEFT JOIN FriendEntity forumFriend ON p.forum.user = forumFriend.friend.id AND forumFriend.user = :user " +
-    "LEFT JOIN FriendEntity postFriend ON p.user.id = postFriend.friend.id AND postFriend.user = :user " +
+    "LEFT JOIN FriendEntity forumFriend ON p.forum.user = forumFriend.friend.id AND forumFriend.user = :user AND forumFriend.status = 'ACCEPTED' " +
+    "LEFT JOIN FriendEntity postFriend ON p.user.id = postFriend.friend.id AND postFriend.user = :user AND postFriend.status = 'ACCEPTED' " +
+    "LEFT JOIN ForumSecurityEntity fs ON fs.forum = p.forum.id AND fs.user.id = :user " +
     "WHERE p.forum.id = :forum " +
     "AND p.parent IS NULL " +
     "AND p.deleted = FALSE " +
-    "AND (p.forum.user IS NULL OR p.forum.user = :user OR forumFriend.status = 'ACCEPTED') " +
-    "AND (p.user.id = :user OR postFriend.status = 'ACCEPTED') " +
+    "AND (" +
+      "(p.forum.user IS NULL AND (p.user.id = :user OR postFriend.id IS NOT NULL)) " +
+      "OR (p.forum.user = :user) " +
+      "OR (forumFriend.id IS NOT NULL AND fs.user.id IS NOT NULL) " +
+    ") " +
     "AND (p.created < :createdCursor " +
     "OR (p.created = :createdCursor AND p.id < :idCursor)) " +
     "ORDER BY p.created DESC, p.id DESC " +
@@ -99,14 +115,18 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
 
   @Query(
     "SELECT p FROM PostEntity p " +
-    "LEFT JOIN FriendEntity forumFriend ON p.forum.user = forumFriend.friend.id AND forumFriend.user = :user " +
-    "LEFT JOIN FriendEntity postFriend ON p.user.id = postFriend.friend.id AND postFriend.user = :user " +
+    "LEFT JOIN FriendEntity forumFriend ON p.forum.user = forumFriend.friend.id AND forumFriend.user = :user AND forumFriend.status = 'ACCEPTED' " +
+    "LEFT JOIN FriendEntity postFriend ON p.user.id = postFriend.friend.id AND postFriend.user = :user AND postFriend.status = 'ACCEPTED' " +
     "LEFT JOIN AggregateRatingEntity a ON a.post = p.id AND a.user = :user " +
+    "LEFT JOIN ForumSecurityEntity fs ON fs.forum = p.forum.id AND fs.user.id = :user " +
     "WHERE p.forum.id = :forum " +
     "AND p.parent IS NULL " +
     "AND p.deleted = FALSE " +
-    "AND (p.forum.user IS NULL OR p.forum.user = :user OR forumFriend.status = 'ACCEPTED') " +
-    "AND (p.user.id = :user OR postFriend.status = 'ACCEPTED') " +
+    "AND (" +
+      "(p.forum.user IS NULL AND (p.user.id = :user OR postFriend.id IS NOT NULL)) " +
+      "OR (p.forum.user = :user) " +
+      "OR (forumFriend.id IS NOT NULL AND fs.user.id IS NOT NULL) " +
+    ") " +
     "AND (a.popularity < :popularityCursor " +
     "OR (a.popularity = :popularityCursor AND p.id < :idCursor)) " +
     "ORDER BY a.popularity DESC, p.id DESC " +
@@ -123,13 +143,17 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
 
   @Query(
     "SELECT COUNT(p) FROM PostEntity p " +
-    "LEFT JOIN FriendEntity forumFriend ON p.forum.user = forumFriend.friend.id AND forumFriend.user = :user " +
-    "LEFT JOIN FriendEntity postFriend ON p.user.id = postFriend.friend.id AND postFriend.user = :user " +
+    "LEFT JOIN FriendEntity forumFriend ON p.forum.user = forumFriend.friend.id AND forumFriend.user = :user AND forumFriend.status = 'ACCEPTED' " +
+    "LEFT JOIN FriendEntity postFriend ON p.user.id = postFriend.friend.id AND postFriend.user = :user AND postFriend.status = 'ACCEPTED' " +
+    "LEFT JOIN ForumSecurityEntity fs ON fs.forum = p.forum.id AND fs.user.id = :user " +
     "WHERE p.forum.id = :forum " +
     "AND p.parent IS NULL " +
     "AND p.deleted = FALSE " +
-    "AND (p.forum.user IS NULL OR p.forum.user = :user OR forumFriend.status = 'ACCEPTED') " +
-    "AND (p.user.id = :user OR postFriend.status = 'ACCEPTED') "
+    "AND (" +
+      "(p.forum.user IS NULL AND (p.user.id = :user OR postFriend.id IS NOT NULL)) " +
+      "OR (p.forum.user = :user) " +
+      "OR (forumFriend.id IS NOT NULL AND fs.user.id IS NOT NULL) " +
+    ")"
   )
   @Transactional(readOnly = true)
   Long countTopLevelByForum(
@@ -266,11 +290,17 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
   @Query(
     "SELECT CASE WHEN COUNT(p) > 0 THEN true ELSE false END " +
     "FROM PostEntity p " +
-    "JOIN FriendEntity f ON f.friend.id = p.user.id " +
-    "WHERE (p.user.id = :user OR f.user = :user) " +
+    "LEFT JOIN FriendEntity forumFriend ON p.forum.user = forumFriend.friend.id AND forumFriend.user = :user AND forumFriend.status = 'ACCEPTED' " +
+    "LEFT JOIN FriendEntity postFriend ON p.user.id = postFriend.friend.id AND postFriend.user = :user AND postFriend.status = 'ACCEPTED' " +
+    "LEFT JOIN ForumSecurityEntity fs ON fs.forum = p.forum.id AND fs.user.id = :user " +
+    "WHERE p.id = :post " +
     "AND p.deleted = FALSE " +
-    "AND f.status = 'ACCEPTED' " +
-    "AND p.id = :post"
+    "AND (" +
+      "p.user.id = :user " +
+      "OR (p.forum.user IS NULL AND postFriend.id IS NOT NULL) " +
+      "OR (p.forum.user = :user) " +
+      "OR (forumFriend.id IS NOT NULL AND fs.user.id IS NOT NULL)" +              // User is in forum_security
+    ")"
   )
   @Transactional(readOnly = true)
   Boolean canRead(@Param("post") Long post, @Param("user") Long user);

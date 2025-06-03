@@ -1,6 +1,7 @@
 package com.village.bellevue.entity;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -16,8 +17,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -50,15 +49,15 @@ public class ForumEntity {
     joinColumns = @JoinColumn(name = "forum")
   )
   @Column(name = "tag")
-  private List<String> tags;
+  private List<String> tags = new ArrayList<>();
 
-  @ManyToMany(fetch = FetchType.LAZY)
-  @JoinTable(
+  @ElementCollection(fetch = FetchType.LAZY)
+  @CollectionTable(
     name = "forum_security",
-    joinColumns = @JoinColumn(name = "forum"),
-    inverseJoinColumns = @JoinColumn(name = "user")
+    joinColumns = @JoinColumn(name = "forum")
   )
-  private List<UserProfileEntity> users;
+  @Column(name = "user")
+  private List<Long> users = new ArrayList<>();
 
   public ForumEntity(ForumModel model) {
     this.id = model.getId();
