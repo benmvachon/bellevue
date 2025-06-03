@@ -2,6 +2,7 @@ package com.village.bellevue.integration;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -168,6 +169,7 @@ public class IntegrationTest extends IntegrationTestWrapper {
     login(newUser.getUsername());
 
     // Retrieve and verify the created post
+    forum.setUsers(Arrays.asList(1l, 2l, 3l));
     ForumModel createdForum = createForum(forum, false);
     assertThat(createdForum).isNotNull();
     assertThat(createdForum.getUser().getId()).isEqualTo(newUser.getId());
