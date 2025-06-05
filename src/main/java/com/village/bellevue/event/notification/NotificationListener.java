@@ -134,16 +134,16 @@ public class NotificationListener {
   public void handleNotificationReadEvent(NotificationReadEvent event) {
     Long user = event.getUser();
     Long notification = event.getNotification();
-    messagingTemplate.convertAndSendToUser(user.toString(), "/topic/notification/unread", "update");
-    messagingTemplate.convertAndSendToUser(user.toString(), "/topic/notification/unread/" + notification, "update");
+    messagingTemplate.convertAndSendToUser(user.toString(), "/topic/notification.unread", "update");
+    messagingTemplate.convertAndSendToUser(user.toString(), "/topic/notification.unread." + notification, "update");
   }
 
   @Async
   @EventListener
   public void handleNotificationsReadEvent(NotificationsReadEvent event) {
     Long user = event.getUser();
-    messagingTemplate.convertAndSendToUser(user.toString(), "/topic/notification/unread", "update");
-    messagingTemplate.convertAndSendToUser(user.toString(), "/topic/notification/all", "read");
+    messagingTemplate.convertAndSendToUser(user.toString(), "/topic/notification.unread", "update");
+    messagingTemplate.convertAndSendToUser(user.toString(), "/topic/notification.all", "read");
   }
 
   @Async
@@ -195,7 +195,7 @@ public class NotificationListener {
     notification.setEntity(entity);
     notification.setRead(false);
     notification = notificationRepository.save(notification);
-    messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/notification/unread", "update");
+    messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/notification.unread", "update");
     messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/notification", notification);
   }
 
@@ -213,7 +213,7 @@ public class NotificationListener {
         notification.setEntity(post);
         notification.setRead(false);
         notification = notificationRepository.save(notification);
-        messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/notification/unread", "update");
+        messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/notification.unread", "update");
         messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/notification", notification);
       }
     });

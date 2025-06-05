@@ -42,14 +42,14 @@ public class ForumReadCountListener {
       if (Objects.isNull(forumUser)) friends = friendRepository.findFriends(event.getUser());
       else friends = friendRepository.findMutualFriends(event.getUser(), forumUser.getId());
       for (Long friend : friends) {
-        messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/forum/unread/" + forum, "update");
-        messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/feed/unread", "update");
+        messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/forum.unread/" + forum, "update");
+        messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/feed.unread", "update");
       }
       if (Objects.nonNull(forumUser)) {
-        messagingTemplate.convertAndSendToUser(forumUser.getId().toString(), "/topic/forum/unread/" + forum, "update");
-        messagingTemplate.convertAndSendToUser(forumUser.getId().toString(), "/topic/feed/unread", "update");
-        messagingTemplate.convertAndSendToUser(event.getUser().toString(), "/topic/forum/unread/" + forum, "update");
-        messagingTemplate.convertAndSendToUser(event.getUser().toString(), "/topic/feed/unread", "update");
+        messagingTemplate.convertAndSendToUser(forumUser.getId().toString(), "/topic/forum.unread/" + forum, "update");
+        messagingTemplate.convertAndSendToUser(forumUser.getId().toString(), "/topic/feed.unread", "update");
+        messagingTemplate.convertAndSendToUser(event.getUser().toString(), "/topic/forum.unread/" + forum, "update");
+        messagingTemplate.convertAndSendToUser(event.getUser().toString(), "/topic/feed.unread", "update");
       }
     }
   }
@@ -60,12 +60,12 @@ public class ForumReadCountListener {
   public void handleEvent(ForumReadCountEvent event) {
     Long user = event.getUser();
     if (Objects.nonNull(event.getForum())) {
-      messagingTemplate.convertAndSendToUser(user.toString(), "/topic/forum/unread/" + event.getForum(), "update");
+      messagingTemplate.convertAndSendToUser(user.toString(), "/topic/forum.unread." + event.getForum(), "update");
     } else {
       for (Long forum : forumRepository.findAll(user)) {
-        messagingTemplate.convertAndSendToUser(user.toString(), "/topic/forum/unread/" + forum, "update");
+        messagingTemplate.convertAndSendToUser(user.toString(), "/topic/forum.unread." + forum, "update");
       }
     }
-    messagingTemplate.convertAndSendToUser(user.toString(), "/topic/feed/unread", "update");
+    messagingTemplate.convertAndSendToUser(user.toString(), "/topic/feed.unread", "update");
   }
 }

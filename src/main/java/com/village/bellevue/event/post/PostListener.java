@@ -27,7 +27,7 @@ public class PostListener {
     PostModel parent = event.getPost().getParent();
     if (Objects.nonNull(parent)) {
       Long id = event.getPost().getId();
-      messagingTemplate.convertAndSend("/topic/post/" + parent.getId(), id);
+      messagingTemplate.convertAndSend("/topic/post." + parent.getId(), id);
     }
   }
 
@@ -35,6 +35,6 @@ public class PostListener {
   @EventListener
   public void handleEvent(RatingEvent event) {
     Long post = event.getPost();
-    messagingTemplate.convertAndSend("/topic/post/" + post, "rating");
+    messagingTemplate.convertAndSend("/topic/post." + post, "rating");
   }
 }

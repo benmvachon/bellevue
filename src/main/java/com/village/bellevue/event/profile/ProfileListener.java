@@ -54,12 +54,12 @@ public class ProfileListener {
 
   @Async
   private void pingAttendees(Long user, String message) {
-    messagingTemplate.convertAndSend("/topic/profile/" + user, message);
+    messagingTemplate.convertAndSend("/topic/profile." + user, message);
   }
 
   @Async
   private void pingUsers(Long user1, Long user2, String message) {
-    messagingTemplate.convertAndSendToUser(user1.toString(), "/topic/friendshipStatus/" + user2, message);
-    messagingTemplate.convertAndSendToUser(user2.toString(), "/topic/friendshipStatus/" + user1, message);
+    messagingTemplate.convertAndSendToUser(user1.toString(), "/topic/friendshipStatus." + user2, message);
+    messagingTemplate.convertAndSendToUser(user2.toString(), "/topic/friendshipStatus." + user1, message);
   }
 }

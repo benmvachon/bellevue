@@ -32,17 +32,17 @@ public class PostDeleteListener {
     Long forum = event.getForum();
     for (Long friend : friendRepository.findFriends(user)) {
       if (Objects.nonNull(parent)) {
-        messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/post/" + parent + "/delete", post);
+        messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/post." + parent + ".delete", post);
       } else {
-        messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/forum/" + forum + "/delete", post);
-        messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/feed/delete", post);
+        messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/forum." + forum + ".delete", post);
+        messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/feed.delete", post);
       }
     }
     if (Objects.nonNull(parent)) {
-      messagingTemplate.convertAndSendToUser(user.toString(), "/topic/post/" + parent + "/delete", post);
+      messagingTemplate.convertAndSendToUser(user.toString(), "/topic/post." + parent + ".delete", post);
     } else {
-      messagingTemplate.convertAndSendToUser(user.toString(), "/topic/forum/" + forum + "/delete", post);
-      messagingTemplate.convertAndSendToUser(user.toString(), "/topic/feed/delete", post);
+      messagingTemplate.convertAndSendToUser(user.toString(), "/topic/forum." + forum + ".delete", post);
+      messagingTemplate.convertAndSendToUser(user.toString(), "/topic/feed.delete", post);
     }
   }
 }

@@ -18,6 +18,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+
   redis:
     image: redis:6
     container_name: redis_cache
@@ -25,6 +26,30 @@ services:
       - "6379:6379"
     networks:
       - bellevue_net
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq_broker
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"   # AMQP
+      - "15672:15672" # Management UI
+      - "61613:61613" # STOMP
+    networks:
+      - bellevue_net
+    command: >
+      bash -c "
+      rabbitmq-plugins enable --offline rabbitmq_management &&
+      rabbitmq-plugins enable --offline rabbitmq_stomp &&
+      rabbitmq-server
+      "
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
 networks:
   bellevue_net:

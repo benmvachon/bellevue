@@ -30,7 +30,7 @@ public class ForumListener {
     Long user = event.getUser();
     Long id = event.getPost().getId();
     if (Objects.isNull(event.getPost().getParent())) {
-      messagingTemplate.convertAndSend("/topic/forum/" + forum, id);
+      messagingTemplate.convertAndSend("/topic/forum." + forum, id);
       messagingTemplate.convertAndSendToUser(user.toString(), "/topic/feed", id);
       for (Long friend : friendRepository.findFriends(user)) {
         messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/feed", id);

@@ -60,7 +60,7 @@ function tryReconnect() {
   if (reconnectTimeout) return;
 
   reconnectTimeout = setTimeout(() => {
-    console.log('[STOMP] Attempting to reconnect...');
+    console.warn('[STOMP] Attempting to reconnect...');
     client?.deactivate().then(() => {
       reconnectTimeout = null;
       resetConnectedPromise();
@@ -73,33 +73,45 @@ export const waitForConnection = () => connectedPromise?.promise;
 
 let client = null;
 
-// Async-safe client creation
 export const getClient = async (force = false) => {
   if (client && client.connected && !force) {
     return client;
   }
 
   if (isCreatingClient) {
-    await waitForConnection(); // Wait for existing connection attempt
+    await waitForConnection(); // Wait for the current connection to complete
     return client;
   }
 
   isCreatingClient = true;
 
   client = new Client({
-    webSocketFactory: () => new SockJS('/ws'),
+    webSocketFactory: () => new SockJS('/ws'), // Matches your WebSocketConfig
+    connectHeaders: {
+      login: 'guest',
+      passcode: 'guest'
+    },
+    debug: (str) => console.debug(`[STOMP DEBUG] ${str}`),
+    reconnectDelay: 0, // We handle it ourselves
     onConnect: () => {
+      console.log('[STOMP] Connected');
       isCreatingClient = false;
       connectedPromise.resolve();
     },
-    onDisconnect: tryReconnect,
-    onWebSocketClose: tryReconnect,
+    onDisconnect: () => {
+      console.log('[STOMP] Disconnected');
+      tryReconnect();
+    },
+    onWebSocketClose: () => {
+      console.warn('[STOMP] WebSocket closed');
+      tryReconnect();
+    },
     onWebSocketError: (event) => {
       console.error('[STOMP] WebSocket error', event);
       tryReconnect();
     },
     onStompError: (frame) => {
-      console.error('[STOMP] Broker error', frame);
+      console.error('[STOMP] Broker STOMP error', frame);
       tryReconnect();
     }
   });
@@ -116,18 +128,24 @@ export const subscriptions = new Map();
 export const subscribe = async (destination, onMessage) => {
   unsubscribe(destination);
   const client = await getClient();
-  subscriptions.set(
-    destination,
-    client.subscribe(destination, (message) => {
-      onMessage(message.body);
-    })
-  );
+
+  const sub = client.subscribe(destination, (message) => {
+    try {
+      const body = JSON.parse(message.body);
+      onMessage(body);
+    } catch (e) {
+      console.warn('[STOMP] Received non-JSON message', message.body);
+      onMessage(message.body); // Fallback to raw
+    }
+  });
+
+  subscriptions.set(destination, sub);
 };
 
 export const unsubscribe = (destination) => {
-  const subscription = subscriptions.get(destination);
-  if (subscription) {
-    subscription.unsubscribe();
+  const sub = subscriptions.get(destination);
+  if (sub) {
+    sub.unsubscribe();
     subscriptions.delete(destination);
   }
 };
@@ -265,19 +283,19 @@ export const getOthersInLocation = (callback, error, page = 0) => {
 };
 
 export const onProfileUpdate = (profile, onProfileUpdate) => {
-  subscribe(`/topic/profile/${profile}`, onProfileUpdate);
+  subscribe(`/topic/profile.${profile}`, onProfileUpdate);
 };
 
 export const unsubscribeProfile = (profile) => {
-  unsubscribe(`/topic/profile/${profile}`);
+  unsubscribe(`/topic/profile.${profile}`);
 };
 
 export const onFriendshipStatusUpdate = (profile, onProfileUpdate) => {
-  subscribe(`/user/topic/friendshipStatus/${profile}`, onProfileUpdate);
+  subscribe(`/user/topic/friendshipStatus.${profile}`, onProfileUpdate);
 };
 
 export const unsubscribeFriendshipStatus = (profile) => {
-  unsubscribe(`/user/topic/friendshipStatus/${profile}`);
+  unsubscribe(`/user/topic/friendshipStatus.${profile}`);
 };
 
 export const getForums = (
@@ -359,39 +377,39 @@ export const setForumNotification = (forum, notify, callback, error) => {
 
 export const onForumUpdate = (forum, onForumUpdate) => {
   let uri = '/user/topic/feed';
-  if (forum) uri = `/topic/forum/${forum}`;
+  if (forum) uri = `/topic/forum.${forum}`;
   subscribe(uri, (post) => onForumUpdate(Number.parseInt(post)));
 };
 
 export const unsubscribeForum = (forum) => {
   let uri = '/user/topic/feed';
-  if (forum) uri = `/topic/forum/${forum}`;
+  if (forum) uri = `/topic/forum.${forum}`;
   unsubscribe(uri);
 };
 
 export const onForumPopularityUpdate = (forum, onForumUpdate) => {
-  let uri = '/user/topic/feed/popularity';
-  if (forum) uri = `/user/topic/forum/${forum}/popularity`;
+  let uri = '/user/topic/feed.popularity';
+  if (forum) uri = `/user/topic/forum.${forum}.popularity`;
   subscribe(uri, (message) => {
     onForumUpdate(JSON.parse(message));
   });
 };
 
 export const unsubscribeForumPopularity = (forum) => {
-  let uri = '/user/topic/feed/popularity';
-  if (forum) uri = `/user/topic/forum/${forum}/popularity`;
+  let uri = '/user/topic/feed.popularity';
+  if (forum) uri = `/user/topic/forum.${forum}.popularity`;
   unsubscribe(uri);
 };
 
 export const onForumUnreadUpdate = (forum, onForumUpdate) => {
-  let uri = '/user/topic/feed/unread';
-  if (forum) uri = `/user/topic/forum/unread/${forum}`;
+  let uri = '/user/topic/feed.unread';
+  if (forum) uri = `/user/topic/forum.unread.${forum}`;
   subscribe(uri, (message) => onForumUpdate(message));
 };
 
 export const unsubscribeForumUnread = (forum) => {
-  let uri = '/user/topic/feed/unread';
-  if (forum) uri = `/user/topic/forum/unread/${forum}`;
+  let uri = '/user/topic/feed.unread';
+  if (forum) uri = `/user/topic/forum.unread.${forum}`;
   unsubscribe(uri);
 };
 
@@ -585,48 +603,48 @@ export const markPostsRead = (callback, error) => {
 };
 
 export const onPostDelete = (forum, onPostDelete) => {
-  let uri = '/user/topic/feed/delete';
-  if (forum) uri = `/user/topic/forum/${forum}/delete`;
+  let uri = '/user/topic/feed.delete';
+  if (forum) uri = `/user/topic/forum.${forum}.delete`;
   subscribe(uri, (message) => {
     onPostDelete(Number.parseInt(message));
   });
 };
 
 export const unsubscribePostDelete = (forum) => {
-  let uri = '/user/topic/feed/delete';
-  if (forum) uri = `/user/topic/forum/${forum}/delete`;
+  let uri = '/user/topic/feed.delete';
+  if (forum) uri = `/user/topic/forum.${forum}.delete`;
   unsubscribe(uri);
 };
 
 export const onReplyDelete = (post, onReplyDelete) => {
-  subscribe(`/user/topic/post/${post}/delete`, (message) => {
+  subscribe(`/user/topic/post.${post}.delete`, (message) => {
     onReplyDelete(Number.parseInt(message));
   });
 };
 
 export const unsubscribeReplyDelete = (post) => {
-  unsubscribe(`/user/topic/post/${post}/delete`);
+  unsubscribe(`/user/topic/post.${post}.delete`);
 };
 
 export const onPostUpdate = (post, onPostUpdate) => {
-  subscribe(`/topic/post/${post}`, (message) => {
+  subscribe(`/topic/post.${post}`, (message) => {
     if (message === 'rating') onPostUpdate(message);
     else onPostUpdate(Number.parseInt(message));
   });
 };
 
 export const unsubscribePost = (post) => {
-  unsubscribe(`/topic/post/${post}`);
+  unsubscribe(`/topic/post.${post}`);
 };
 
 export const onPostPopularityUpdate = (post, onPostUpdate) => {
-  subscribe(`/user/topic/post/${post}/popularity`, (message) => {
+  subscribe(`/user/topic/post.${post}.popularity`, (message) => {
     onPostUpdate(JSON.parse(message));
   });
 };
 
 export const unsubscribePostPopularity = (post) => {
-  unsubscribe(`/user/topic/post/${post}/popularity`);
+  unsubscribe(`/user/topic/post.${post}.popularity`);
 };
 
 export const getNotification = (notification, callback, error) => {
@@ -709,11 +727,11 @@ export const unsubscribeNotification = () => {
 };
 
 export const onNotificationCount = (onNotificationCount) => {
-  subscribe('/user/topic/notification/unread', onNotificationCount);
+  subscribe('/user/topic/notification.unread', onNotificationCount);
 };
 
 export const unsubscribeNotificationCount = () => {
-  unsubscribe('/user/topic/notification/unread');
+  unsubscribe('/user/topic/notification.unread');
 };
 
 export const onNotificationRead = (notification, onNotificationRead) => {
@@ -724,15 +742,15 @@ export const onNotificationRead = (notification, onNotificationRead) => {
 };
 
 export const unsubscribeNotificationRead = (notification) => {
-  unsubscribe(`/user/topic/notification/unread/${notification}`);
+  unsubscribe(`/user/topic/notification.unread.${notification}`);
 };
 
 export const onNotificationsRead = (onNotificationsRead) => {
-  subscribe('/user/topic/notification/all', onNotificationsRead);
+  subscribe('/user/topic/notification.all', onNotificationsRead);
 };
 
 export const unsubscribeNotificationsRead = () => {
-  unsubscribe('/user/topic/notification/all');
+  unsubscribe('/user/topic/notification.all');
 };
 
 export const getUnreadCount = (callback, error) => {
@@ -839,23 +857,23 @@ export const unsubscribeThread = () => {
 };
 
 export const onThreadsCount = (onThreadsCount) => {
-  subscribe('/user/topic/thread/unread', onThreadsCount);
+  subscribe('/user/topic/thread.unread', onThreadsCount);
 };
 
 export const unsubscribeThreadsCount = () => {
-  unsubscribe('/user/topic/thread/unread');
+  unsubscribe('/user/topic/thread.unread');
 };
 
 export const onThreadCount = (friend, onThreadCount) => {
-  subscribe(`/user/topic/thread/unread/${friend}`, onThreadCount);
+  subscribe(`/user/topic/thread.unread.${friend}`, onThreadCount);
 };
 
 export const unsubscribeThreadCount = (friend) => {
-  unsubscribe(`/user/topic/thread/unread/${friend}`);
+  unsubscribe(`/user/topic/thread.unread.${friend}`);
 };
 
 export const onMessage = (friend, onMessage) => {
-  subscribe(`/user/topic/message/${friend}`, (message) => {
+  subscribe(`/user/topic/message.${friend}`, (message) => {
     const event = JSON.parse(message);
     event.message = Message.fromJSON(event.message);
     onMessage(event);
@@ -863,23 +881,23 @@ export const onMessage = (friend, onMessage) => {
 };
 
 export const unsubscribeMessage = (friend) => {
-  unsubscribe(`/user/topic/message/${friend}`);
+  unsubscribe(`/user/topic/message.${friend}`);
 };
 
 export const onMessageRead = (message, onMessage) => {
-  subscribe(`/user/topic/message/uread/${message}`, onMessage);
+  subscribe(`/user/topic/message.uread.${message}`, onMessage);
 };
 
 export const unsubscribeMessageRead = (message) => {
-  unsubscribe(`/user/topic/message/uread/${message}`);
+  unsubscribe(`/user/topic/message.uread.${message}`);
 };
 
 export const onThreadsRead = (onThreadsRead) => {
-  subscribe('/user/topic/thread/all', onThreadsRead);
+  subscribe('/user/topic/thread.all', onThreadsRead);
 };
 
 export const unsubscribeThreadsRead = () => {
-  unsubscribe('/user/topic/thread/all');
+  unsubscribe('/user/topic/thread.all');
 };
 
 export const onEntrance = (onEntrance) => {

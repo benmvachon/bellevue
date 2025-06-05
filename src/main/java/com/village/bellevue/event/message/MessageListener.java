@@ -26,10 +26,10 @@ public class MessageListener {
     Long friend = event.getFriend();
     Long user = event.getUser();
     messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/thread", event);
-    messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/message/" + user, event);
-    messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/thread/unread", "update");
+    messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/message." + user, event);
+    messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/thread.unread", "update");
     messagingTemplate.convertAndSendToUser(user.toString(), "/topic/thread", event);
-    messagingTemplate.convertAndSendToUser(user.toString(), "/topic/message/" + friend, event);
+    messagingTemplate.convertAndSendToUser(user.toString(), "/topic/message." + friend, event);
   }
 
   @Async
@@ -38,9 +38,9 @@ public class MessageListener {
     Long user = event.getUser();
     Long friend = event.getFriend();
     Long message = event.getMessage();
-    messagingTemplate.convertAndSendToUser(user.toString(), "/topic/thread/unread", "update");
-    messagingTemplate.convertAndSendToUser(user.toString(), "/topic/thread/unread/" + friend, "update");
-    messagingTemplate.convertAndSendToUser(user.toString(), "/topic/message/unread/" + message, "update");
+    messagingTemplate.convertAndSendToUser(user.toString(), "/topic/thread.unread", "update");
+    messagingTemplate.convertAndSendToUser(user.toString(), "/topic/thread.unread." + friend, "update");
+    messagingTemplate.convertAndSendToUser(user.toString(), "/topic/message.unread." + message, "update");
   }
 
   @Async
@@ -48,15 +48,15 @@ public class MessageListener {
   public void handleThreadReadEvent(ThreadReadEvent event) {
     Long user = event.getUser();
     Long friend = event.getFriend();
-    messagingTemplate.convertAndSendToUser(user.toString(), "/topic/thread/unread", "update");
-    messagingTemplate.convertAndSendToUser(user.toString(), "/topic/thread/unread/" + friend, "update");
+    messagingTemplate.convertAndSendToUser(user.toString(), "/topic/thread.unread", "update");
+    messagingTemplate.convertAndSendToUser(user.toString(), "/topic/thread.unread." + friend, "update");
   }
 
   @Async
   @EventListener
   public void handleThreadsReadEvent(ThreadsReadEvent event) {
     Long user = event.getUser();
-    messagingTemplate.convertAndSendToUser(user.toString(), "/topic/thread/unread", "update");
-    messagingTemplate.convertAndSendToUser(user.toString(), "/topic/thread/all", "read");
+    messagingTemplate.convertAndSendToUser(user.toString(), "/topic/thread.unread", "update");
+    messagingTemplate.convertAndSendToUser(user.toString(), "/topic/thread.all", "read");
   }
 }

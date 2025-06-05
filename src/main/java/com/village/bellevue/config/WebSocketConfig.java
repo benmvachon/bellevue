@@ -22,13 +22,25 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
   @Override
   public void registerStompEndpoints(StompEndpointRegistry registry) {
-    registry.addEndpoint("/ws").setHandshakeHandler(new AMBHandshakeHandler()).withSockJS();
+    registry.addEndpoint("/ws")
+      .setHandshakeHandler(new AMBHandshakeHandler())
+      .setAllowedOriginPatterns("*") // Use more secure origin filtering in production
+      .withSockJS();
   }
 
   @Override
   public void configureMessageBroker(MessageBrokerRegistry registry) {
-    registry.enableSimpleBroker("/topic");
     registry.setApplicationDestinationPrefixes("/app");
+
+    registry.enableStompBrokerRelay("/topic", "/queue")
+      .setRelayHost("localhost") // or "rabbitmq_broker" if running in Docker compose with service name
+      .setRelayPort(61613)
+      .setClientLogin("guest")
+      .setClientPasscode("guest")
+      .setSystemLogin("guest")
+      .setSystemPasscode("guest")
+      .setSystemHeartbeatSendInterval(10000)
+      .setSystemHeartbeatReceiveInterval(10000);
   }
 
   @Override
@@ -44,7 +56,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
   public static class LoggingChannelInterceptor implements ChannelInterceptor {
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
-      log.debug("WebSocket message: " + message);
+      log.debug("WebSocket message: {}", message);
       return message;
     }
   }
