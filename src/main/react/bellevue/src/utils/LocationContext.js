@@ -16,6 +16,7 @@ export const LocationProvider = ({ children }) => {
     const type = parts[1]?.toLowerCase();
     const id = parts[2] || null;
 
+    if (type.length === 0 && !id) return { type: 'FORUM', id: 1 };
     if (type === 'forum') return { type: 'FORUM', id };
     if (type === 'profile') return { type: 'PROFILE', id };
     if (type === 'post') return { type: 'POST', id };

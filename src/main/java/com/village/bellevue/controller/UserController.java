@@ -147,9 +147,13 @@ public class UserController {
     @RequestParam(defaultValue = "0") int page,
     @RequestParam(defaultValue = "5") int size
   ) {
-    Page<ProfileModel> users = profileService.readFriendsByLocation(page, size);
-    PagedModel<EntityModel<ProfileModel>> pagedModel = pagedAssembler.toModel(users, profileModelAssembler);
-    return ResponseEntity.ok(pagedModel);
+    try {
+      Page<ProfileModel> users = profileService.readFriendsByLocation(page, size);
+      PagedModel<EntityModel<ProfileModel>> pagedModel = pagedAssembler.toModel(users, profileModelAssembler);
+      return ResponseEntity.ok(pagedModel);
+    } catch (AuthorizationException e) {
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
   }
 
   @GetMapping("/location/nonfriends")
@@ -163,9 +167,16 @@ public class UserController {
   }
 
   @PutMapping(value = {"/location", "/location/{locationType}/{location}"})
-  public ResponseEntity<Void> setLocation(@PathVariable(required = false) String locationType, @PathVariable(required = false) Long location) {
-    profileService.setLocation(location, LocationType.fromString(locationType));
-    return ResponseEntity.status(HttpStatus.CREATED).build();
+  public ResponseEntity<Void> setLocation(
+    @PathVariable(required = false) String locationType,
+    @PathVariable(required = false) Long location
+  ) {
+    try {
+      profileService.setLocation(location, LocationType.fromString(locationType));
+      return ResponseEntity.status(HttpStatus.OK).build();
+    } catch (AuthorizationException e) {
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
   }
 
   @DeleteMapping

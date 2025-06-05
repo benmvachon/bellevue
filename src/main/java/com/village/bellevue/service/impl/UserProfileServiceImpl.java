@@ -16,6 +16,7 @@ import com.village.bellevue.entity.ForumEntity;
 import com.village.bellevue.entity.PostEntity;
 import com.village.bellevue.entity.UserProfileEntity;
 import com.village.bellevue.entity.id.FavoriteId;
+import com.village.bellevue.error.AuthorizationException;
 import com.village.bellevue.error.FriendshipException;
 import com.village.bellevue.event.type.BlackboardEvent;
 import com.village.bellevue.event.type.LocationEvent;
@@ -137,19 +138,30 @@ public class UserProfileServiceImpl implements UserProfileService {
   }
 
   @Override
-  public void setLocation(Long location, LocationType locationType) {
-    UserProfileEntity profile = userProfileRepository.getReferenceById(getAuthenticatedUserId());
+  public void setLocation(Long location, LocationType locationType) throws AuthorizationException {
+    checkAccessToLocation(location, locationType);
+    Long user = getAuthenticatedUserId();
+    UserProfileEntity profile = userProfileRepository.getReferenceById(user);
     if (Objects.nonNull(profile) && Objects.nonNull(profile.getLocationType()) && Objects.nonNull(profile.getLocation())) {
       if (profile.getLocationType().equals(locationType) && profile.getLocation().equals(location)) return;
-      publisher.publishEvent(new LocationEvent(getAuthenticatedUserId(), profile.getLocation(), profile.getLocationType(), false));
+      publisher.publishEvent(new LocationEvent(user, profile.getLocation(), profile.getLocationType(), false));
     }
-    profileRepository.setLocation(getAuthenticatedUserId(), location, locationType);
-    publisher.publishEvent(new LocationEvent(getAuthenticatedUserId(), location, locationType, true));
+    profileRepository.setLocation(user, location, locationType);
+    publisher.publishEvent(new LocationEvent(user, location, locationType, true));
   }
 
   @Override
   public void setBlackboard(String blackboard) {
     profileRepository.setBlackboard(getAuthenticatedUserId(), blackboard);
     publisher.publishEvent(new BlackboardEvent(getAuthenticatedUserId(), blackboard));
+  }
+
+  private void checkAccessToLocation(Long location, LocationType locationType) throws AuthorizationException {
+    Long user = getAuthenticatedUserId();
+    if (
+      LocationType.POST.equals(locationType) && !postRepository.canRead(location, user) ||
+      LocationType.FORUM.equals(locationType) && !forumRepository.canRead(location, user)
+    )
+      throw new AuthorizationException("Currently authenticated user cannot access location");
   }
 }
