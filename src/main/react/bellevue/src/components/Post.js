@@ -271,7 +271,11 @@ function Post({
           </button>
           {showReplies && getSelectedChild && getSelectedChild(depth)}
           {showReplies && (
-            <ScrollLoader total={post.children} loadMore={loadMore}>
+            <ScrollLoader
+              total={post.children}
+              loadMore={loadMore}
+              className="post-children"
+            >
               {replies?.map((post) => (
                 <Post
                   key={`post-${post.id}`}

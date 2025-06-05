@@ -14,6 +14,10 @@ import com.village.bellevue.entity.PostEntity;
 @Repository
 public interface PostRepository extends JpaRepository<PostEntity, Long> {
 
+  @Query("SELECT p.id FROM PostEntity p WHERE p.user.id = :user AND p.forum.id = :forum")
+  @Transactional(readOnly = true)
+  List<Long> findAllByUserInForum(@Param("user") Long user, @Param("forum") Long forum);
+
   @Query(
     "SELECT p FROM PostEntity p " +
     "LEFT JOIN FriendEntity forumFriend ON p.forum.user = forumFriend.friend.id AND forumFriend.user = :user AND forumFriend.status = 'ACCEPTED' " +

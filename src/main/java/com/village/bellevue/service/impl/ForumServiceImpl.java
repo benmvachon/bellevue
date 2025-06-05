@@ -1,14 +1,22 @@
 package com.village.bellevue.service.impl;
 
+import java.sql.CallableStatement;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Session;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import static com.village.bellevue.config.CacheConfig.POST_SECURITY_CACHE_NAME;
@@ -17,12 +25,15 @@ import static com.village.bellevue.config.security.SecurityConfig.getAuthenticat
 import com.village.bellevue.entity.FavoriteEntity.FavoriteType;
 import com.village.bellevue.entity.ForumEntity;
 import com.village.bellevue.entity.NotificationSettingEntity;
+import com.village.bellevue.entity.PostEntity;
+import com.village.bellevue.entity.RatingEntity;
 import com.village.bellevue.entity.id.FavoriteId;
 import com.village.bellevue.entity.id.NotificationSettingId;
 import com.village.bellevue.error.AuthorizationException;
 import com.village.bellevue.error.ForumException;
 import com.village.bellevue.error.FriendshipException;
 import com.village.bellevue.event.type.ForumEvent;
+import com.village.bellevue.event.type.PostDeleteEvent;
 import com.village.bellevue.model.ForumModel;
 import com.village.bellevue.model.ForumModelProvider;
 import com.village.bellevue.model.ProfileModel;
@@ -30,11 +41,18 @@ import com.village.bellevue.repository.FavoriteRepository;
 import com.village.bellevue.repository.ForumRepository;
 import com.village.bellevue.repository.FriendRepository;
 import com.village.bellevue.repository.NotificationSettingRepository;
+import com.village.bellevue.repository.PostRepository;
+import com.village.bellevue.repository.RatingRepository;
 import com.village.bellevue.service.ForumService;
 import com.village.bellevue.service.UserProfileService;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+
 @Service
 public class ForumServiceImpl implements ForumService {
+
+  private static final Logger logger = LoggerFactory.getLogger(ForumServiceImpl.class);
 
   public static final String CAN_READ_CACHE_KEY = "canRead";
   public static final String CAN_UPDATE_CACHE_KEY = "canUpdate";
@@ -85,14 +103,20 @@ public class ForumServiceImpl implements ForumService {
   };
 
   private final ForumRepository forumRepository;
+  private final PostRepository postRepository;
+  private final RatingRepository ratingRepository;
   private final UserProfileService userProfileService;
   private final FavoriteRepository favoriteRepository;
   private final FriendRepository friendRepository;
   private final NotificationSettingRepository notificationSettingRepository;
   private final ApplicationEventPublisher publisher;
+  @PersistenceContext(unitName = "async")
+  private EntityManager entityManager;
 
   public ForumServiceImpl(
     ForumRepository forumRepository,
+    PostRepository postRepository,
+    RatingRepository ratingRepository,
     UserProfileService userProfileService,
     FavoriteRepository favoriteRepository,
     FriendRepository friendRepository,
@@ -100,6 +124,8 @@ public class ForumServiceImpl implements ForumService {
     ApplicationEventPublisher publisher
   ) {
     this.forumRepository = forumRepository;
+    this.postRepository = postRepository;
+    this.ratingRepository = ratingRepository;
     this.userProfileService = userProfileService;
     this.favoriteRepository = favoriteRepository;
     this.friendRepository = friendRepository;
@@ -108,7 +134,6 @@ public class ForumServiceImpl implements ForumService {
   }
 
   @Override
-  @Transactional(timeout = 30)
   public ForumModel create(ForumEntity forum) throws AuthorizationException, ForumException {
     ForumModel model = null;
     try {
@@ -147,22 +172,75 @@ public class ForumServiceImpl implements ForumService {
   }
 
   @Override
-  @Transactional(timeout = 30)
+  @Transactional(value = "asyncTransactionManager", propagation = Propagation.REQUIRES_NEW, timeout = 300)
   public ForumModel update(Long id, ForumEntity forum) throws AuthorizationException, ForumException {
     if (!canUpdate(id)) throw new AuthorizationException("Currently authenticated user is not authorized to update forum");
     ForumModel model = null;
-    try {
-      if (Objects.isNull(forum)) throw new ForumException("Cannot save empty forum");
-      if (StringUtils.isBlank(forum.getName())) throw new ForumException("'name' field is required for new forum");
-      if (StringUtils.isBlank(forum.getDescription())) throw new ForumException("'description' field is required for new forum");
-      if (Objects.isNull(forum.getUsers()) || forum.getUsers().isEmpty()) throw new ForumException("'users' field is required for new forum");
-      if (friendRepository.containsBlockingUsers(forum.getUsers())) throw new ForumException("'users' field contains users who block eachother");
-      forum.setId(id);
-      model = new ForumModel(save(forum), forumModelProvider);
-      return model;
-    } finally {
-      if (Objects.nonNull(model)) publisher.publishEvent(new ForumEvent(getAuthenticatedUserId(), model));
+    if (Objects.isNull(forum)) throw new ForumException("Cannot save empty forum");
+    if (StringUtils.isBlank(forum.getName())) throw new ForumException("'name' field is required for new forum");
+    if (StringUtils.isBlank(forum.getDescription())) throw new ForumException("'description' field is required for new forum");
+    if (Objects.isNull(forum.getUsers()) || forum.getUsers().isEmpty()) throw new ForumException("'users' field is required for new forum");
+    if (friendRepository.containsBlockingUsers(forum.getUsers())) throw new ForumException("'users' field contains users who block each other");
+
+    // Step 1: Fetch existing forum from DB
+    ForumEntity existingForum = forumRepository.findById(id)
+      .orElseThrow(() -> new ForumException("Forum not found"));
+
+    List<Long> oldUserIds = existingForum.getUsers();
+
+    List<Long> newUserIds = forum.getUsers();
+
+    // Step 2: Identify removed users
+    List<Long> removedUserIds = new ArrayList<>(oldUserIds);
+    removedUserIds.removeAll(newUserIds);
+
+    // Step 3: Save updated forum
+    forum.setId(id); // ensure ID is preserved
+    model = new ForumModel(save(forum), forumModelProvider);
+    List<PostDeleteEvent> postDeleteEvents = new ArrayList<>();
+
+    // Step 4: Execute procedure for removed users
+    for (Long user : removedUserIds) {
+      // remove all posts
+      for (Long post : postRepository.findAllByUserInForum(user, id)) {
+        Optional<PostEntity> postEntity = postRepository.findById(post);
+        if (postEntity.isEmpty()) continue;
+        entityManager.unwrap(Session.class).doWork(connection -> {
+          try (
+            CallableStatement stmt = connection.prepareCall("{call delete_post(?)}")
+          ) {
+            stmt.setLong(1, post);
+            stmt.executeUpdate();
+          } catch (SQLException e) {
+            logger.error("Error deleting post: {}", e.getMessage(), e);
+          }
+          Long parent = null;
+          if (Objects.nonNull(postEntity.get().getParent())) parent = postEntity.get().getParent().getId();
+          postDeleteEvents.add(new PostDeleteEvent(user, post, parent, id));
+        });
+      }
+      // remove all ratings
+      for (RatingEntity rating : ratingRepository.findAllByUserInForum(user, id)) {
+        entityManager.unwrap(Session.class).doWork(connection -> {
+          try (
+            CallableStatement stmt = connection.prepareCall("{call delete_rating(?, ?)}")
+          ) {
+            stmt.setLong(1, user);
+            stmt.setLong(2, rating.getPost());
+            stmt.executeUpdate();
+          } catch (SQLException e) {
+            logger.error("Error deleting rating: {}", e.getMessage(), e);
+          }
+        });
+      }
     }
+
+    publisher.publishEvent(new ForumEvent(getAuthenticatedUserId(), model));
+    for (PostDeleteEvent postDeleteEvent : postDeleteEvents) {
+      publisher.publishEvent(postDeleteEvent);
+    }
+
+    return model;
   }
 
   @Override
@@ -192,6 +270,7 @@ public class ForumServiceImpl implements ForumService {
     return true;
   }
 
+  @Transactional(timeout = 30)
   private ForumEntity save(ForumEntity forum) {
     forum.setUser(getAuthenticatedUserId());
     return forumRepository.save(forum);

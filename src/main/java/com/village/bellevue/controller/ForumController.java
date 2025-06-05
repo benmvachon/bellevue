@@ -111,7 +111,7 @@ public class ForumController {
     try {
       ForumModel createdForum = forumService.update(id, forum);
       EntityModel<ForumModel> entityModel = forumModelAssembler.toModel(createdForum);
-      return ResponseEntity.status(HttpStatus.CREATED).body(entityModel);
+      return ResponseEntity.status(HttpStatus.OK).body(entityModel);
     } catch (AuthorizationException e) {
       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }

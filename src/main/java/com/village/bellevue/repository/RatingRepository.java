@@ -1,5 +1,7 @@
 package com.village.bellevue.repository;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,6 +16,13 @@ import com.village.bellevue.entity.id.RatingId;
 
 @Repository
 public interface RatingRepository extends JpaRepository<RatingEntity, RatingId> {
+
+  @Query(
+    "SELECT r FROM RatingEntity r " +
+    "JOIN PostEntity p ON r.post = p.id " +
+    "WHERE r.user = :user AND p.forum.id = :forum")
+  @Transactional(readOnly = true)
+  List<RatingEntity> findAllByUserInForum(@Param("user") Long user, @Param("forum") Long forum);
 
   @Query(
     "SELECT COUNT(DISTINCT(r)) FROM RatingEntity r " +

@@ -270,7 +270,7 @@ html {
         div.post {
           display: flex;
           flex-direction: column;
-          margin: 8px 0 8px 16px;
+          padding: 8px 0 8px 16px;
           background: white;
 
           &.selected {
@@ -303,6 +303,10 @@ html {
           div.post-children-container {
             display: flex;
             flex-direction: column;
+
+            div.post-children {
+              border-left: 1px solid;
+            }
           }
         }
       }

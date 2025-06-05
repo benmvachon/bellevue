@@ -186,7 +186,7 @@ function ForumPage() {
           toggleSort={toggleSort}
           feed={id === '1' && !onlyTownHallPosts}
           excludedForums={excludedForums}
-          excludeForum={excludeForum}
+          excludeForum={id === '1' ? excludeForum : undefined}
         />
       </div>
       <ForumForm

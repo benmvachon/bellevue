@@ -140,7 +140,7 @@ CREATE PROCEDURE remove_popularity_from_parent(
 )
 BEGIN
     DECLARE parent INT UNSIGNED;
-    SELECT p.parent INTO parent FROM post p WHERE p.id = p_post AND p.deleted = FALSE;
+    SELECT p.parent INTO parent FROM post p WHERE p.id = p_post;
 
     IF parent IS NOT NULL THEN
         UPDATE aggregate_rating a SET popularity = a.popularity - p_popularity WHERE a.user = p_user AND a.post = parent;
@@ -968,6 +968,95 @@ END;
 DELIMITER ;
 
 DELIMITER //
+CREATE PROCEDURE delete_custom_forum_posts(
+    IN p_user INT UNSIGNED,
+    IN p_forum INT UNSIGNED
+)
+BEGIN
+    DECLARE post INT UNSIGNED;
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE post_cursor CURSOR FOR SELECT p.id FROM post p WHERE p.user = p_user AND p.forum = p_forum;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    OPEN post_cursor;
+    read_loop: LOOP
+        FETCH post_cursor INTO post;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+        IF post IS NULL THEN
+            SET done = TRUE;
+        ELSE
+            CALL delete_post(post);
+            SET done = FALSE;
+        END IF;
+    END LOOP;
+    CLOSE post_cursor;
+END;
+//
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE remove_pair_from_custom_forums(
+    IN p_user INT UNSIGNED,
+    IN p_friend INT UNSIGNED
+)
+BEGIN
+    DECLARE custom_forum INT UNSIGNED;
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE custom_forum_cursor CURSOR FOR SELECT fs1.forum FROM forum_security fs1 JOIN forum_security fs2 ON fs1.forum = fs2.forum WHERE fs1.user = p_user AND fs2.user = p_friend;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    OPEN custom_forum_cursor;
+    read_loop: LOOP
+        FETCH custom_forum_cursor INTO custom_forum;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+        IF custom_forum IS NULL THEN
+            SET done = TRUE;
+        ELSE
+            CALL delete_custom_forum_posts(p_user, custom_forum);
+            DELETE FROM forum_security fs WHERE fs.user = p_user AND fs.forum = custom_forum;
+            SET done = FALSE;
+        END IF;
+    END LOOP;
+    CLOSE custom_forum_cursor;
+END;
+//
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE remove_from_custom_forums(
+    IN p_user INT UNSIGNED,
+    IN p_friend INT UNSIGNED
+)
+BEGIN
+    DECLARE custom_forum INT UNSIGNED;
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE custom_forum_cursor CURSOR FOR SELECT fs.forum FROM forum_security fs JOIN forum f ON f.id = fs.forum WHERE f.user = p_friend AND fs.user = p_user;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    OPEN custom_forum_cursor;
+    read_loop: LOOP
+        FETCH custom_forum_cursor INTO custom_forum;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+        IF custom_forum IS NULL THEN
+            SET done = TRUE;
+        ELSE
+            CALL delete_custom_forum_posts(p_user, custom_forum);
+            DELETE FROM forum_security fs WHERE fs.user = p_user AND fs.forum = custom_forum;
+            SET done = FALSE;
+        END IF;
+    END LOOP;
+    CLOSE custom_forum_cursor;
+END;
+//
+DELIMITER ;
+
+DELIMITER //
 CREATE PROCEDURE delete_friendship(
     IN p_user INT UNSIGNED,
     IN p_friend INT UNSIGNED
@@ -978,6 +1067,9 @@ BEGIN
     CALL remove_ratings(p_friend, p_user);
     CALL remove_posts(p_user, p_friend);
     CALL remove_posts(p_friend, p_user);
+
+    CALL remove_from_custom_forums(p_user, p_friend);
+    CALL remove_from_custom_forums(p_friend, p_user);
 
     -- Delete all mutual content from the database
     CALL delete_replies(p_user, p_friend);
@@ -1014,6 +1106,8 @@ BEGIN
         UPDATE friend
         SET status = 'BLOCKED_THEM', updated = CURRENT_TIMESTAMP
         WHERE user = p_user AND friend = p_friend;
+
+        CALL remove_pair_from_custom_forums(p_user, p_friend);
 
         CALL delete_friendship(p_user, p_friend);
     ELSE
