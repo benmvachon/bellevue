@@ -1,12 +1,21 @@
 {
   "java.configuration.updateBuildConfiguration": "automatic",
+  "java.checkstyle.configuration": "checkstyle.xml",
+  "java.compile.nullAnalysis.mode": "automatic",
+  "java.project.referencedLibraries": [
+    "lib/**/*.jar",
+    "target/dependency/*.jar"
+  ],
   "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "editor.formatOnSave": true,
+  "editor.formatOnSave": false,
   "[javascript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
+  "prettier.prettierPath": "./src/main/react/bellevue/node_modules/prettier",
   "[java]": {
-    "editor.defaultFormatter": null // Prettier does not support Java
+    "editor.defaultFormatter": "redhat.java",
+    "editor.tabSize": 2,
+    "editor.detectIndentation": false
   },
-  "prettier.prettierPath": "./src/main/react/bellevue/node_modules/prettier"
+  "java.format.settings.url": ".vscode/java-formatter.xml"
 }

@@ -1,18 +1,26 @@
 package com.village.bellevue.config.security;
 
-import com.village.bellevue.repository.UserRepository;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.Objects;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.stereotype.Component;
 
+import com.village.bellevue.service.ActivityService;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+
 @Component
 public class LogoutSuccessHandlerImpl implements LogoutSuccessHandler {
 
-  @Autowired private UserRepository userRepository;
+  private final ActivityService activityService;
+
+  public LogoutSuccessHandlerImpl(ActivityService activityService) {
+    this.activityService = activityService;
+  }
 
   @Override
   public void onLogoutSuccess(
@@ -20,8 +28,11 @@ public class LogoutSuccessHandlerImpl implements LogoutSuccessHandler {
       throws IOException {
 
     if (authentication != null) {
+      HttpSession session = request.getSession(false);
+      if (Objects.nonNull(session)) session.invalidate();
+      request.getSession(true);
       Long userId = ((UserDetailsImpl) authentication.getPrincipal()).getId();
-      userRepository.setUserStatusOffline(userId);
+      activityService.markUserOffline(userId);
     }
 
     response.setStatus(HttpServletResponse.SC_OK); // Or any other status you want

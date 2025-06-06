@@ -8,9 +8,16 @@ import jakarta.servlet.http.HttpServletRequest;
 @Controller
 public class ReactController {
 
-  @RequestMapping(value = {"/{path:[^\\.]*}", "/{path:^(?!api).*}/{id:[^\\.]*}"})
+  @RequestMapping(value = {"/{path:[^\\.]*}", "/{path:^(?!api|ws).*}/{id:[^\\.]*}"})
   public String redirect(HttpServletRequest request) {
-    System.out.println("ReactController handling path: " + request.getRequestURI());
+    String uri = request.getRequestURI();
+    
+    // Skip backend-specific paths
+    if (uri.startsWith("/api") || uri.startsWith("/ws") || uri.startsWith("/actuator")) {
+      return null; // Let Spring handle it
+    }
+
+    System.out.println("ReactController handling path: " + uri);
     return "forward:/index.html";
   }
 }

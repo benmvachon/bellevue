@@ -1,14 +1,14 @@
 package com.village.bellevue;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
-import com.village.bellevue.integration.IntegrationTestWrapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
+
+import com.village.bellevue.integration.IntegrationTestWrapper;
 
 @SpringBootTest
 class BellevueApplicationTests extends IntegrationTestWrapper {
@@ -41,24 +41,21 @@ class BellevueApplicationTests extends IntegrationTestWrapper {
     assertThat(applicationContext.getBean("friendRepository")).isNotNull();
     assertThat(applicationContext.getBean("friendServiceImpl")).isNotNull();
 
-    assertThat(applicationContext.getBean("ingredientController")).isNotNull();
-    assertThat(applicationContext.getBean("ingredientRepository")).isNotNull();
-    assertThat(applicationContext.getBean("ingredientServiceImpl")).isNotNull();
+    assertThat(applicationContext.getBean("forumController")).isNotNull();
+    assertThat(applicationContext.getBean("forumRepository")).isNotNull();
+    assertThat(applicationContext.getBean("forumServiceImpl")).isNotNull();
 
-    assertThat(applicationContext.getBean("recipeController")).isNotNull();
-    assertThat(applicationContext.getBean("recipeRepository")).isNotNull();
-    assertThat(applicationContext.getBean("recipeServiceImpl")).isNotNull();
+    assertThat(applicationContext.getBean("postController")).isNotNull();
+    assertThat(applicationContext.getBean("postRepository")).isNotNull();
+    assertThat(applicationContext.getBean("postServiceImpl")).isNotNull();
 
-    assertThat(applicationContext.getBean("reviewController")).isNotNull();
-    assertThat(applicationContext.getBean("reviewRepository")).isNotNull();
-    assertThat(applicationContext.getBean("reviewServiceImpl")).isNotNull();
-
-    assertThat(applicationContext.getBean("skillController")).isNotNull();
-    assertThat(applicationContext.getBean("skillRepository")).isNotNull();
-    assertThat(applicationContext.getBean("skillServiceImpl")).isNotNull();
+    assertThat(applicationContext.getBean("ratingController")).isNotNull();
+    assertThat(applicationContext.getBean("ratingRepository")).isNotNull();
+    assertThat(applicationContext.getBean("ratingServiceImpl")).isNotNull();
 
     assertThat(applicationContext.getBean("aggregateRatingRepository")).isNotNull();
-    assertThat(applicationContext.getBean("scrubbedUserRepository")).isNotNull();
+    assertThat(applicationContext.getBean("userProfileRepository")).isNotNull();
+    assertThat(applicationContext.getBean("profileRepository")).isNotNull();
     assertThat(applicationContext.getBean("userRepository")).isNotNull();
   }
 

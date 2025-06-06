@@ -1,9 +1,11 @@
 package com.village.bellevue.entity.id;
 
-import com.village.bellevue.entity.ScrubbedUserEntity;
-import jakarta.persistence.Embeddable;
 import java.io.Serializable;
 import java.util.Objects;
+
+import com.village.bellevue.entity.UserProfileEntity;
+
+import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,12 +19,12 @@ import lombok.Setter;
 public class FriendId implements Serializable {
 
   private Long user;
-  private ScrubbedUserEntity friend;
+  private UserProfileEntity friend;
 
   public FriendId(Long user, Long friend) {
     this.user = user;
-    this.friend = new ScrubbedUserEntity();
-    this.friend.setId(friend);
+    this.friend = new UserProfileEntity();
+    this.friend.setUser(friend);
   }
 
   @Override
@@ -34,11 +36,11 @@ public class FriendId implements Serializable {
       return false;
     }
     FriendId that = (FriendId) o;
-    return Objects.equals(user, that.user) && Objects.equals(friend.getId(), that.friend.getId());
+    return Objects.equals(user, that.user) && Objects.equals(friend.getUser(), that.friend.getUser());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(user, friend.getId());
+    return Objects.hash(user, friend.getUser());
   }
 }

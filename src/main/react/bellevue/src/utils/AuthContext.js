@@ -8,7 +8,9 @@ export const AuthProvider = ({ children }) => {
   const storedAuth = localStorage.getItem('isAuthenticated');
   const storedUserId = localStorage.getItem('userId');
   const [isAuthenticated, setIsAuthenticated] = useState(storedAuth === 'true');
-  const [userId, setUserId] = useState(storedUserId);
+  const [userId, setUserId] = useState(
+    storedUserId ? Number.parseInt(storedUserId) : -1
+  );
 
   const handleLogin = (username, password, callback, error) => {
     login(
@@ -54,5 +56,7 @@ export const AuthProvider = ({ children }) => {
 AuthProvider.propTypes = {
   children: PropTypes.node.isRequired
 };
+
+AuthContext.displayName = 'AuthContext';
 
 export const useAuth = () => useContext(AuthContext);

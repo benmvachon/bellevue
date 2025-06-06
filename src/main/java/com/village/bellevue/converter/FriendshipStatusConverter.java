@@ -1,6 +1,7 @@
 package com.village.bellevue.converter;
 
 import com.village.bellevue.entity.FriendEntity.FriendshipStatus;
+
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
@@ -8,7 +9,7 @@ import jakarta.persistence.Converter;
 public class FriendshipStatusConverter implements AttributeConverter<FriendshipStatus, String> {
   @Override
   public String convertToDatabaseColumn(FriendshipStatus value) {
-    return value != null ? value.toString().toLowerCase() : null;
+    return value != null ? value.toString().toUpperCase() : null;
   }
 
   @Override

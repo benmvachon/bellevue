@@ -30,10 +30,12 @@ public class FriendEntity {
   @Id
   @ManyToOne
   @JoinColumn(name = "friend", nullable = false)
-  private ScrubbedUserEntity friend;
+  private UserProfileEntity friend;
 
   @Column(nullable = false)
   private FriendshipStatus status = FriendshipStatus.PENDING_THEM;
+
+  private Long score = 0l;
 
   private Timestamp created = new Timestamp(System.currentTimeMillis());
   private Timestamp updated = new Timestamp(System.currentTimeMillis());
@@ -47,7 +49,7 @@ public class FriendEntity {
 
     @JsonValue
     public String toValue() {
-      return this.name().toLowerCase();
+      return this.name().toUpperCase();
     }
 
     @JsonCreator

@@ -108,4 +108,6 @@ function SignupPage() {
   );
 }
 
+SignupPage.displayName = 'SignupPage';
+
 export default SignupPage;

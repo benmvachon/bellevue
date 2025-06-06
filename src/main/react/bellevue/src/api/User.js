@@ -1,10 +1,10 @@
 class User {
-  constructor(id, name, username, status = 'OFFLINE', avatar = 'CAT') {
+  constructor(id, name, username, email, password) {
     this.id = id;
     this.name = name;
     this.username = username;
-    this.status = status;
-    this.avatar = avatar;
+    this.email = email;
+    this.password = password;
   }
 
   static fromJSON(json) {
@@ -12,8 +12,8 @@ class User {
       json.id,
       json.name,
       json.username,
-      json.status,
-      json.avatar
+      json.email,
+      json.password
     );
   }
 
@@ -22,8 +22,8 @@ class User {
       id: this.id,
       name: this.name,
       username: this.username,
-      status: this.status,
-      avatar: this.avatar
+      email: this.email,
+      password: this.password
     };
   }
 }

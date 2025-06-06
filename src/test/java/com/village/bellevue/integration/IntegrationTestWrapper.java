@@ -1,15 +1,18 @@
 package com.village.bellevue.integration;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.village.bellevue.entity.ReviewEntity;
-import com.village.bellevue.entity.SimpleRecipeEntity;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.springframework.data.web.PagedModel;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.village.bellevue.entity.ForumEntity;
+import com.village.bellevue.entity.RatingEntity;
+import com.village.bellevue.model.PostModel;
 
 public abstract class IntegrationTestWrapper {
 
@@ -48,26 +51,39 @@ public abstract class IntegrationTestWrapper {
     }
   }
 
-  public ObjectMapper recipeMapperWithPageSupport() {
+  public ObjectMapper forumMapperWithPageSupport() {
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.registerModule(new JavaTimeModule());
+
+    // Register the custom deserializer for ForumEntity
+    SimpleModule module = new SimpleModule();
+    module.addDeserializer(
+        PagedModel.class, new PagedModelDeserializer<>(ForumEntity.class));
+    mapper.registerModule(module);
+
+    return mapper;
+  }
+
+  public ObjectMapper postMapperWithPageSupport() {
     ObjectMapper mapper = new ObjectMapper();
     mapper.registerModule(new JavaTimeModule());
 
     // Register the custom deserializer for PagedModel
     SimpleModule module = new SimpleModule();
     module.addDeserializer(
-        PagedModel.class, new PagedModelDeserializer<>(SimpleRecipeEntity.class));
+        PagedModel.class, new PagedModelDeserializer<>(PostModel.class));
     mapper.registerModule(module);
 
     return mapper;
   }
 
-  public ObjectMapper reviewMapperWithPageSupport() {
+  public ObjectMapper ratingMapperWithPageSupport() {
     ObjectMapper mapper = new ObjectMapper();
     mapper.registerModule(new JavaTimeModule());
 
-    // Register the custom deserializer for PagedModel
+    // Register the custom deserializer for RatingEntity
     SimpleModule module = new SimpleModule();
-    module.addDeserializer(PagedModel.class, new PagedModelDeserializer<>(ReviewEntity.class));
+    module.addDeserializer(PagedModel.class, new PagedModelDeserializer<>(RatingEntity.class));
     mapper.registerModule(module);
 
     return mapper;

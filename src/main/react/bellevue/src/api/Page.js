@@ -1,51 +1,26 @@
 class Page {
-  constructor(
-    content = [],
-    totalPages = 0,
-    totalElements = 0,
-    last = true,
-    first = true,
-    numberOfElements = 0,
-    size = 0,
-    number = 0,
-    empty = true
-  ) {
-    this.content = content;
-    this.totalPages = totalPages;
-    this.totalElements = totalElements;
-    this.last = last;
-    this.first = first;
-    this.numberOfElements = numberOfElements;
-    this.size = size;
-    this.number = number;
-    this.empty = empty;
+  constructor(page, _embedded, _links, contentMapper) {
+    this.size = page.size;
+    this.totalPages = page.totalPages;
+    this.totalElements = page.totalElements;
+    this.number = page.number;
+
+    this.content = contentMapper?.fromPage(_embedded) || [];
+
+    // TODO: process _links
   }
 
-  static fromJSON(json) {
-    return new Page(
-      json.content,
-      json.totalPages,
-      json.totalElements,
-      json.last,
-      json.first,
-      json.numberOfElements,
-      json.size,
-      json.number,
-      json.empty
-    );
+  static fromJSON(json, contentMapper) {
+    return new Page(json.page, json._embedded, json._links, contentMapper);
   }
 
   toJSON() {
     return {
-      content: this.content,
+      size: this.size,
       totalPages: this.totalPages,
       totalElements: this.totalElements,
-      last: this.last,
-      first: this.first,
-      numberOfElements: this.numberOfElements,
-      size: this.size,
       number: this.number,
-      empty: this.empty
+      content: this.content
     };
   }
 }

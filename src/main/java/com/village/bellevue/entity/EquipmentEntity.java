@@ -1,10 +1,14 @@
 package com.village.bellevue.entity;
 
-import jakarta.persistence.Column;
+import java.sql.Timestamp;
+
+import com.village.bellevue.entity.id.EquipmentId;
+
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,11 +19,16 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 @Table(name = "equipment")
+@IdClass(EquipmentId.class)
 public class EquipmentEntity {
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+  private Long user;
 
-  @Column(unique = true, nullable = false)
-  private String name;
+  @Id
+  @ManyToOne
+  @JoinColumn(name = "item", nullable = false)
+  private ItemEntity item;
+
+  private boolean equipped;
+  private Timestamp unlocked = new Timestamp(System.currentTimeMillis());
 }

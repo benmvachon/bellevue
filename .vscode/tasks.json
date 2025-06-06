@@ -1,35 +1,84 @@
 {
-    "version": "2.0.0",
-    "tasks": [
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Start Docker Containers",
+      "type": "shell",
+      "command": "docker-compose",
+      "args": ["up", "-d"],
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Wait for MySQL",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-c",
+        "while [[ \"$(docker inspect -f '{{.State.Health.Status}}' mysql_db)\" != \"healthy\" ]]; do sleep 2; done"
+      ],
+      "problemMatcher": [],
+      "dependsOn": "Start Docker Containers"
+    },
+    {
+      "label": "Watch Frontend",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "watch"],
+      "options": {
+        "cwd": "${workspaceFolder}/src/main/react/bellevue"
+      },
+      "isBackground": true,
+      "problemMatcher": [
         {
-            "label": "Start Docker Containers",
-            "type": "shell",
-            "command": "docker-compose",
-            "args": ["up", "-d"],
-            "problemMatcher": [],
-            "group": {
-                "kind": "build",
-                "isDefault": true
+          "pattern": [
+            {
+              "regexp": ".",
+              "file": 1,
+              "location": 2,
+              "message": 3
             }
-        },
-        {
-            "label": "Wait for MySQL",
-            "type": "shell",
-            "command": "bash",
-            "args": [
-                "-c",
-                "while [[ \"$(docker inspect -f '{{.State.Health.Status}}' mysql_db)\" != \"healthy\" ]]; do sleep 2; done"
-            ],
-            "problemMatcher": [],
-            "dependsOn": "Start Docker Containers"
-        },
-        {
-            "label": "Stop Docker Containers",
-            "type": "shell",
-            "command": "docker-compose",
-            "args": ["down"],
-            "problemMatcher": [],
-            "group": "none"
+          ],
+          "background": {
+            "activeOnStart": true,
+            "beginsPattern": ".*",
+            "endsPattern": ".*"
+          }
         }
-    ]
+      ]
+    },
+    {
+      "label": "Run All Prelaunch Tasks",
+      "dependsOn": ["Wait for MySQL", "Watch Frontend"],
+      "dependsOrder": "sequence"
+    },
+    {
+      "label": "Stop Docker Containers",
+      "type": "shell",
+      "command": "docker-compose",
+      "args": ["down"],
+      "problemMatcher": [],
+      "group": "none"
+    },
+    {
+      "label": "Terminate All Tasks",
+      "command": "echo ${input:terminate}",
+      "type": "shell",
+      "problemMatcher": [],
+      "group": "none",
+      "dependsOn": ["Stop Docker Containers"],
+      "dependsOrder": "sequence"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "terminate",
+      "type": "command",
+      "command": "workbench.action.tasks.terminate",
+      "args": "terminateAll"
+    }
+  ]
 }

@@ -1,9 +1,13 @@
 package com.village.bellevue.controller;
 
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -14,18 +18,30 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.village.bellevue.assembler.ProfileModelAssembler;
 import static com.village.bellevue.config.security.SecurityConfig.getAuthenticatedUserId;
-import com.village.bellevue.entity.FriendEntity;
 import com.village.bellevue.entity.FriendEntity.FriendshipStatus;
-import com.village.bellevue.entity.ScrubbedUserEntity;
 import com.village.bellevue.error.FriendshipException;
+import com.village.bellevue.model.ProfileModel;
 import com.village.bellevue.service.FriendService;
 
 @RestController
 @RequestMapping("/api/friend")
 public class FriendController {
 
-  @Autowired private FriendService friendService;
+  private final FriendService friendService;
+  private final ProfileModelAssembler profileModelAssembler;
+  private final PagedResourcesAssembler<ProfileModel> pagedAssembler;
+
+  public FriendController(
+    FriendService friendService,
+    ProfileModelAssembler profileModelAssembler,
+    PagedResourcesAssembler<ProfileModel> pagedAssembler
+  ) {
+    this.friendService = friendService;
+    this.profileModelAssembler = profileModelAssembler;
+    this.pagedAssembler = pagedAssembler;
+  }
 
   @PostMapping("/{user}/request")
   public ResponseEntity<String> request(@PathVariable Long user) {
@@ -37,13 +53,32 @@ public class FriendController {
     }
   }
 
-  @GetMapping("/{user}")
-  public ResponseEntity<ScrubbedUserEntity> read(@PathVariable Long user) {
+  @GetMapping
+  public ResponseEntity<PagedModel<EntityModel<ProfileModel>>> read(
+    @RequestParam(defaultValue = "") String query,
+    @RequestParam(required = false) List<Long> excluded,
+    @RequestParam(defaultValue = "0") int page,
+    @RequestParam(defaultValue = "10") int size
+  ) {
     try {
-      Optional<ScrubbedUserEntity> friend = friendService.read(user);
-      return friend
-          .map(ResponseEntity::ok)
-          .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+      if (Objects.nonNull(query) && query.trim().isEmpty()) query = null;
+      Page<ProfileModel> friends = friendService.readAll(query, excluded, page, size);
+      PagedModel<EntityModel<ProfileModel>> pagedModel = pagedAssembler.toModel(friends, profileModelAssembler);
+      return ResponseEntity.ok(pagedModel);
+    } catch (FriendshipException e) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    }
+  }
+
+  @GetMapping("/suggestions")
+  public ResponseEntity<PagedModel<EntityModel<ProfileModel>>> readSuggestions(
+    @RequestParam(defaultValue = "0") int page,
+    @RequestParam(defaultValue = "10") int size
+  ) {
+    try {
+      Page<ProfileModel> friends = friendService.readSuggestions(page, size);
+      PagedModel<EntityModel<ProfileModel>> pagedModel = pagedAssembler.toModel(friends, profileModelAssembler);
+      return ResponseEntity.ok(pagedModel);
     } catch (FriendshipException e) {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
@@ -66,13 +101,17 @@ public class FriendController {
   }
 
   @GetMapping("/{user}/friends")
-  public ResponseEntity<Page<FriendEntity>> read(
-      @PathVariable Long user,
-      @RequestParam(name = "p", defaultValue = "0") int page,
-      @RequestParam(name = "n", defaultValue = "5") int size) {
+  public ResponseEntity<PagedModel<EntityModel<ProfileModel>>> read(
+    @PathVariable Long user,
+    @RequestParam(defaultValue = "") String query,
+    @RequestParam(defaultValue = "0") int page,
+    @RequestParam(defaultValue = "10") int size
+  ) {
     try {
-      Page<FriendEntity> friends = friendService.readAll(user, page, size);
-      return ResponseEntity.ok(friends);
+      if (Objects.nonNull(query) && query.trim().isEmpty()) query = null;
+      Page<ProfileModel> friends = friendService.readAll(user, query, page, size);
+      PagedModel<EntityModel<ProfileModel>> pagedModel = pagedAssembler.toModel(friends, profileModelAssembler);
+      return ResponseEntity.ok(pagedModel);
     } catch (FriendshipException e) {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }

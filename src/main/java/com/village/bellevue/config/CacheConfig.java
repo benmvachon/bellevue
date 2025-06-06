@@ -2,10 +2,12 @@ package com.village.bellevue.config;
 
 import java.time.Duration;
 import java.util.Set;
+
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -22,8 +24,7 @@ public class CacheConfig {
   public static final String CACHE_WILDCARD_MATCH = "*";
 
   public static final String FRIENDSHIP_STATUS_CACHE_NAME = "friendshipStatusCache";
-  public static final String RECIPE_SECURITY_CACHE_NAME = "recipeSecurityCache";
-  public static final String REVIEW_SECURITY_CACHE_NAME = "reviewSecurityCache";
+  public static final String POST_SECURITY_CACHE_NAME = "postSecurityCache";
 
   public static void evictKeysByPattern(
       RedisTemplate<String, Object> redisTemplate, String cacheName, String pattern) {
@@ -46,7 +47,8 @@ public class CacheConfig {
   }
 
   @Bean
-  public CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
+  @Primary
+  CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
     RedisCacheConfiguration config =
         RedisCacheConfiguration.defaultCacheConfig()
             .serializeKeysWith(
@@ -61,7 +63,7 @@ public class CacheConfig {
   }
 
   @Bean
-  public RedisTemplate<String, Object> redisTemplate(
+  RedisTemplate<String, Object> redisTemplate(
       RedisConnectionFactory redisConnectionFactory) {
     RedisTemplate<String, Object> template = new RedisTemplate<>();
     template.setConnectionFactory(redisConnectionFactory);

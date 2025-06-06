@@ -1,18 +1,23 @@
 package com.village.bellevue.config.security;
 
-import com.village.bellevue.repository.UserRepository;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.stereotype.Component;
+
+import com.village.bellevue.service.ActivityService;
+
 import jakarta.servlet.annotation.WebListener;
 import jakarta.servlet.http.HttpSessionEvent;
 import jakarta.servlet.http.HttpSessionListener;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.stereotype.Component;
 
 @Component
 @WebListener
 public class SessionExpirationListener implements HttpSessionListener {
 
-  @Autowired private UserRepository userRepository;
+  private final ActivityService activityService;
+
+  public SessionExpirationListener(ActivityService activityService) {
+    this.activityService = activityService;
+  }
 
   @Override
   public void sessionDestroyed(HttpSessionEvent event) {
@@ -23,7 +28,7 @@ public class SessionExpirationListener implements HttpSessionListener {
           (UserDetailsImpl) securityContext.getAuthentication().getPrincipal();
       if (userDetails != null) {
         Long userId = userDetails.getId();
-        userRepository.setUserStatusOffline(userId);
+        activityService.markUserOffline(userId);
       }
     }
   }

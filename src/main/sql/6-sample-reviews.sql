@@ -1,19 +1,76 @@
-SET @p_output_id = 0; -- Initialize the variable
+-- Ratings for post ID 1 (by user 1)
+CALL add_or_update_rating(20, 1, 'five');
+CALL add_or_update_rating(7, 1, 'four');
+CALL add_or_update_rating(6, 1, 'five');
 
-CALL add_review(2, 1, 'splendidly', 'my cat, Monkey, loved this', @p_output_id);
-CALL add_review(20, 1, 'muddlingly', 'I dont think I like chickpeas', @p_output_id);
-CALL add_review(3, 1, 'disastrously', 'I burned down the house', @p_output_id);
-CALL add_review(7, 1, 'jubilantly', 'this is actually the best thing Ive ever eaten', @p_output_id);
-CALL add_review(5, 1, 'admirably', 'this was my first time every cooking', @p_output_id);
+-- Ratings for post ID 2 (by user 3)
+CALL add_or_update_rating(1, 2, 'three');
+CALL add_or_update_rating(5, 2, 'four');
 
-CALL add_review(6, 2, 'splendidly', 'creamy', @p_output_id);
-CALL add_review(14, 2, 'muddlingly', 'this would be better without the spinach', @p_output_id);
-CALL add_review(3, 2, 'disastrously', 'it took me an hour to chop the garlic', @p_output_id);
-CALL add_review(14, 2, 'jubilantly', 'pasta is my favorite', @p_output_id);
+-- Ratings for post ID 3 (by user 5)
+CALL add_or_update_rating(18, 3, 'five');
+CALL add_or_update_rating(3, 3, 'four');
+CALL add_or_update_rating(9, 3, 'five');
 
-CALL add_review(8, 3, 'jubilantly', 'Ive never been so full and satisfied by a meal', @p_output_id);
-CALL add_review(12, 3, 'admirably', 'I need to practice grilling more but this was good', @p_output_id);
+-- Ratings for post ID 4 (by user 6)
+CALL add_or_update_rating(1, 4, 'two');
+CALL add_or_update_rating(4, 4, 'three');
 
-CALL add_review(12, 4, 'splendidly', 'so sweet', @p_output_id);
-CALL add_review(15, 4, 'muddlingly', 'I dont like that the inside of the avocado was referred to as "flesh"', @p_output_id);
-CALL add_review(17, 4, 'admirably', 'its not as good as it would be with cream, but avocado makes a good substitute', @p_output_id);
+-- Ratings for post ID 5 (by user 8)
+CALL add_or_update_rating(4, 5, 'five');
+CALL add_or_update_rating(11, 5, 'four');
+
+-- Ratings for post ID 6 (by user 9)
+CALL add_or_update_rating(13, 6, 'five');
+CALL add_or_update_rating(5, 6, 'four');
+
+-- Ratings for post ID 7 (by user 12)
+CALL add_or_update_rating(11, 7, 'four');
+CALL add_or_update_rating(16, 7, 'five');
+
+-- Ratings for post ID 8 (by user 14)
+CALL add_or_update_rating(4, 8, 'five');
+CALL add_or_update_rating(15, 8, 'five');
+
+-- Ratings for post ID 9 (by user 15)
+CALL add_or_update_rating(16, 9, 'four');
+CALL add_or_update_rating(17, 9, 'five');
+
+-- Ratings for post ID 10 (by user 19)
+CALL add_or_update_rating(18, 10, 'five');
+CALL add_or_update_rating(20, 10, 'four');
+
+-- Ratings for post ID 11 (by user 2)
+CALL add_or_update_rating(2, 11, 'three');
+CALL add_or_update_rating(7, 11, 'five');
+
+-- Ratings for post ID 12 (by user 7)
+CALL add_or_update_rating(2, 12, 'two');
+CALL add_or_update_rating(1, 12, 'four');
+
+-- Ratings for post ID 13 (by user 4)
+CALL add_or_update_rating(3, 13, 'five');
+
+-- Ratings for post ID 14 (by user 7)
+CALL add_or_update_rating(1, 14, 'three');
+CALL add_or_update_rating(2, 14, 'five');
+
+-- Ratings for post ID 15 (by user 10)
+CALL add_or_update_rating(4, 15, 'four');
+CALL add_or_update_rating(6, 15, 'five');
+
+-- Ratings for post ID 17 (by user 13)
+CALL add_or_update_rating(9, 17, 'five');
+
+-- Ratings for post ID 18 (by user 16)
+CALL add_or_update_rating(12, 18, 'five');
+
+-- Ratings for post ID 19 (by user 19)
+CALL add_or_update_rating(14, 19, 'five');
+
+-- Ratings for post ID 20 (by user 17)
+CALL add_or_update_rating(15, 20, 'three');
+CALL add_or_update_rating(16, 20, 'five');
+
+-- Ratings for post ID 21 (by user 20)
+CALL add_or_update_rating(19, 21, 'five');

@@ -5,7 +5,9 @@ import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import static org.springframework.security.config.Customizer.withDefaults;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.GlobalAuthenticationConfigurerAdapter;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -23,6 +25,7 @@ import jakarta.servlet.http.HttpServletResponse;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig extends GlobalAuthenticationConfigurerAdapter {
+  private static final Logger log = LoggerFactory.getLogger(SecurityConfig.class);
 
   @Autowired private UserDetailsServiceImpl userDetailsService;
   @Autowired PasswordEncoder passwordEncoder;
@@ -30,52 +33,48 @@ public class SecurityConfig extends GlobalAuthenticationConfigurerAdapter {
   @Autowired LogoutSuccessHandlerImpl logoutSuccessHandler;
 
   @Bean
-  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    http.csrf(csrf -> csrf.disable()) // Disable CSRF for testing; enable in production
-        .authorizeHttpRequests(
-            authorize ->
-                authorize
-                    .requestMatchers(
-                        "/index.html",
-                        "/api/user/login",
-                        "/api/user/signup",
-                        "/api/user/logout",
-                        "/login",
-                        "/logout",
-                        "signup",
-                        "/resources/**",
-                        "/static/**")
-                    .permitAll()
-                    .anyRequest()
-                    .authenticated())
-        .formLogin(
-            form ->
-                form.loginPage("/login")
-                    .loginProcessingUrl("/api/user/login")
-                    .successHandler(authenticationSuccessHandler)
-                    .failureHandler(customAuthenticationFailureHandler())
-                    // .defaultSuccessUrl("/", true)
-                    .permitAll())
-        .sessionManagement(
-            session ->
-                session
-                    .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
-                    .maximumSessions(1)
-                    .expiredUrl("/login?expired=true"))
-        .logout(
-            logout ->
-                logout
-                    .logoutUrl("/api/user/logout")
-                    .logoutSuccessUrl("/login?logout=true")
-                    .logoutSuccessHandler(logoutSuccessHandler)
-                    .permitAll())
-        .httpBasic(withDefaults());
+  SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    http
+      .csrf(csrf -> csrf.disable()) // Consider enabling CSRF in production
+      .authorizeHttpRequests(authz -> authz
+          .requestMatchers(
+              "/index.html",
+              "/api/user/login",
+              "/api/user/signup",
+              "/api/user/logout",
+              "/login",
+              "/logout",
+              "/signup",
+              "/resources/**",
+              "/static/**")
+          .permitAll()
+          .anyRequest()
+          .authenticated()
+      )
+      .formLogin(form -> form
+          .loginPage("/login")
+          .permitAll()
+          .successHandler(authenticationSuccessHandler)
+          .failureHandler(customAuthenticationFailureHandler())
+      )
+      .sessionManagement(session -> session
+          .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
+          .maximumSessions(1)
+          .expiredUrl("/login?expired=true")
+      )
+      .logout(logout -> logout
+          .logoutUrl("/api/user/logout")
+          .logoutSuccessUrl("/login?logout=true")
+          .logoutSuccessHandler(logoutSuccessHandler)
+          .permitAll()
+      );
+  
     return http.build();
   }
 
   @SuppressWarnings("unused")
   @Bean
-  public AuthenticationFailureHandler customAuthenticationFailureHandler() {
+  AuthenticationFailureHandler customAuthenticationFailureHandler() {
     return (request, response, exception) -> {
       response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401 Unauthorized
       response.setContentType("application/json");
@@ -84,7 +83,7 @@ public class SecurityConfig extends GlobalAuthenticationConfigurerAdapter {
   }
 
   @Bean
-  public ServletContextInitializer servletContextInitializer(
+  ServletContextInitializer servletContextInitializer(
       SessionExpirationListener sessionExpirationListener) {
     return (ServletContext servletContext) -> {
       servletContext.addListener(sessionExpirationListener);
@@ -92,7 +91,7 @@ public class SecurityConfig extends GlobalAuthenticationConfigurerAdapter {
   }
 
   @Bean
-  public AuthenticationManager authManager(HttpSecurity http) throws Exception {
+  AuthenticationManager authManager(HttpSecurity http) throws Exception {
     AuthenticationManagerBuilder authenticationManagerBuilder =
         http.getSharedObject(AuthenticationManagerBuilder.class);
     authenticationManagerBuilder
@@ -107,6 +106,7 @@ public class SecurityConfig extends GlobalAuthenticationConfigurerAdapter {
         && authentication.isAuthenticated()
         && !"anonymousUser".equals(authentication.getPrincipal())) {
       UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+      log.debug("Request from user: " + userDetails.getId());
       return userDetails.getId();
     }
     return null;

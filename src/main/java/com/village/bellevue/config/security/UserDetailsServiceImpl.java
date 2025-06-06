@@ -1,15 +1,13 @@
 package com.village.bellevue.config.security;
 
-import static com.village.bellevue.config.security.SecurityConfig.getAuthenticatedUserId;
-
-import com.village.bellevue.entity.ScrubbedUserEntity;
-import com.village.bellevue.entity.UserEntity;
-import com.village.bellevue.error.AuthorizationException;
-import com.village.bellevue.repository.UserRepository;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Types;
+import java.util.Map;
+
 import javax.sql.DataSource;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,6 +18,13 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.village.bellevue.config.security.SecurityConfig.getAuthenticatedUserId;
+import com.village.bellevue.entity.UserEntity;
+import com.village.bellevue.entity.UserProfileEntity;
+import com.village.bellevue.error.AuthorizationException;
+import com.village.bellevue.model.ProfileModel;
+import com.village.bellevue.repository.UserRepository;
 
 @Service
 @Configuration
@@ -39,16 +44,51 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     return new UserDetailsImpl(user);
   }
 
-  public ScrubbedUserEntity create(UserEntity user) {
+  @Transactional(timeout = 30)
+  public ProfileModel create(UserEntity user) throws AuthorizationException {
+    user.setPassword(passwordEncoder.encode(user.getPassword()));
     if (getAuthenticatedUserId() == null) {
-      user.setPassword(passwordEncoder.encode(user.getPassword()));
-      user = userRepository.save(user);
-      return new ScrubbedUserEntity(user);
+      try (Connection connection = dataSource.getConnection();
+           CallableStatement stmt = connection.prepareCall("{call add_user(?, ?, ?, ?, ?, ?, ?)}")) {
+  
+        // Set input parameters (1–4)
+        stmt.setString(1, user.getName());
+        stmt.setString(2, user.getUsername());
+        stmt.setString(3, user.getEmail());
+        stmt.setBytes(4, user.getPassword().getBytes()); // Assuming password is BINARY(60)
+  
+        // Register output parameters (5–6)
+        stmt.registerOutParameter(5, Types.INTEGER);     // p_user_id
+        stmt.registerOutParameter(6, Types.VARCHAR);     // p_avatar_name
+        stmt.registerOutParameter(7, Types.VARCHAR);     // p_hat_name
+  
+        stmt.executeUpdate();
+  
+        // Retrieve output values
+        Long userId = stmt.getLong(5);
+        String avatarName = stmt.getString(6);
+        String hatName = stmt.getString(7);
+  
+        if (stmt.wasNull()) {
+          throw new AuthorizationException("User creation failed — user ID is null.");
+        }
+  
+        // Construct the user profile entity (or whatever object you use)
+        user.setId(userId); // Assuming UserEntity has an ID field
+        UserProfileEntity profile = new UserProfileEntity(user, avatarName);
+        profile.setEquipment(Map.of("hat", hatName));
+        return new ProfileModel(profile);
+  
+      } catch (SQLException e) {
+        throw new AuthorizationException(
+          "Failed to create user. SQL command error: " + e.getMessage(), e);
+      }
     }
     return null;
   }
+  
 
-  @Transactional
+  @Transactional(timeout = 30)
   public void delete() throws AuthorizationException {
     Long user = getAuthenticatedUserId();
     try (Connection connection = dataSource.getConnection();
