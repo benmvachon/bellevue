@@ -16,8 +16,11 @@ public class CorsConfig {
       public void addCorsMappings(@NonNull CorsRegistry registry) {
         registry
             .addMapping("/**")
-            .allowedOrigins("http://localhost:3000")
-            .allowedOrigins("http://192.168.1.155:8080")
+            .allowedOrigins(
+              "http://localhost:8080",
+              "http://localhost:3000",
+              "https://bellevue-app.fly.dev"
+            )
             .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
             .allowedHeaders("*")
             .allowCredentials(true);

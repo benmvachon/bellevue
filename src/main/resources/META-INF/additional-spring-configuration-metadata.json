@@ -48,5 +48,15 @@
     "name": "async.datasource.hikari.validation-timeout",
     "type": "java.lang.String",
     "description": "A description for 'async.datasource.hikari.validation-timeout'"
+  },
+  {
+    "name": "spring.rabbitmq.stomp.host",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.rabbitmq.stomp.host'"
+  },
+  {
+    "name": "spring.rabbitmq.stomp.port",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.rabbitmq.stomp.port'"
   }
 ]}

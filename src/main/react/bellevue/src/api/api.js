@@ -11,10 +11,8 @@ import Favorite from './Favorite.js';
 import SockJS from 'sockjs-client';
 import { Client } from '@stomp/stompjs';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
-
 export const api = axios.create({
-  baseURL: `${API_BASE_URL ? API_BASE_URL : ''}/api`,
+  baseURL: '/api',
   withCredentials: true
 });
 
@@ -130,13 +128,8 @@ export const subscribe = async (destination, onMessage) => {
   const client = await getClient();
 
   const sub = client.subscribe(destination, (message) => {
-    try {
-      const body = JSON.parse(message.body);
-      onMessage(body);
-    } catch (e) {
-      console.warn('[STOMP] Received non-JSON message', message.body);
-      onMessage(message.body); // Fallback to raw
-    }
+    console.warn('[STOMP] Received non-JSON message', message.body);
+    onMessage(message.body);
   });
 
   subscriptions.set(destination, sub);
@@ -159,7 +152,7 @@ export const logout = (callback, error) => {
 };
 
 export const signup = (name, username, email, password, callback, error) => {
-  const newUser = new User(name, username, email, password);
+  const newUser = new User(undefined, name, username, email, password);
   api.post('/user/signup', newUser.toJSON()).then(callback).catch(error);
 };
 

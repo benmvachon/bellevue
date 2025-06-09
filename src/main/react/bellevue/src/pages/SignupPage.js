@@ -2,14 +2,15 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../utils/AuthContext';
 import { signup } from '../api/api.js';
+import NoAuthHeader from '../components/NoAuthHeader.js';
 
 function SignupPage() {
   const navigate = useNavigate();
   const { handleLogin, handleLogout, isAuthenticated } = useAuth();
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [avatar, setAvatar] = useState();
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -23,15 +24,15 @@ function SignupPage() {
     signup(
       name,
       username,
+      email,
       password,
-      avatar,
       (response) => {
         handleLogin(
           username,
           password,
           () => {
             setLoading(false);
-            navigate('/profile/1');
+            navigate('/');
           },
           () => {
             setError('Invalid username or password');
@@ -48,6 +49,7 @@ function SignupPage() {
 
   return (
     <div className="page signup-page">
+      <NoAuthHeader />
       <h1>Signup</h1>
       <form onSubmit={onSubmit}>
         <div>
@@ -73,6 +75,17 @@ function SignupPage() {
           />
         </div>
         <div>
+          <label htmlFor="password">Email:</label>
+          <input
+            type="email"
+            id="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            disabled={loading}
+          />
+        </div>
+        <div>
           <label htmlFor="password">Password:</label>
           <input
             type="password"
@@ -82,22 +95,6 @@ function SignupPage() {
             required
             disabled={loading}
           />
-        </div>
-        <div>
-          <label htmlFor="avatar">Favorite food:</label>
-          <select
-            id="avatar"
-            name="avatar"
-            value={avatar}
-            onChange={(e) => setAvatar(e.target.value)}
-          >
-            <option value="cat">Pizza</option>
-            <option value="raptor">Steak</option>
-            <option value="walrus">Sushi</option>
-            <option value="bee">Cake</option>
-            <option value="monkey">Smoothie</option>
-            <option value="horse">Salad</option>
-          </select>
         </div>
         {error && <p style={{ color: 'red' }}>{error}</p>}
         <button type="submit" disabled={loading}>

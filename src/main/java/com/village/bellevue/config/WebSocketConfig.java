@@ -2,6 +2,7 @@ package com.village.bellevue.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -20,6 +21,18 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
   private static final Logger log = LoggerFactory.getLogger(WebSocketConfig.class);
 
+  @Value("${spring.rabbitmq.host}")
+  private String rabbitMqHost;
+
+  @Value("${spring.rabbitmq.stomp.port:61613}")
+  private int rabbitMqStompPort;
+
+  @Value("${spring.rabbitmq.username}")
+  private String rabbitMqUsername;
+
+  @Value("${spring.rabbitmq.password}")
+  private String rabbitMqPassword;
+
   @Override
   public void registerStompEndpoints(StompEndpointRegistry registry) {
     registry.addEndpoint("/ws")
@@ -33,12 +46,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     registry.setApplicationDestinationPrefixes("/app");
 
     registry.enableStompBrokerRelay("/topic", "/queue")
-      .setRelayHost("localhost") // or "rabbitmq_broker" if running in Docker compose with service name
-      .setRelayPort(61613)
-      .setClientLogin("guest")
-      .setClientPasscode("guest")
-      .setSystemLogin("guest")
-      .setSystemPasscode("guest")
+      .setRelayHost(rabbitMqHost)
+      .setRelayPort(rabbitMqStompPort)
+      .setClientLogin(rabbitMqUsername)
+      .setClientPasscode(rabbitMqPassword)
+      .setSystemLogin(rabbitMqUsername)
+      .setSystemPasscode(rabbitMqPassword)
       .setSystemHeartbeatSendInterval(10000)
       .setSystemHeartbeatReceiveInterval(10000);
   }

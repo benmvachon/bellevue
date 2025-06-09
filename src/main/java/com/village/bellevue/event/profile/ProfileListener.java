@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import com.village.bellevue.event.type.AcceptanceEvent;
 import com.village.bellevue.event.type.BlackboardEvent;
+import com.village.bellevue.event.type.FriendRemovalEvent;
 import com.village.bellevue.event.type.LocationEvent;
 import com.village.bellevue.event.type.RequestEvent;
 import com.village.bellevue.event.type.StatusEvent;
@@ -38,6 +39,12 @@ public class ProfileListener {
   @EventListener
   public void handleEvent(RequestEvent event) {
     pingUsers(event.getUser(), event.getFriend(), "request");
+  }
+
+  @Async
+  @EventListener
+  public void handleEvent(FriendRemovalEvent event) {
+    pingUsers(event.getUser(), event.getFriend(), "removal");
   }
 
   @Async

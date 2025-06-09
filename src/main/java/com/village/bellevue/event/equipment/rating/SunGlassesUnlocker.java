@@ -27,12 +27,12 @@ public class SunGlassesUnlocker extends AbstractEquipmentRatingEventListener {
 
   @Override
   protected int getRequiredOccurances() {
-    return 20;
+    return 2000;
   }
 
   @Override
   protected int getRatingCountThresholdForPost() {
-    return 1;
+    return 1000;
   }
 
   @Override

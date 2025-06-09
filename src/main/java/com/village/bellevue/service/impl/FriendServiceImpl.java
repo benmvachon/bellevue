@@ -38,6 +38,7 @@ import com.village.bellevue.entity.id.FavoriteId;
 import com.village.bellevue.entity.id.FriendId;
 import com.village.bellevue.error.FriendshipException;
 import com.village.bellevue.event.type.AcceptanceEvent;
+import com.village.bellevue.event.type.FriendRemovalEvent;
 import com.village.bellevue.event.type.RequestEvent;
 import com.village.bellevue.model.ProfileModel;
 import com.village.bellevue.model.ProfileModelProvider;
@@ -239,8 +240,8 @@ public class FriendServiceImpl implements FriendService {
       success = true;
     } catch (SQLException e) {
       logger.error("Error accepting friend: {}", e.getMessage(), e);
-      throw new FriendshipException(
-          "Failed to accept friendship. SQL command error: " + e.getMessage(), e);
+      success = false;
+      throw new FriendshipException("Failed to accept friendship. SQL command error: " + e.getMessage(), e);
     } finally {
       evictCaches(user);
       if (success) publisher.publishEvent(new AcceptanceEvent(getAuthenticatedUserId(), user));
@@ -251,18 +252,19 @@ public class FriendServiceImpl implements FriendService {
   @Override
   @Transactional(value = "asyncTransactionManager", timeout = 300)
   public void block(Long user) throws FriendshipException {
+    boolean success = false;
     try (Connection connection = asyncDataSource.getConnection(); CallableStatement stmt = connection.prepareCall("{call block_friend(?, ?)}")) {
       stmt.setLong(1, getAuthenticatedUserId());
       stmt.setLong(2, user);
       stmt.executeUpdate();
+      success = true;
     } catch (SQLException e) {
       logger.error("Error blocking user: {}", e.getMessage(), e);
-      throw new FriendshipException(
-          "Failed to block user. SQL command error: " + e.getMessage(), e);
+      success = false;
+      throw new FriendshipException("Failed to block user. SQL command error: " + e.getMessage(), e);
     } finally {
-      entityManager.flush();
-      entityManager.clear(); // ensure the database is updated
       evictCaches(user);
+      if (success) publisher.publishEvent(new FriendRemovalEvent(getAuthenticatedUserId(), user));
     }
   }
 
@@ -270,18 +272,19 @@ public class FriendServiceImpl implements FriendService {
   @Override
   @Transactional(value = "asyncTransactionManager", timeout = 300)
   public void remove(Long user) throws FriendshipException {
+    boolean success = false;
     try (Connection connection = asyncDataSource.getConnection(); CallableStatement stmt = connection.prepareCall("{call remove_friend(?, ?)}")) {
       stmt.setLong(1, getAuthenticatedUserId());
       stmt.setLong(2, user);
       stmt.executeUpdate();
+      success = true;
     } catch (SQLException e) {
       logger.error("Error removing friend: {}", e.getMessage(), e);
-      throw new FriendshipException(
-          "Failed to remove friend. SQL command error: " + e.getMessage(), e);
+      success = false;
+      throw new FriendshipException("Failed to remove friend. SQL command error: " + e.getMessage(), e);
     } finally {
-      entityManager.flush();
-      entityManager.clear(); // ensure the database is updated
       evictCaches(user);
+      if (success) publisher.publishEvent(new FriendRemovalEvent(getAuthenticatedUserId(), user));
     }
   }
 
