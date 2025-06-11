@@ -12,6 +12,8 @@ primary_region = 'bos'
 [env]
   RABBITMQ_DEFAULT_PASS = 'guest'
   RABBITMQ_DEFAULT_USER = 'guest'
+  RABBITMQ_LOGS = "-"
+  RABBITMQ_LOG_LEVEL = "debug"
 
 [[services]]
   protocol = 'tcp'

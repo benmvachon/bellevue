@@ -1,5 +1,7 @@
 package com.village.bellevue.service.impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +25,8 @@ import com.village.bellevue.service.MessageService;
 @Service
 public class MessageServiceImpl implements MessageService {
 
+  private static final Logger logger = LoggerFactory.getLogger(MessageServiceImpl.class);
+
   private final MessageRepository messageRepository;
   private final FriendRepository friendRepository;
   private final UserProfileRepository userProfileRepository;
@@ -43,15 +47,21 @@ public class MessageServiceImpl implements MessageService {
   @Override
   @Transactional(timeout = 30)
   public void message(Long friend, String message) throws AuthorizationException {
+    Long user = getAuthenticatedUserId();
+    logger.info("Message from: " + user + " to: " + friend + " received from client");
     MessageEntity messageEntity = new MessageEntity();
     messageEntity.setMessage(message);
     messageEntity.setReceiver(userProfileRepository.findById(friend).orElseThrow(() -> new AuthorizationException("Not authorized")));
     messageEntity = save(messageEntity);
     if (messageEntity.getId() != null) {
+      logger.info("Message from: " + user + " to: " + friend + " saved to repository");
       MessageEntity fullMessage = messageRepository.findById(messageEntity.getId())
         .orElseThrow(() -> new IllegalStateException("Message not found after save"));
-      friendRepository.incrementFriendshipScore(getAuthenticatedUserId(), friend);
-      publisher.publishEvent(new MessageEvent(getAuthenticatedUserId(), friend, fullMessage));
+      logger.info("Message from: " + user + " to: " + friend + " retrieved from repository");
+      friendRepository.incrementFriendshipScore(user, friend);
+      logger.info("Incremented friendship score between: " + user + " and: " + friend + " retreived from repository");
+      publisher.publishEvent(new MessageEvent(user, friend, fullMessage));
+      logger.info("Message from: " + user + " to: " + friend + " published to event queue");
     }
   }
 

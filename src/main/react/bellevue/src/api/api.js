@@ -95,6 +95,10 @@ export const getClient = async (force = false) => {
       console.log('[STOMP] Connected');
       isCreatingClient = false;
       connectedPromise.resolve();
+      // resubscribe
+      subscriptions?.forEach(({ onMessage }, destination) => {
+        subscribe(destination, onMessage);
+      });
     },
     onDisconnect: () => {
       console.log('[STOMP] Disconnected');
@@ -132,13 +136,13 @@ export const subscribe = async (destination, onMessage) => {
     onMessage(message.body);
   });
 
-  subscriptions.set(destination, sub);
+  subscriptions.set(destination, { sub, onMessage });
 };
 
 export const unsubscribe = (destination) => {
-  const sub = subscriptions.get(destination);
-  if (sub) {
-    sub.unsubscribe();
+  const value = subscriptions.get(destination);
+  if (value && value.sub) {
+    value.sub.unsubscribe();
     subscriptions.delete(destination);
   }
 };
