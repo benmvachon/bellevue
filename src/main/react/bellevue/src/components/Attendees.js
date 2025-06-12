@@ -15,9 +15,8 @@ function Attendees() {
 
   useEffect(() => {
     if (locationId && locationType) {
-      getFriendsInLocation(setAttendees, setError);
       onEntrance(() => getFriendsInLocation(setAttendees, setError));
-
+      getFriendsInLocation(setAttendees, setError);
       return () => {
         unsubscribeLocation();
       };

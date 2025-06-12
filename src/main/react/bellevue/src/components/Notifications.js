@@ -20,28 +20,24 @@ function Notifications({ show = false, onClose, openMessages }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  const loadMore = () => {
-    if (totalNotifications <= notifications.length) return;
-    const cursor = notifications[notifications.length - 1].created.getTime();
-    getNotificationTotal((totalNotifications) => {
-      getNotifications(
-        (more) => {
-          setTotalNotifications(totalNotifications);
-          if (more) {
-            setNotifications(notifications.concat(more));
-          }
-        },
-        setError,
-        cursor,
-        5
-      );
-    }, setError);
-  };
-
-  const markAllAsRead = () => {
-    markNotificationsRead();
-    onClose();
-  };
+  useEffect(() => {
+    if (show) {
+      onNotification((notification) => {
+        setNotifications([notification].concat(notifications));
+      });
+      if (notifications && notifications.length) {
+        const cursor =
+          notifications[notifications.length - 1].created.getTime();
+        onNotificationsRead(() =>
+          refreshNotifications(setNotifications, setError, cursor)
+        );
+      }
+      return () => {
+        unsubscribeNotification();
+        unsubscribeNotificationsRead();
+      };
+    }
+  }, [show, notifications]);
 
   useEffect(() => {
     if (show) {
@@ -68,24 +64,28 @@ function Notifications({ show = false, onClose, openMessages }) {
     }
   }, [show]);
 
-  useEffect(() => {
-    if (show) {
-      onNotification((notification) => {
-        setNotifications([notification].concat(notifications));
-      });
-      if (notifications && notifications.length) {
-        const cursor =
-          notifications[notifications.length - 1].created.getTime();
-        onNotificationsRead(() =>
-          refreshNotifications(setNotifications, setError, cursor)
-        );
-      }
-      return () => {
-        unsubscribeNotification();
-        unsubscribeNotificationsRead();
-      };
-    }
-  }, [show, notifications]);
+  const loadMore = () => {
+    if (totalNotifications <= notifications.length) return;
+    const cursor = notifications[notifications.length - 1].created.getTime();
+    getNotificationTotal((totalNotifications) => {
+      getNotifications(
+        (more) => {
+          setTotalNotifications(totalNotifications);
+          if (more) {
+            setNotifications(notifications.concat(more));
+          }
+        },
+        setError,
+        cursor,
+        5
+      );
+    }, setError);
+  };
+
+  const markAllAsRead = () => {
+    markNotificationsRead();
+    onClose();
+  };
 
   if (error) return JSON.stringify(error);
   if (!show) return;

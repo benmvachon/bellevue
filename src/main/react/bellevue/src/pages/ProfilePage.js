@@ -35,6 +35,39 @@ function ProfilePage() {
   const [blackboard, setBlackboard] = useState('');
   const [showEquipment, setShowEquipment] = useState(false);
 
+  useEffect(() => {
+    onProfileUpdate(id, (message) => {
+      if (
+        message === 'blackboard' ||
+        message === 'location' ||
+        message === 'status'
+      )
+        getProfile(id, setProfile, setError);
+    });
+    onFriendshipStatusUpdate(id, () => getProfile(id, setProfile, setError));
+    setLoading(true);
+    getProfile(
+      id,
+      (profile) => {
+        setProfile(profile);
+        setLoading(false);
+      },
+      (error) => {
+        setError(error);
+        setLoading(false);
+      }
+    );
+    getFriends(id, setFriends, setError);
+    return () => {
+      unsubscribeProfile(id);
+      unsubscribeFriendshipStatus(id);
+    };
+  }, [id]);
+
+  useEffect(() => {
+    if (profile) setBlackboard(profile.blackboard);
+  }, [profile]);
+
   const self = userId === Number.parseInt(id);
 
   const refresh = () => getProfile(id, setProfile, setError);
@@ -55,39 +88,6 @@ function ProfilePage() {
     event && event.preventDefault();
     updateBlackboard(blackboard, refresh, setError);
   };
-
-  useEffect(() => {
-    setLoading(true);
-    getProfile(
-      id,
-      (profile) => {
-        setProfile(profile);
-        setLoading(false);
-      },
-      (error) => {
-        setError(error);
-        setLoading(false);
-      }
-    );
-    getFriends(id, setFriends, setError);
-    onProfileUpdate(id, (message) => {
-      if (
-        message === 'blackboard' ||
-        message === 'location' ||
-        message === 'status'
-      )
-        getProfile(id, setProfile, setError);
-    });
-    onFriendshipStatusUpdate(id, () => getProfile(id, setProfile, setError));
-    return () => {
-      unsubscribeProfile(id);
-      unsubscribeFriendshipStatus(id);
-    };
-  }, [id]);
-
-  useEffect(() => {
-    if (profile) setBlackboard(profile.blackboard);
-  }, [profile]);
 
   const friendClick = (event) => {
     event.preventDefault();

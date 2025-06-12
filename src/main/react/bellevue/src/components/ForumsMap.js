@@ -11,23 +11,6 @@ function ForumsMap({ setShowForumForm }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  const loadForumPage = (page) => {
-    setLoading(true);
-    getForums(
-      (forums) => {
-        setForums(forums);
-        setLoading(false);
-      },
-      (error) => {
-        setError(error);
-        setLoading(false);
-      },
-      filter,
-      query,
-      page
-    );
-  };
-
   useEffect(() => {
     setLoading(true);
     getForums(
@@ -63,6 +46,23 @@ function ForumsMap({ setShowForumForm }) {
       );
     }
   }, [forums]);
+
+  const loadForumPage = (page) => {
+    setLoading(true);
+    getForums(
+      (forums) => {
+        setForums(forums);
+        setLoading(false);
+      },
+      (error) => {
+        setError(error);
+        setLoading(false);
+      },
+      filter,
+      query,
+      page
+    );
+  };
 
   if (error) return JSON.stringify(error);
 

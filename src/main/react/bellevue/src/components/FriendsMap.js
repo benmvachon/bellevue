@@ -10,6 +10,21 @@ function FriendsMap() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
+  useEffect(() => {
+    setLoading(true);
+    getMyFriends(
+      (friends) => {
+        setMyFriends(friends);
+        setLoading(false);
+      },
+      (error) => {
+        setError(error);
+        setLoading(false);
+      },
+      query
+    );
+  }, [query]);
+
   const loadMyFriendPage = (page) => {
     setLoading(true);
     getMyFriends(
@@ -31,21 +46,6 @@ function FriendsMap() {
     event.preventDefault();
     navigate('/profile/' + event.target.value);
   };
-
-  useEffect(() => {
-    setLoading(true);
-    getMyFriends(
-      (friends) => {
-        setMyFriends(friends);
-        setLoading(false);
-      },
-      (error) => {
-        setError(error);
-        setLoading(false);
-      },
-      query
-    );
-  }, [query]);
 
   if (error) return JSON.stringify(error);
 

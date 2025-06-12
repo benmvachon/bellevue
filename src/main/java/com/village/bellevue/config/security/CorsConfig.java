@@ -1,30 +1,39 @@
 package com.village.bellevue.config.security;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.lang.NonNull;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
-@Configuration
-public class CorsConfig {
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
 
-  @Bean
-  public WebMvcConfigurer corsConfigurer() {
-    return new WebMvcConfigurer() {
-      @Override
-      public void addCorsMappings(@NonNull CorsRegistry registry) {
-        registry
-            .addMapping("/**")
-            .allowedOrigins(
-              "http://localhost:8080",
-              "http://localhost:3000",
-              "https://bellevue-app.fly.dev"
-            )
-            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-            .allowedHeaders("*")
-            .allowCredentials(true);
-      }
-    };
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+@Component
+public class CorsConfig extends OncePerRequestFilter {
+  private final List<String> allowedOrigins;
+
+  public CorsConfig(@Value("${SPRING_APP_ALLOWED_ORIGINS}") String allowedOriginsString) {
+    this.allowedOrigins = Arrays.asList(allowedOriginsString.split(","));
+  }
+
+  @Override
+  protected void doFilterInternal(
+    HttpServletRequest request,
+    HttpServletResponse response,
+    FilterChain filterChain
+  )throws ServletException, IOException {
+    String origin = request.getHeader("Origin");
+    if (origin != null && !allowedOrigins.contains(origin)) {
+      response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+      response.getWriter().write("CORS origin denied");
+      return;
+    }
+
+    filterChain.doFilter(request, response);
   }
 }

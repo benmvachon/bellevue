@@ -22,59 +22,6 @@ function Threads({ show = false, onClose, openMessages }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  const loadMore = () => {
-    const cursor = threads[threads.length - 1].created.getTime();
-    getThreadCount((totalThreads) => {
-      getThreads(
-        (more) => {
-          setTotalThreads(totalThreads);
-          if (more) {
-            setThreads(threads?.concat(more));
-          }
-        },
-        setError,
-        cursor,
-        5
-      );
-    }, setError);
-  };
-
-  const threadClick = (thread) => {
-    const otherUser = getOtherUser(thread).id;
-    openMessages(otherUser);
-    onClose();
-  };
-
-  const getOtherUser = (thread) => {
-    if (thread.receiver.id === userId) return thread.sender;
-    return thread.receiver;
-  };
-
-  useEffect(() => {
-    if (show) {
-      setLoading(true);
-      getThreadCount(
-        (totalThreads) => {
-          getThreads(
-            (threads) => {
-              setTotalThreads(totalThreads);
-              setThreads(threads);
-              setLoading(false);
-            },
-            (error) => {
-              setError(error);
-              setLoading(false);
-            }
-          );
-        },
-        (error) => {
-          setError(error);
-          setLoading(false);
-        }
-      );
-    }
-  }, [show]);
-
   useEffect(() => {
     if (show) {
       const getOtherUser = (thread) => {
@@ -110,6 +57,59 @@ function Threads({ show = false, onClose, openMessages }) {
       return unsubscribeThreadsRead;
     }
   }, [show, threads]);
+
+  useEffect(() => {
+    if (show) {
+      setLoading(true);
+      getThreadCount(
+        (totalThreads) => {
+          getThreads(
+            (threads) => {
+              setTotalThreads(totalThreads);
+              setThreads(threads);
+              setLoading(false);
+            },
+            (error) => {
+              setError(error);
+              setLoading(false);
+            }
+          );
+        },
+        (error) => {
+          setError(error);
+          setLoading(false);
+        }
+      );
+    }
+  }, [show]);
+
+  const loadMore = () => {
+    const cursor = threads[threads.length - 1].created.getTime();
+    getThreadCount((totalThreads) => {
+      getThreads(
+        (more) => {
+          setTotalThreads(totalThreads);
+          if (more) {
+            setThreads(threads?.concat(more));
+          }
+        },
+        setError,
+        cursor,
+        5
+      );
+    }, setError);
+  };
+
+  const threadClick = (thread) => {
+    const otherUser = getOtherUser(thread).id;
+    openMessages(otherUser);
+    onClose();
+  };
+
+  const getOtherUser = (thread) => {
+    if (thread.receiver.id === userId) return thread.sender;
+    return thread.receiver;
+  };
 
   if (error) return JSON.stringify(error);
   if (!show) return;

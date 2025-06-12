@@ -38,6 +38,33 @@ function ForumPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
+  useEffect(() => {
+    if (id) {
+      const forum = id === '1' ? (onlyTownHallPosts ? 1 : undefined) : id;
+      onForumUnreadUpdate(forum, () => getForum(id, setForum, setError));
+      return () => {
+        unsubscribeForumUnread(forum);
+      };
+    }
+  }, [id, onlyTownHallPosts]);
+
+  useEffect(() => {
+    if (id) {
+      setLoading(true);
+      getForum(
+        id,
+        (forum) => {
+          setForum(forum);
+          setLoading(false);
+        },
+        (error) => {
+          setError(error);
+          setLoading(false);
+        }
+      );
+    }
+  }, [id]);
+
   const favorite = () => {
     favoriteForum(id, () => getForum(id, setForum, setError), setError);
   };
@@ -103,33 +130,6 @@ function ForumPage() {
     setShowForumForm(false);
     getForum(forum.id, setForum, setError);
   };
-
-  useEffect(() => {
-    if (id) {
-      const forum = id === '1' ? (onlyTownHallPosts ? 1 : undefined) : id;
-      onForumUnreadUpdate(forum, () => getForum(id, setForum, setError));
-      return () => {
-        unsubscribeForumUnread(forum);
-      };
-    }
-  }, [id, onlyTownHallPosts]);
-
-  useEffect(() => {
-    if (id) {
-      setLoading(true);
-      getForum(
-        id,
-        (forum) => {
-          setForum(forum);
-          setLoading(false);
-        },
-        (error) => {
-          setError(error);
-          setLoading(false);
-        }
-      );
-    }
-  }, [id]);
 
   if (error) return JSON.stringify(error);
 

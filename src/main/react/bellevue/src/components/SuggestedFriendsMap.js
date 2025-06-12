@@ -10,6 +10,34 @@ function SuggestedFriendsMap() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
+  useEffect(() => {
+    setLoading(true);
+    if (query) {
+      findUsers(
+        query,
+        (friends) => {
+          setSuggestedFriends(friends);
+          setLoading(false);
+        },
+        (error) => {
+          setError(error);
+          setLoading(false);
+        }
+      );
+    } else {
+      getSuggestedFriends(
+        (friends) => {
+          setSuggestedFriends(friends);
+          setLoading(false);
+        },
+        (error) => {
+          setError(error);
+          setLoading(false);
+        }
+      );
+    }
+  }, [query]);
+
   const loadSuggestedFriendPage = (page) => {
     setLoading(true);
     if (query && query.trim().length) {
@@ -44,34 +72,6 @@ function SuggestedFriendsMap() {
     event.preventDefault();
     navigate('/profile/' + event.target.value);
   };
-
-  useEffect(() => {
-    setLoading(true);
-    if (query) {
-      findUsers(
-        query,
-        (friends) => {
-          setSuggestedFriends(friends);
-          setLoading(false);
-        },
-        (error) => {
-          setError(error);
-          setLoading(false);
-        }
-      );
-    } else {
-      getSuggestedFriends(
-        (friends) => {
-          setSuggestedFriends(friends);
-          setLoading(false);
-        },
-        (error) => {
-          setError(error);
-          setLoading(false);
-        }
-      );
-    }
-  }, [query]);
 
   if (error) return JSON.stringify(error);
 

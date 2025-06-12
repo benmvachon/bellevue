@@ -31,83 +31,6 @@ function PostsList({
   const [error, setError] = useState(false);
   const pageSize = 3;
 
-  const loadMore = () => {
-    const cursor1 = sortByPopular
-      ? posts[posts.length - 1].popularity
-      : posts[posts.length - 1].created.getTime();
-    const cursor2 = posts[posts.length - 1].id;
-    getTotalPosts(
-      feed ? undefined : forum.id,
-      (totalPosts) => {
-        if (feed) {
-          getPosts(
-            (more) => {
-              setTotalPosts(totalPosts);
-              if (more) {
-                setPosts(posts?.concat(more));
-              }
-            },
-            setError,
-            cursor1,
-            cursor2,
-            excludedForums,
-            sortByPopular,
-            pageSize
-          );
-        } else {
-          let request = getRecentPosts;
-          if (sortByPopular) request = getPopularPosts;
-          request(
-            feed ? undefined : forum.id,
-            (more) => {
-              setTotalPosts(totalPosts);
-              if (more) {
-                setPosts(posts?.concat(more));
-              }
-            },
-            setError,
-            cursor1,
-            cursor2,
-            pageSize
-          );
-        }
-      },
-      setError,
-      excludedForums
-    );
-  };
-
-  const sortPosts = useCallback(
-    (id, popularity) => {
-      if (sortByPopular) {
-        let index = -1;
-        const post = posts.find((post, i) => {
-          if (post.id === id) {
-            index = i;
-            return true;
-          }
-          return false;
-        });
-        post.popularity = popularity;
-        if (index !== posts.length - 1) {
-          let updatedPosts = posts.sort((a, b) => {
-            if (b.popularity !== a.popularity)
-              return b.popularity - a.popularity;
-            return b.id - a.id;
-          });
-          if (
-            updatedPosts.indexOf(post) === posts.length - 1 &&
-            totalPosts === posts.length
-          ) {
-            updatedPosts = updatedPosts.filter((post) => post.id !== id);
-          }
-          setPosts(updatedPosts);
-        }
-      }
-    },
-    [posts, sortByPopular, totalPosts]
-  );
-
   useEffect(() => {
     if (forum.id) {
       onForumUpdate(feed ? undefined : forum.id, (postId) => {
@@ -219,6 +142,83 @@ function PostsList({
       );
     }
   }, [forum.id, sortByPopular, feed, excludedForums]);
+
+  const loadMore = () => {
+    const cursor1 = sortByPopular
+      ? posts[posts.length - 1].popularity
+      : posts[posts.length - 1].created.getTime();
+    const cursor2 = posts[posts.length - 1].id;
+    getTotalPosts(
+      feed ? undefined : forum.id,
+      (totalPosts) => {
+        if (feed) {
+          getPosts(
+            (more) => {
+              setTotalPosts(totalPosts);
+              if (more) {
+                setPosts(posts?.concat(more));
+              }
+            },
+            setError,
+            cursor1,
+            cursor2,
+            excludedForums,
+            sortByPopular,
+            pageSize
+          );
+        } else {
+          let request = getRecentPosts;
+          if (sortByPopular) request = getPopularPosts;
+          request(
+            feed ? undefined : forum.id,
+            (more) => {
+              setTotalPosts(totalPosts);
+              if (more) {
+                setPosts(posts?.concat(more));
+              }
+            },
+            setError,
+            cursor1,
+            cursor2,
+            pageSize
+          );
+        }
+      },
+      setError,
+      excludedForums
+    );
+  };
+
+  const sortPosts = useCallback(
+    (id, popularity) => {
+      if (sortByPopular) {
+        let index = -1;
+        const post = posts.find((post, i) => {
+          if (post.id === id) {
+            index = i;
+            return true;
+          }
+          return false;
+        });
+        post.popularity = popularity;
+        if (index !== posts.length - 1) {
+          let updatedPosts = posts.sort((a, b) => {
+            if (b.popularity !== a.popularity)
+              return b.popularity - a.popularity;
+            return b.id - a.id;
+          });
+          if (
+            updatedPosts.indexOf(post) === posts.length - 1 &&
+            totalPosts === posts.length
+          ) {
+            updatedPosts = updatedPosts.filter((post) => post.id !== id);
+          }
+          setPosts(updatedPosts);
+        }
+      }
+    },
+    [posts, sortByPopular, totalPosts]
+  );
 
   if (error) return JSON.stringify(error);
 

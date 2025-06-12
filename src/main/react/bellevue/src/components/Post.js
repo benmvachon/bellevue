@@ -42,6 +42,99 @@ function Post({
   const [showReplies, setShowReplies] = useState(depth < 2);
   const [error, setError] = useState(false);
 
+  useEffect(() => {
+    if (id) {
+      onPostUpdate(id, (message) => {
+        getPost(
+          id,
+          (post) => {
+            if (sortByPopular || message === 'rating') setPost(post);
+            else {
+              getPost(
+                message,
+                (reply) => {
+                  setPost(post);
+                  if (reply) setReplies([reply].concat(replies));
+                },
+                () => {}
+              );
+            }
+          },
+          setError
+        );
+      });
+      onReplyDelete(id, (message) => {
+        getPost(
+          id,
+          (post) => {
+            const updatedReplies = replies.filter(
+              (reply) => reply.id !== message
+            );
+            setPost(post);
+            setReplies(updatedReplies);
+            sortParentList(id, post.popularity);
+          },
+          setError
+        );
+      });
+      if (sortByPopular)
+        onPostPopularityUpdate(id, (message) => {
+          const post = message.post;
+          const popularity = message.popularity;
+          if (
+            replies &&
+            replies.length &&
+            popularity >= replies[replies.length - 1].popularity &&
+            replies.findIndex((reply) => reply.id === post) < 0
+          ) {
+            getPost(post, (post) => {
+              setReplies(
+                replies.concat([post]).sort((a, b) => {
+                  if (b.popularity !== a.popularity)
+                    return b.popularity - a.popularity;
+                  return b.id - a.id;
+                })
+              );
+            });
+          }
+        });
+      return () => {
+        unsubscribePost(id);
+        unsubscribePostPopularity(id);
+        unsubscribeReplyDelete(id);
+      };
+    }
+  }, [id, sortByPopular, replies, sortParentList]);
+
+  useEffect(() => {
+    if (post?.children > 0 && showReplies) {
+      let request = getRecentReplies;
+      if (sortByPopular) request = getPopularReplies;
+      request(post.id, setReplies, setError, null, null, 5, selectedChildId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [post?.id, showReplies, sortByPopular, selectedChildId]);
+
+  useEffect(() => {
+    if (!post.read) {
+      setTimeout(() => {
+        markPostRead(post.id);
+      }, 100);
+    }
+  }, [post.id, post.read]);
+
+  useEffect(() => {
+    if (id && id !== postProp?.id) {
+      getPost(id, setPost, setError);
+    } else if (postProp) {
+      setPost(postProp);
+    }
+  }, [id, postProp]);
+
+  useEffect(() => {
+    setSortByPopular(sortByPopularParent);
+  }, [sortByPopularParent]);
+
   const loadMore = () => {
     const cursor1 = sortByPopular
       ? replies[replies.length - 1].popularity
@@ -123,99 +216,6 @@ function Post({
     },
     [replies, post?.id, sortByPopular, sortParentList]
   );
-
-  useEffect(() => {
-    if (id && id !== postProp?.id) {
-      getPost(id, setPost, setError);
-    } else if (postProp) {
-      setPost(postProp);
-    }
-  }, [id, postProp]);
-
-  useEffect(() => {
-    if (id) {
-      onPostUpdate(id, (message) => {
-        getPost(
-          id,
-          (post) => {
-            if (sortByPopular || message === 'rating') setPost(post);
-            else {
-              getPost(
-                message,
-                (reply) => {
-                  setPost(post);
-                  if (reply) setReplies([reply].concat(replies));
-                },
-                () => {}
-              );
-            }
-          },
-          setError
-        );
-      });
-      onReplyDelete(id, (message) => {
-        getPost(
-          id,
-          (post) => {
-            const updatedReplies = replies.filter(
-              (reply) => reply.id !== message
-            );
-            setPost(post);
-            setReplies(updatedReplies);
-            sortParentList(id, post.popularity);
-          },
-          setError
-        );
-      });
-      if (sortByPopular)
-        onPostPopularityUpdate(id, (message) => {
-          const post = message.post;
-          const popularity = message.popularity;
-          if (
-            replies &&
-            replies.length &&
-            popularity >= replies[replies.length - 1].popularity &&
-            replies.findIndex((reply) => reply.id === post) < 0
-          ) {
-            getPost(post, (post) => {
-              setReplies(
-                replies.concat([post]).sort((a, b) => {
-                  if (b.popularity !== a.popularity)
-                    return b.popularity - a.popularity;
-                  return b.id - a.id;
-                })
-              );
-            });
-          }
-        });
-      return () => {
-        unsubscribePost(id);
-        unsubscribePostPopularity(id);
-        unsubscribeReplyDelete(id);
-      };
-    }
-  }, [id, sortByPopular, replies, sortParentList]);
-
-  useEffect(() => {
-    if (post?.children > 0 && showReplies) {
-      let request = getRecentReplies;
-      if (sortByPopular) request = getPopularReplies;
-      request(post.id, setReplies, setError, null, null, 5, selectedChildId);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [post?.id, showReplies, sortByPopular, selectedChildId]);
-
-  useEffect(() => {
-    setSortByPopular(sortByPopularParent);
-  }, [sortByPopularParent]);
-
-  useEffect(() => {
-    if (!post.read) {
-      setTimeout(() => {
-        markPostRead(post.id);
-      }, 100);
-    }
-  }, [post.id, post.read]);
 
   if (error) return JSON.stringify(error);
   if (!post) return;

@@ -20,6 +20,55 @@ function Messages({ show = false, friend, onClose }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
+  useEffect(() => {
+    onMessage(friend, (event) => {
+      setTotalMessages(totalMessages + 1);
+      setMessages(messages.concat([event.message]));
+    });
+    return () => {
+      unsubscribeMessage(friend);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [friend, messages]);
+
+  useEffect(() => {
+    const sentOrReceived = (message) => {
+      if (message.receiver.id === userId) return 'received';
+      return 'sent';
+    };
+    messages?.forEach((message) => {
+      if ('received' === sentOrReceived(message) && !message.read)
+        markMessageRead(friend, message.id);
+    });
+  }, [friend, messages, userId]);
+
+  useEffect(() => {
+    if (show) {
+      setLoading(true);
+      getMessageCount(
+        friend,
+        (totalMessages) => {
+          getMessages(
+            friend,
+            (messages) => {
+              setTotalMessages(totalMessages);
+              setMessages(messages ? messages.reverse() : []);
+              setLoading(false);
+            },
+            (error) => {
+              setError(error);
+              setLoading(false);
+            }
+          );
+        },
+        (error) => {
+          setError(error);
+          setLoading(false);
+        }
+      );
+    }
+  }, [show, friend]);
+
   const sentOrReceived = (message) => {
     if (message.receiver.id === userId) return 'received';
     return 'sent';
@@ -64,53 +113,6 @@ function Messages({ show = false, friend, onClose }) {
       setMessage('');
     });
   };
-
-  useEffect(() => {
-    const sentOrReceived = (message) => {
-      if (message.receiver.id === userId) return 'received';
-      return 'sent';
-    };
-    messages?.forEach((message) => {
-      if ('received' === sentOrReceived(message) && !message.read)
-        markMessageRead(friend, message.id);
-    });
-  }, [friend, messages, userId]);
-
-  useEffect(() => {
-    onMessage(friend, (event) => {
-      setMessages(messages.concat([event.message]));
-    });
-    return () => {
-      unsubscribeMessage(friend);
-    };
-  }, [friend, messages]);
-
-  useEffect(() => {
-    if (show) {
-      setLoading(true);
-      getMessageCount(
-        friend,
-        (totalMessages) => {
-          getMessages(
-            friend,
-            (messages) => {
-              setTotalMessages(totalMessages);
-              setMessages(messages ? messages.reverse() : []);
-              setLoading(false);
-            },
-            (error) => {
-              setError(error);
-              setLoading(false);
-            }
-          );
-        },
-        (error) => {
-          setError(error);
-          setLoading(false);
-        }
-      );
-    }
-  }, [show, friend]);
 
   if (!show) return;
   if (error) return JSON.stringify(error);

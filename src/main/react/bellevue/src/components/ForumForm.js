@@ -14,6 +14,17 @@ const ForumForm = ({ forum, show = false, onClose }) => {
   const [disabled, setDisabled] = useState(false);
   const [error, setError] = useState(false);
 
+  useEffect(() => {
+    if (show && forum) {
+      setDisabled(false);
+      setName(forum.name);
+      setDescription(forum.description);
+      setTags(forum.tags);
+      setUsers(forum.users);
+      setError(false);
+    }
+  }, [show, forum]);
+
   const onCloseWrapper = (event) => {
     event && event.preventDefault && event.preventDefault();
     setDisabled(false);
@@ -72,17 +83,6 @@ const ForumForm = ({ forum, show = false, onClose }) => {
       );
     }
   };
-
-  useEffect(() => {
-    if (show && forum) {
-      setDisabled(false);
-      setName(forum.name);
-      setDescription(forum.description);
-      setTags(forum.tags);
-      setUsers(forum.users);
-      setError(false);
-    }
-  }, [show, forum]);
 
   if (error) return <pre>{JSON.stringify(error)}</pre>;
   if (!show) return;

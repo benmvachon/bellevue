@@ -13,6 +13,21 @@ function Notification({ notification, onClose, openMessages }) {
   const [stateNotification, setNotification] = useState(notification);
   const [error, setError] = useState(false);
 
+  useEffect(() => {
+    if (stateNotification) {
+      onNotificationRead(stateNotification.id, () =>
+        getNotification(stateNotification.id, setNotification, setError)
+      );
+      return () => {
+        unsubscribeNotificationRead(stateNotification.id);
+      };
+    }
+  }, [stateNotification]);
+
+  useEffect(() => {
+    if (notification) setNotification(notification);
+  }, [notification]);
+
   const markAsRead = () => {
     markNotificationRead(stateNotification.id);
   };
@@ -45,21 +60,6 @@ function Notification({ notification, onClose, openMessages }) {
     onClose();
     markAsRead();
   };
-
-  useEffect(() => {
-    if (notification) setNotification(notification);
-  }, [notification]);
-
-  useEffect(() => {
-    if (stateNotification) {
-      onNotificationRead(stateNotification.id, () =>
-        getNotification(stateNotification.id, setNotification, setError)
-      );
-      return () => {
-        unsubscribeNotificationRead(stateNotification.id);
-      };
-    }
-  }, [stateNotification]);
 
   if (error) return JSON.stringify(error);
   if (!stateNotification) return;

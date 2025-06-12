@@ -1,20 +1,22 @@
+version: "3.8"
+
 services:
   mysql:
     image: mysql:8
     container_name: mysql_db
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: bellevue_dev
+      MYSQL_ROOT_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      MYSQL_DATABASE: ${SPRING_DATASOURCE_DB}
       TZ: America/New_York
     volumes:
       - ./src/main/sql:/docker-entrypoint-initdb.d
       - ./mysql.cnf:/etc/mysql/conf.d/custom.cnf
     ports:
-      - "3306:3306"
+      - "3306:3306" # Or use: "${MYSQL_PORT:-3306}:3306" to make it configurable
     networks:
       - bellevue_net
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-proot"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "${SPRING_DATASOURCE_HOST}", "-u", "${SPRING_DATASOURCE_USERNAME}", "-p${SPRING_DATASOURCE_PASSWORD}"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -23,7 +25,7 @@ services:
     image: redis:6
     container_name: redis_cache
     ports:
-      - "6379:6379"
+      - "${SPRING_DATA_REDIS_PORT}:6379"
     networks:
       - bellevue_net
 
@@ -31,12 +33,12 @@ services:
     image: rabbitmq:3-management
     container_name: rabbitmq_broker
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: ${SPRING_RABBITMQ_USERNAME}
+      RABBITMQ_DEFAULT_PASS: ${SPRING_RABBITMQ_PASSWORD}
     ports:
-      - "5672:5672"   # AMQP
-      - "15672:15672" # Management UI
-      - "61613:61613" # STOMP
+      - "${SPRING_RABBITMQ_PORT}:5672"
+      - "15672:15672" # Management UI (not in .env but useful)
+      - "${SPRING_RABBITMQ_STOMP_PORT}:61613"
     networks:
       - bellevue_net
     command: >
