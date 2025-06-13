@@ -1,6 +1,10 @@
 package com.village.bellevue.integration;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.AfterAll;
@@ -19,22 +23,36 @@ public abstract class IntegrationTestWrapper {
   @BeforeAll
   public static void startDocker() {
     try {
+      // 1. Load .env vars into System properties
+      Path envPath = Paths.get(".env");
+      if (Files.exists(envPath)) {
+        List<String> lines = Files.readAllLines(envPath);
+        for (String line : lines) {
+          if (line.trim().isEmpty() || line.startsWith("#")) continue;
+          String[] parts = line.split("=", 2);
+          if (parts.length == 2) {
+            String key = parts[0].trim();
+            String value = parts[1].trim();
+            System.setProperty(key, value); // this makes them available to Spring
+          }
+        }
+      }
+  
+      // 2. Start docker-compose
       ProcessBuilder dockerProcessBuilder = new ProcessBuilder("docker-compose", "up", "-d");
+      dockerProcessBuilder.inheritIO(); // optional: logs go to console
       Process dockerProcess = dockerProcessBuilder.start();
       dockerProcess.waitFor(2, TimeUnit.MINUTES);
-
-      try {
-        ProcessBuilder waitForMysqlProcessBuilder =
-            new ProcessBuilder(
-                "bash",
-                "-c",
-                "while [[ \"$(docker inspect -f '{{.State.Health.Status}}' mysql_db)\" != \"healthy\" ]]; do sleep 2; done");
-        Process waitForMysqlProcess = waitForMysqlProcessBuilder.start();
-        waitForMysqlProcess.waitFor(2, TimeUnit.MINUTES);
-      } catch (IOException | InterruptedException e) {
-        throw new RuntimeException("Failed to wait for MySQL", e);
-      }
-
+  
+      // 3. Wait for MySQL to be healthy
+      ProcessBuilder waitForMysqlProcessBuilder =
+          new ProcessBuilder(
+              "bash",
+              "-c",
+              "while [[ \"$(docker inspect -f '{{.State.Health.Status}}' mysql_db)\" != \"healthy\" ]]; do sleep 2; done");
+      Process waitForMysqlProcess = waitForMysqlProcessBuilder.start();
+      waitForMysqlProcess.waitFor(2, TimeUnit.MINUTES);
+  
     } catch (IOException | InterruptedException e) {
       throw new RuntimeException("Failed to start Docker containers", e);
     }
