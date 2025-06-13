@@ -39,7 +39,6 @@ import com.village.bellevue.model.ForumModelProvider;
 import com.village.bellevue.model.ProfileModel;
 import com.village.bellevue.repository.FavoriteRepository;
 import com.village.bellevue.repository.ForumRepository;
-import com.village.bellevue.repository.FriendRepository;
 import com.village.bellevue.repository.NotificationSettingRepository;
 import com.village.bellevue.repository.PostRepository;
 import com.village.bellevue.repository.RatingRepository;
@@ -107,7 +106,6 @@ public class ForumServiceImpl implements ForumService {
   private final RatingRepository ratingRepository;
   private final UserProfileService userProfileService;
   private final FavoriteRepository favoriteRepository;
-  private final FriendRepository friendRepository;
   private final NotificationSettingRepository notificationSettingRepository;
   private final ApplicationEventPublisher publisher;
   @PersistenceContext(unitName = "async")
@@ -119,7 +117,6 @@ public class ForumServiceImpl implements ForumService {
     RatingRepository ratingRepository,
     UserProfileService userProfileService,
     FavoriteRepository favoriteRepository,
-    FriendRepository friendRepository,
     NotificationSettingRepository notificationSettingRepository,
     ApplicationEventPublisher publisher
   ) {
@@ -128,7 +125,6 @@ public class ForumServiceImpl implements ForumService {
     this.ratingRepository = ratingRepository;
     this.userProfileService = userProfileService;
     this.favoriteRepository = favoriteRepository;
-    this.friendRepository = friendRepository;
     this.notificationSettingRepository = notificationSettingRepository;
     this.publisher = publisher;
   }
@@ -141,7 +137,6 @@ public class ForumServiceImpl implements ForumService {
       if (StringUtils.isBlank(forum.getName())) throw new ForumException("'name' field is required for new forum");
       if (StringUtils.isBlank(forum.getDescription())) throw new ForumException("'description' field is required for new forum");
       if (Objects.isNull(forum.getUsers()) || forum.getUsers().isEmpty()) throw new ForumException("'users' field is required for new forum");
-      if (friendRepository.containsBlockingUsers(forum.getUsers())) throw new ForumException("'users' field contains users who block eachother");
       model = new ForumModel(save(forum), forumModelProvider);
       return model;
     } finally {
@@ -180,7 +175,6 @@ public class ForumServiceImpl implements ForumService {
     if (StringUtils.isBlank(forum.getName())) throw new ForumException("'name' field is required for new forum");
     if (StringUtils.isBlank(forum.getDescription())) throw new ForumException("'description' field is required for new forum");
     if (Objects.isNull(forum.getUsers()) || forum.getUsers().isEmpty()) throw new ForumException("'users' field is required for new forum");
-    if (friendRepository.containsBlockingUsers(forum.getUsers())) throw new ForumException("'users' field contains users who block each other");
 
     // Step 1: Fetch existing forum from DB
     ForumEntity existingForum = forumRepository.findById(id)

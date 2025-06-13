@@ -96,9 +96,6 @@ public class UserProfileServiceImpl implements UserProfileService {
 
   @Override
   public Optional<ProfileModel> read(Long user) throws FriendshipException {
-    if (friendService.isBlockedBy(user)) {
-      return Optional.empty();
-    }
     UserProfileEntity profile = userProfileRepository.findById(user).orElseThrow(() -> new FriendshipException("User not found with id: " + user));
     return Optional.of(new ProfileModel(profile, profileModelProvider));
   }

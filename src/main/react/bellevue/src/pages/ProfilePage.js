@@ -8,7 +8,6 @@ import {
   requestFriend,
   acceptFriend,
   removeFriend,
-  blockUser,
   updateBlackboard,
   onProfileUpdate,
   favoriteProfile,
@@ -135,11 +134,6 @@ function ProfilePage() {
             Favorite
           </button>
         );
-      buttons.push(
-        <button onClick={() => blockUser(id, refresh)} key="block">
-          Block
-        </button>
-      );
       break;
     case 'PENDING_YOU':
       buttons.push(
@@ -147,25 +141,10 @@ function ProfilePage() {
           Accept
         </button>
       );
-      buttons.push(
-        <button onClick={() => blockUser(id, refresh)} key="block">
-          Block
-        </button>
-      );
       break;
     case 'PENDING_THEM':
-      buttons.push(
-        <button onClick={() => blockUser(id, refresh)} key="block">
-          Block
-        </button>
-      );
       break;
     default:
-      buttons.push(
-        <button onClick={() => blockUser(id, refresh)} key="block">
-          Block
-        </button>
-      );
       buttons.push(
         <button onClick={() => requestFriend(id, refresh)} key="request">
           Request

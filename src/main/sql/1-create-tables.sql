@@ -93,7 +93,7 @@ CREATE TABLE equipment(
 CREATE TABLE friend(
     user            INT UNSIGNED NOT NULL,                                                                      -- ID of the user
     friend          INT UNSIGNED NOT NULL,                                                                      -- ID of the friend
-    status          ENUM('PENDING_THEM', 'PENDING_YOU', 'ACCEPTED', 'BLOCKED_THEM', 'BLOCKED_YOU') NOT NULL,    -- Friendship status
+    status          ENUM('PENDING_THEM', 'PENDING_YOU', 'ACCEPTED') NOT NULL,                                   -- Friendship status
     score           INT UNSIGNED NOT NULL DEFAULT 0,                                                            -- How close the friend is
     created         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,                                                        -- Timestamp for when the friendship was first established
     updated         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,                                                        -- Timestamp for when the friendship was updated

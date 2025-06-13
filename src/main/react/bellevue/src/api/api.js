@@ -186,10 +186,6 @@ export const removeFriend = (user, callback, error) => {
   api.delete(`/friend/${user}/remove`).then(callback).catch(error);
 };
 
-export const blockUser = (user, callback, error) => {
-  api.post(`/friend/${user}/bock`).then(callback).catch(error);
-};
-
 export const updateBlackboard = (blackboard, callback, error) => {
   api
     .put('/user/blackboard', blackboard, {

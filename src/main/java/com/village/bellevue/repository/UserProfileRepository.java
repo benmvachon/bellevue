@@ -19,14 +19,7 @@ public interface UserProfileRepository extends JpaRepository<UserProfileEntity, 
   @Query(
     "SELECT u FROM UserProfileEntity u " +
     "WHERE (LOWER(u.name) LIKE LOWER(CONCAT(:prefix, '%')) " +
-    "   OR LOWER(u.username) LIKE LOWER(CONCAT(:prefix, '%'))) " +
-    "AND u.id NOT IN (" +
-    "   SELECT f.friend.id FROM FriendEntity f " +
-    "   WHERE f.user = :user AND (f.status = 'BLOCKED_THEM' OR f.status = 'ACCEPTED') " +
-    "   UNION " +
-    "   SELECT f.user FROM FriendEntity f " +
-    "   WHERE f.friend.id = :user AND (f.status = 'BLOCKED_YOU' OR f.status = 'ACCEPTED')" +
-    ")"
+    "   OR LOWER(u.username) LIKE LOWER(CONCAT(:prefix, '%'))) "
   )
   @Transactional(readOnly = true)
   Page<UserProfileEntity> findByNameOrUsernameStartsWith(@Param("user") Long user, @Param("prefix") String prefix, Pageable pageable);
@@ -37,8 +30,6 @@ public interface UserProfileRepository extends JpaRepository<UserProfileEntity, 
     "WHERE u.location = :location " +
     "AND u.locationType = :location_type " +
     "AND f.user = :user " +
-    "AND f.status != 'BLOCKED_THEM' " +
-    "AND f.status != 'BLOCKED_YOU' " +
     "ORDER BY u.lastSeen DESC"
   )
   @Transactional(readOnly = true)
@@ -63,8 +54,6 @@ public interface UserProfileRepository extends JpaRepository<UserProfileEntity, 
     "AND u.locationType = :location_type " +
     "AND f.user = :user " +
     "AND f.status != 'ACCEPTED' " +
-    "AND f.status != 'BLOCKED_THEM' " +
-    "AND f.status != 'BLOCKED_YOU' " +
     "ORDER BY u.lastSeen DESC"
   )
   @Transactional(readOnly = true)

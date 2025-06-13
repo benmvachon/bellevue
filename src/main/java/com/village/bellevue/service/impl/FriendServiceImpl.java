@@ -90,7 +90,6 @@ public class FriendServiceImpl implements FriendService {
 
   public static final String STATUS_CACHE_KEY = "status";
   public static final String IS_FRIEND_CACHE_KEY = "isFriend";
-  public static final String IS_BLOCKING_CACHE_KEY = "isBlocking";
 
   private static final Logger logger = LoggerFactory.getLogger(FriendServiceImpl.class);
   private final FriendRepository friendRepository;
@@ -134,9 +133,6 @@ public class FriendServiceImpl implements FriendService {
   @Override
   @Transactional(timeout = 30)
   public void request(Long user) throws FriendshipException {
-    if (isBlockedBy(user)) {
-      return;
-    }
     boolean success = false;
     try (Connection connection = dataSource.getConnection(); CallableStatement stmt = connection.prepareCall("{call request_friend(?, ?)}")) {
       stmt.setLong(1, getAuthenticatedUserId());
@@ -188,22 +184,6 @@ public class FriendServiceImpl implements FriendService {
     return FriendEntity.FriendshipStatus.ACCEPTED.equals(status.get());
   }
 
-  @Cacheable(
-      value = FRIENDSHIP_STATUS_CACHE_NAME,
-      key
-      = "T(com.village.bellevue.config.CacheConfig).getCacheKey(T(com.village.bellevue.service.impl.FriendServiceImpl).IS_BLOCKING_CACHE_KEY, T(com.village.bellevue.config.security.SecurityConfig).getAuthenticatedUserId(), #user)")
-  @Override
-  public boolean isBlockedBy(Long user) throws FriendshipException {
-    if (getAuthenticatedUserId().equals(user)) {
-      return false;
-    }
-    Optional<String> status = getStatus(user);
-    if (status.isEmpty()) {
-      return false;
-    }
-    return FriendEntity.FriendshipStatus.BLOCKED_YOU.equals(status.get());
-  }
-
   @Override
   public Page<ProfileModel> readAll(String query, List<Long> excluded, int page, int size) throws FriendshipException {
     Page<UserProfileEntity> entities = friendRepository.findFriends(getAuthenticatedUserId(), query, excluded, PageRequest.of(page, size));
@@ -222,7 +202,7 @@ public class FriendServiceImpl implements FriendService {
 
   @Override
   public Page<ProfileModel> readAll(Long user, String query, int page, int size) throws FriendshipException {
-    Page<UserProfileEntity> entities = friendRepository.findFriendsExcludingBlocked(user, getAuthenticatedUserId(), query, PageRequest.of(page, size));
+    Page<UserProfileEntity> entities = friendRepository.findFriends(user, getAuthenticatedUserId(), query, PageRequest.of(page, size));
     return entities.map(entity -> {
       return new ProfileModel(entity, profileModelProvider);
     });
@@ -245,26 +225,6 @@ public class FriendServiceImpl implements FriendService {
     } finally {
       evictCaches(user);
       if (success) publisher.publishEvent(new AcceptanceEvent(getAuthenticatedUserId(), user));
-    }
-  }
-
-  @Async
-  @Override
-  @Transactional(value = "asyncTransactionManager", timeout = 300)
-  public void block(Long user) throws FriendshipException {
-    boolean success = false;
-    try (Connection connection = asyncDataSource.getConnection(); CallableStatement stmt = connection.prepareCall("{call block_friend(?, ?)}")) {
-      stmt.setLong(1, getAuthenticatedUserId());
-      stmt.setLong(2, user);
-      stmt.executeUpdate();
-      success = true;
-    } catch (SQLException e) {
-      logger.error("Error blocking user: {}", e.getMessage(), e);
-      success = false;
-      throw new FriendshipException("Failed to block user. SQL command error: " + e.getMessage(), e);
-    } finally {
-      evictCaches(user);
-      if (success) publisher.publishEvent(new FriendRemovalEvent(getAuthenticatedUserId(), user));
     }
   }
 
@@ -295,11 +255,9 @@ public class FriendServiceImpl implements FriendService {
     if (cache != null) {
       cache.evict(getCacheKey(STATUS_CACHE_KEY, currentUser, user));
       cache.evict(getCacheKey(IS_FRIEND_CACHE_KEY, currentUser, user));
-      cache.evict(getCacheKey(IS_BLOCKING_CACHE_KEY, currentUser, user));
 
       cache.evict(getCacheKey(STATUS_CACHE_KEY, user, currentUser));
       cache.evict(getCacheKey(IS_FRIEND_CACHE_KEY, user, currentUser));
-      cache.evict(getCacheKey(IS_BLOCKING_CACHE_KEY, user, currentUser));
     }
 
     evictKeysByPattern(

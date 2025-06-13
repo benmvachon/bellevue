@@ -113,8 +113,6 @@ public class IntegrationTest extends IntegrationTestWrapper {
     for (Long friendId : friendIds) {
       request(friendId, false);
     }
-
-    block(6L, false); // liv_w
     logout();
   }
 
@@ -158,8 +156,6 @@ public class IntegrationTest extends IntegrationTestWrapper {
     assertThat("UNSET".equals(response.getBody()));
     // liv_w
     logout();
-
-    blockAs("ava_m", newUser.getId(), false); // id 8
   }
 
   @SuppressWarnings("")
@@ -283,23 +279,6 @@ public class IntegrationTest extends IntegrationTestWrapper {
   private void requestAs(String user, Long friend, boolean expectFailure) {
     login(user);
     request(friend, expectFailure);
-    logout();
-  }
-
-  private void block(Long user, boolean expectFailure) {
-    ResponseEntity<Void> response =
-        restTemplate.postForEntity(
-            "http://localhost:" + port + "/api/friend/" + user + "/block", null, Void.class);
-    if (expectFailure) {
-      assertThat(response.getStatusCode()).isNotEqualTo(HttpStatus.OK);
-    } else {
-      assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    }
-  }
-
-  private void blockAs(String user, Long friend, boolean expectFailure) {
-    login(user);
-    block(friend, expectFailure);
     logout();
   }
 

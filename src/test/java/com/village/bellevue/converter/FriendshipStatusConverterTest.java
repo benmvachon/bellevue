@@ -17,8 +17,6 @@ public class FriendshipStatusConverterTest {
     return Stream.of(
         Arguments.of(null, null),
         Arguments.of(FriendshipStatus.ACCEPTED, "ACCEPTED"),
-        Arguments.of(FriendshipStatus.BLOCKED_THEM, "BLOCKED_THEM"),
-        Arguments.of(FriendshipStatus.BLOCKED_YOU, "BLOCKED_YOU"),
         Arguments.of(FriendshipStatus.PENDING_THEM, "PENDING_THEM"),
         Arguments.of(FriendshipStatus.PENDING_YOU, "PENDING_YOU"));
   }
@@ -27,8 +25,6 @@ public class FriendshipStatusConverterTest {
     return Stream.of(
         Arguments.of(null, null, false),
         Arguments.of("ACCEPTED", FriendshipStatus.ACCEPTED, false),
-        Arguments.of("BLOCKED_THEM", FriendshipStatus.BLOCKED_THEM, false),
-        Arguments.of("BLOCKED_YOU", FriendshipStatus.BLOCKED_YOU, false),
         Arguments.of("PENDING_THEM", FriendshipStatus.PENDING_THEM, false),
         Arguments.of("PENDING_YOU", FriendshipStatus.PENDING_YOU, false),
         Arguments.of("invalid", null, true));

@@ -24,20 +24,9 @@ public interface FriendRepository extends JpaRepository<FriendEntity, FriendId> 
   List<Long> findFriends(@Param("user") Long user);
 
   @Query(
-    "SELECT CASE WHEN COUNT(f) > 0 THEN true ELSE false END FROM FriendEntity f " +
-    "WHERE f.user IN :users AND f.friend.id IN :users AND (f.status = 'BLOCKED_YOU' OR f.status = 'BLOCKED_THEM')"
-  )
-  @Transactional(readOnly = true)
-  Boolean containsBlockingUsers(@Param("users") List<Long> users);
-
-  @Query(
     "SELECT f.friend FROM FriendEntity f " +
     "WHERE f.user = :user AND f.status = 'ACCEPTED' " +
-    "AND (:excluded IS NULL OR (f.friend.id NOT IN :excluded " +
-    "AND NOT EXISTS (" +
-      "SELECT 1 FROM FriendEntity f2 " +
-      "WHERE f2.user = f.friend.id AND f2.friend.id IN :excluded AND (f2.status = 'BLOCKED_YOU' OR f2.status = 'BLOCKED_THEM')" +
-    "))) " +
+    "AND (:excluded IS NULL OR f.friend.id NOT IN :excluded) " +
     "AND (:query IS NULL " +
       "OR LOWER(f.friend.name) LIKE LOWER(CONCAT(:query, '%')) " +
       "OR LOWER(f.friend.username) LIKE LOWER(CONCAT(:query, '%'))) " +
@@ -58,15 +47,14 @@ public interface FriendRepository extends JpaRepository<FriendEntity, FriendId> 
 
   @Query(
     "SELECT f.friend FROM FriendEntity f " +
-    "WHERE f.user = :friend AND f.status = 'ACCEPTED' AND f.friend.id NOT IN " +
-    "(SELECT b.friend.id FROM FriendEntity b WHERE (b.user = :user AND b.status = 'BLOCKED_THEM') OR (b.user = :user AND b.status = 'BLOCKED_YOU')) " +
+    "WHERE f.user = :friend AND f.status = 'ACCEPTED' " +
     "AND (:query IS NULL " +
       "OR LOWER(f.friend.name) LIKE LOWER(CONCAT(:query, '%')) " +
       "OR LOWER(f.friend.username) LIKE LOWER(CONCAT(:query, '%'))) " +
     "ORDER BY f.score DESC"
   )
   @Transactional(readOnly = true)
-  Page<UserProfileEntity> findFriendsExcludingBlocked(@Param("friend") Long friend, @Param("user") Long user, @Param("query") String query, Pageable pageable);
+  Page<UserProfileEntity> findFriends(@Param("friend") Long friend, @Param("user") Long user, @Param("query") String query, Pageable pageable);
 
   @Query("""
     SELECT new com.village.bellevue.model.SuggestedFriendModel(f2.friend, SUM(f1.score + f2.score))
@@ -78,7 +66,7 @@ public interface FriendRepository extends JpaRepository<FriendEntity, FriendId> 
       AND f2.friend.id != :user
       AND f2.friend.id NOT IN (
           SELECT f.friend.id FROM FriendEntity f
-          WHERE f.user = :user AND (f.status = 'ACCEPTED' OR f.status = 'BLOCKED_YOU' OR f.status = 'BLOCKED_THEM')
+          WHERE f.user = :user AND f.status = 'ACCEPTED'
       )
     GROUP BY f2.friend.id
     ORDER BY SUM(f1.score + f2.score) DESC
