@@ -69,19 +69,19 @@ function ForumsMap({ setShowForumForm }) {
   return (
     <div className="forums">
       <h2>
-        Forums
+        Town
         <button onClick={() => setFilter(!filter)}>
           {filter ? 'Show all' : 'Show unread'}
         </button>
         <input
           type="text"
-          placeholder="Search forums..."
+          placeholder="Search town..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="forum-select-input"
         />
         <button onClick={markPostsRead}>Mark all as read</button>
-        <button onClick={() => setShowForumForm(true)}>New Forum</button>
+        <button onClick={() => setShowForumForm(true)}>New Building</button>
       </h2>
       <div>
         {loading ? (

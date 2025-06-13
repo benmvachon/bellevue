@@ -91,7 +91,7 @@ function ProfilePage() {
 
   const friendClick = (event) => {
     event.preventDefault();
-    navigate('/profile/' + event.target.value);
+    navigate('/home/' + event.target.value);
   };
 
   const openMessages = () => setShowMessages(true);

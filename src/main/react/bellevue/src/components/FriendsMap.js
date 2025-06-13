@@ -44,17 +44,17 @@ function FriendsMap() {
 
   const profileClick = (event) => {
     event.preventDefault();
-    navigate('/profile/' + event.target.value);
+    navigate('/home/' + event.target.value);
   };
 
   if (error) return JSON.stringify(error);
 
   return (
     <div className="friends">
-      <h2>Friends</h2>
+      <h2>Neighborhood</h2>
       <input
         type="text"
-        placeholder="Search friends..."
+        placeholder="Search neighborhood..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         className="friends-select-input"

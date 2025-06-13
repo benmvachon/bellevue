@@ -70,17 +70,17 @@ function SuggestedFriendsMap() {
 
   const profileClick = (event) => {
     event.preventDefault();
-    navigate('/profile/' + event.target.value);
+    navigate('/home/' + event.target.value);
   };
 
   if (error) return JSON.stringify(error);
 
   return (
     <div className="suggested-friends">
-      <h2>Suggested Friends</h2>
+      <h2>Suburbs</h2>
       <input
         type="text"
-        placeholder="Search users..."
+        placeholder="Search suburbs..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         className="user-select-input"

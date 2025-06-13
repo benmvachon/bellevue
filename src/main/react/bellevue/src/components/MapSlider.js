@@ -6,6 +6,7 @@ import SuggestedFriendsMap from '../components/SuggestedFriendsMap.js';
 
 function MapSlider({ setShowForumForm }) {
   const [open, setOpen] = useState(false);
+  const [index, setIndex] = useState(0);
   const containerRef = useRef();
 
   useEffect(() => {
@@ -18,6 +19,10 @@ function MapSlider({ setShowForumForm }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const updateIndex = (index) => {
+    if (index <= 2 && index >= 0) setIndex(index);
+  };
+
   if (!open) {
     return (
       <button className="show-map-slider" onClick={() => setOpen(true)}>
@@ -27,9 +32,23 @@ function MapSlider({ setShowForumForm }) {
   } else {
     return (
       <div ref={containerRef} className="map-slider">
-        <ForumsMap setShowForumForm={setShowForumForm} />
-        <FriendsMap />
-        <SuggestedFriendsMap />
+        <button
+          className="back"
+          disabled={index <= 0}
+          onClick={() => updateIndex(index - 1)}
+        >
+          &lt;
+        </button>
+        {index === 0 && <ForumsMap setShowForumForm={setShowForumForm} />}
+        {index === 1 && <FriendsMap />}
+        {index === 2 && <SuggestedFriendsMap />}
+        <button
+          className="forth"
+          disabled={index >= 2}
+          onClick={() => updateIndex(index + 1)}
+        >
+          &gt;
+        </button>
         <button className="hide-map-slider" onClick={() => setOpen(false)}>
           &lt;
         </button>

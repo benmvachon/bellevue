@@ -38,6 +38,7 @@ public interface ForumRepository extends JpaRepository<ForumEntity, Long> {
       "OR LOWER(f.description) LIKE LOWER(CONCAT(:query, '%'))) " +
     "AND (:unreadOnly = false OR EXISTS ( " +
       "SELECT 1 FROM AggregateRatingEntity a WHERE a.post = p.id AND a.user = :user AND a.read = false)) " +
+    "AND f.id != 1 " +
     "GROUP BY f.id " +
     "HAVING (:unreadOnly = false OR COUNT(p.id) > 0) " +
     "ORDER BY MAX(p.created) DESC, f.id ASC"

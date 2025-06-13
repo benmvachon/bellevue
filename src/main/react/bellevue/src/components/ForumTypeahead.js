@@ -28,7 +28,7 @@ const ForumTypeahead = ({ onSelect, selectedForum }) => {
       )}
       getOptions={getOptions}
       className="forum-select"
-      placeholder="Search forums..."
+      placeholder="Search town..."
     />
   );
 };

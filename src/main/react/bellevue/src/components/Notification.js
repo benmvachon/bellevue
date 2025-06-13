@@ -33,25 +33,29 @@ function Notification({ notification, onClose, openMessages }) {
   };
 
   const profileClick = () => {
-    navigate(`/profile/${stateNotification.notifier.id}`);
+    navigate(`/home/${stateNotification.notifier.id}`);
     onClose();
   };
 
   const notificationClick = () => {
     switch (stateNotification.type) {
+      case 'POST':
       case 'REPLY':
       case 'RATING':
-        navigate(`/post/${stateNotification.entity}`);
+        navigate(`/flyer/${stateNotification.entity}`);
         break;
       case 'REQUEST':
       case 'ACCEPTANCE':
-        navigate(`/profile/${stateNotification.entity}`);
+        navigate(`/home/${stateNotification.entity}`);
         break;
       case 'MESSAGE':
         openMessages(stateNotification.entity);
         break;
       case 'EQUIPMENT':
-        navigate(`/profile/${stateNotification.notified}`);
+        navigate(`/home/${stateNotification.notified}`);
+        break;
+      case 'FORUM':
+        navigate(`/town/${stateNotification.entity}`);
         break;
       default:
         navigate(`/${stateNotification.type}/${stateNotification.entity}`);

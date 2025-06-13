@@ -223,7 +223,7 @@ function Post({
   return (
     <div className={selected ? 'selected post' : 'post'}>
       <div className="post-header">
-        <button onClick={() => navigate(`/profile/${post?.user.id}`)}>
+        <button onClick={() => navigate(`/home/${post?.user.id}`)}>
           {post?.user.name}
         </button>
         <Rating
@@ -234,8 +234,8 @@ function Post({
           }}
         />
         {selected ? undefined : (
-          <button onClick={() => navigate(`/post/${post?.id}`)}>
-            Go to post
+          <button onClick={() => navigate(`/flyer/${post?.id}`)}>
+            Go to flyer
           </button>
         )}
         {post.favorite ? (
@@ -247,13 +247,13 @@ function Post({
           <button onClick={() => deletePost(id)}>Delete</button>
         )}
         {showForum && (
-          <button onClick={() => navigate(`/forum/${post?.forum.id}`)}>
+          <button onClick={() => navigate(`/town/${post?.forum.id}`)}>
             Go to {post.forum.name}
           </button>
         )}
         {excludeForum && post.forum.id !== 1 && (
           <button onClick={() => excludeForum(post.forum.id)}>
-            Filter posts from {post.forum.name}
+            Filter flyers from {post.forum.name}
           </button>
         )}
       </div>

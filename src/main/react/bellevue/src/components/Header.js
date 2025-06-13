@@ -80,8 +80,8 @@ function Header() {
 
   return (
     <div className="header">
-      <button onClick={() => navigate('/')}>Home</button>
-      <button onClick={() => navigate(`/profile/${userId}`)}>Profile</button>
+      <button onClick={() => navigate('/')}>Town Hall</button>
+      <button onClick={() => navigate(`/home/${userId}`)}>Home</button>
       <button onClick={openFavorites}>Favorites</button>
       <h1>BLORVIS</h1>
       <button onClick={openNotifications}>

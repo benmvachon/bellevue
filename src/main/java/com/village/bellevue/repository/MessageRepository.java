@@ -42,7 +42,7 @@ public interface MessageRepository extends JpaRepository<MessageEntity, Long> {
       AND m.created = conv.last_message_time
     )
     WHERE m.created < :cursor
-    ORDER BY m.created DESC
+    ORDER BY m.created DESC, m.id DESC
     LIMIT :limit
     """, nativeQuery = true
   )
@@ -68,7 +68,7 @@ public interface MessageRepository extends JpaRepository<MessageEntity, Long> {
       AND m.created = conv.last_message_time
     )
     WHERE m.created >= :cursor
-    ORDER BY m.created DESC
+    ORDER BY m.created DESC, m.id DESC
     """, nativeQuery = true
   )
   @Transactional(readOnly = true)
@@ -98,7 +98,7 @@ public interface MessageRepository extends JpaRepository<MessageEntity, Long> {
     "WHERE ((m.receiver.id = :user AND m.sender.id = :friend) " +
     "OR (m.receiver.id = :friend AND m.sender.id = :user)) " +
     "AND m.created < :cursor " +
-    "ORDER BY m.created DESC " +
+    "ORDER BY m.created DESC, m.id DESC " +
     "LIMIT :limit"
   )
   @Transactional(readOnly = true)

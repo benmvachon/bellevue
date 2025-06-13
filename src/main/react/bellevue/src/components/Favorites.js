@@ -31,8 +31,21 @@ function Favorites({ show = false, onClose }) {
     getFavorites(setFavorites, setError, page);
   };
 
+  const getType = (type) => {
+    switch (type.toLowerCase()) {
+      case 'profile':
+        return 'home';
+      case 'forum':
+        return 'town';
+      case 'post':
+        return 'flyer';
+      default:
+        return type.toLowerCase();
+    }
+  };
+
   const navigateToFavorite = (favorite) => {
-    navigate(`/${favorite.type.toLowerCase()}/${favorite.entity}`);
+    navigate(`/${getType(favorite.type)}/${favorite.entity}`);
     onClose();
   };
 

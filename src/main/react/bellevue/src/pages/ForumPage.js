@@ -157,8 +157,8 @@ function ForumPage() {
           {id === '1' && (
             <button onClick={toggleFilterAll}>
               {onlyTownHallPosts
-                ? 'Show all posts'
-                : 'Show only Town Hall posts'}
+                ? 'Show all flyers'
+                : 'Show only Town Hall flyers'}
             </button>
           )}
           {forum?.user?.id === userId && (

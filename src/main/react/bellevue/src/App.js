@@ -16,9 +16,9 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/" element={<ForumPage />} />
-            <Route path="/profile/:id" element={<ProfilePage />} />
-            <Route path="/forum/:id" element={<ForumPage />} />
-            <Route path="/post/:id" element={<PostPage />} />
+            <Route path="/home/:id" element={<ProfilePage />} />
+            <Route path="/town/:id" element={<ForumPage />} />
+            <Route path="/flyer/:id" element={<PostPage />} />
           </Routes>
         </LocationProvider>
       </Router>

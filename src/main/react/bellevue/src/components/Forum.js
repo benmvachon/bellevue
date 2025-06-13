@@ -25,7 +25,7 @@ function Forum({ id, forumProp }) {
 
   const forumClick = (event) => {
     event.preventDefault();
-    navigate(`/forum/${forum.id}`);
+    navigate(`/town/${forum.id}`);
   };
 
   const markRead = () => {
