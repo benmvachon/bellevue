@@ -1,0 +1,48 @@
+@media (width <= 400px) {
+  html {
+    body {
+      div#root {
+        div.page {
+          height: 100vh;
+          width: 100vw;
+
+          div.header {
+            flex-direction: column;
+            min-height: 128px;
+          }
+
+          button.show-map-slider {
+            max-height: calc(100vh - 128px);
+          }
+
+          div.map-slider {
+            width: 100vw;
+            max-height: calc(100vh - 128px);
+            max-width: calc(100vw - 48px);
+          }
+
+          &.forum-page, &.post-page {
+            div.page-contents {
+              div.metadata {
+                min-height: 192px;
+                overflow-y: auto;
+              }
+
+              div.contents {
+                max-height: calc(100% - 192px);
+
+                div.posts {
+                  div.post {
+                    div.post-header {
+                      flex-direction: column;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
