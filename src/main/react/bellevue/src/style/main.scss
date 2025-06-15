@@ -341,10 +341,6 @@ html {
 
         h1 {
           color: white;
-
-          @media (width < 591px) {
-            display: none;
-          }
         }
       }
 
