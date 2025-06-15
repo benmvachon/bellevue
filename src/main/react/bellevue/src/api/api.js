@@ -357,6 +357,10 @@ export const updateForum = (
     .catch(error);
 };
 
+export const removeFromForum = (id, callback, error) => {
+  api.put(`/forum/${id}/removeSelf`).then(callback).catch(error);
+};
+
 export const deleteForum = (id, callback, error) => {
   api.delete(`/forum/${id}`).then(callback).catch(error);
 };
@@ -729,7 +733,7 @@ export const unsubscribeNotificationCount = () => {
 
 export const onNotificationRead = (notification, onNotificationRead) => {
   subscribe(
-    `/user/topic/notification/unread/${notification}`,
+    `/user/topic/notification.unread.${notification}`,
     onNotificationRead
   );
 };

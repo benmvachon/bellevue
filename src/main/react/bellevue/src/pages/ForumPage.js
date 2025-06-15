@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../utils/AuthContext.js';
 import withAuth from '../utils/withAuth.js';
 import {
@@ -10,7 +10,8 @@ import {
   setForumNotification,
   markForumRead,
   onForumUnreadUpdate,
-  unsubscribeForumUnread
+  unsubscribeForumUnread,
+  removeFromForum
 } from '../api/api.js';
 import { updateSearchParams } from '../utils/updateSearchParams.js';
 import Attendees from '../components/Attendees.js';
@@ -20,6 +21,7 @@ import asPage from '../utils/asPage.js';
 import ForumForm from '../components/ForumForm.js';
 
 function ForumPage() {
+  const navigate = useNavigate();
   const { id = '1' } = useParams();
   const { userId } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -122,6 +124,10 @@ function ForumPage() {
     updateSearchParams({ excluded: [] }, searchParams, setSearchParams);
   };
 
+  const removeAccess = () => {
+    removeFromForum(forum.id, () => navigate('/'), setError);
+  };
+
   const handleDelete = () => {
     deleteForum(forum.id);
   };
@@ -161,11 +167,16 @@ function ForumPage() {
                 : 'Show only Town Hall flyers'}
             </button>
           )}
-          {forum?.user?.id === userId && (
-            <button onClick={() => setShowForumForm(true)}>Edit Forum</button>
+          {forum?.custom && forum?.user?.id !== userId && (
+            <button onClick={removeAccess}>Remove access</button>
           )}
           {forum?.user?.id === userId && (
-            <button onClick={handleDelete}>Delete Forum</button>
+            <button onClick={() => setShowForumForm(true)}>
+              Edit Building
+            </button>
+          )}
+          {forum?.user?.id === userId && (
+            <button onClick={handleDelete}>Delete Building</button>
           )}
         </div>
         <div className="metadata-lists">

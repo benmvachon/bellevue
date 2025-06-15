@@ -174,7 +174,6 @@ public class ForumServiceImpl implements ForumService {
     if (Objects.isNull(forum)) throw new ForumException("Cannot save empty forum");
     if (StringUtils.isBlank(forum.getName())) throw new ForumException("'name' field is required for new forum");
     if (StringUtils.isBlank(forum.getDescription())) throw new ForumException("'description' field is required for new forum");
-    if (Objects.isNull(forum.getUsers()) || forum.getUsers().isEmpty()) throw new ForumException("'users' field is required for new forum");
 
     // Step 1: Fetch existing forum from DB
     ForumEntity existingForum = forumRepository.findById(id)
@@ -235,6 +234,54 @@ public class ForumServiceImpl implements ForumService {
     }
 
     return model;
+  }
+
+  @Override
+  @Transactional(value = "asyncTransactionManager", propagation = Propagation.REQUIRES_NEW, timeout = 300)
+  public boolean removeSelf(Long id) throws AuthorizationException, ForumException {
+    Long user = getAuthenticatedUserId();
+    if (!canRead(id)) return false;
+    ForumEntity forum = forumRepository.findById(id).orElseThrow(() -> new ForumException("Cannot access forum: " + id));
+    if (!forum.getUsers().remove(user)) return false;
+    forumRepository.save(forum);
+    List<PostDeleteEvent> postDeleteEvents = new ArrayList<>();
+
+    for (Long post : postRepository.findAllByUserInForum(user, id)) {
+      Optional<PostEntity> postEntity = postRepository.findById(post);
+      if (postEntity.isEmpty()) continue;
+      entityManager.unwrap(Session.class).doWork(connection -> {
+        try (
+          CallableStatement stmt = connection.prepareCall("{call delete_post(?)}")
+        ) {
+          stmt.setLong(1, post);
+          stmt.executeUpdate();
+        } catch (SQLException e) {
+          logger.error("Error deleting post: {}", e.getMessage(), e);
+        }
+        Long parent = null;
+        if (Objects.nonNull(postEntity.get().getParent())) parent = postEntity.get().getParent().getId();
+        postDeleteEvents.add(new PostDeleteEvent(user, post, parent, id));
+      });
+    }
+    // remove all ratings
+    for (RatingEntity rating : ratingRepository.findAllByUserInForum(user, id)) {
+      entityManager.unwrap(Session.class).doWork(connection -> {
+        try (
+          CallableStatement stmt = connection.prepareCall("{call delete_rating(?, ?)}")
+        ) {
+          stmt.setLong(1, user);
+          stmt.setLong(2, rating.getPost());
+          stmt.executeUpdate();
+        } catch (SQLException e) {
+          logger.error("Error deleting rating: {}", e.getMessage(), e);
+        }
+      });
+    }
+    for (PostDeleteEvent postDeleteEvent : postDeleteEvents) {
+      publisher.publishEvent(postDeleteEvent);
+    }
+
+    return true;
   }
 
   @Override

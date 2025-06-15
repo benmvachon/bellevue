@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router';
 import PropTypes from 'prop-types';
 import { addForum, updateForum } from '../api/api';
 import FriendTypeahead from './FriendTypeahead.js';
@@ -7,6 +8,7 @@ import Modal from './Modal.js';
 import Forum from '../api/Forum.js';
 
 const ForumForm = ({ forum, show = false, onClose }) => {
+  const navigate = useNavigate();
   const [name, setName] = useState(forum?.name || '');
   const [description, setDescription] = useState(forum?.description || '');
   const [tags, setTags] = useState(forum?.tags || []);
@@ -63,7 +65,10 @@ const ForumForm = ({ forum, show = false, onClose }) => {
         description,
         tags,
         users.map((user) => user.id),
-        onCloseWrapper,
+        (forum) => {
+          onCloseWrapper();
+          navigate(`/town/${forum.id}`);
+        },
         (error) => {
           setDisabled(false);
           setError(error);
@@ -75,7 +80,10 @@ const ForumForm = ({ forum, show = false, onClose }) => {
         description,
         tags,
         users.map((user) => user.id),
-        onCloseWrapper,
+        (forum) => {
+          onCloseWrapper();
+          navigate(`/town/${forum.id}`);
+        },
         (error) => {
           setDisabled(false);
           setError(error);
