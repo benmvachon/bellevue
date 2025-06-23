@@ -43,6 +43,10 @@ public interface ProfileRepository extends JpaRepository<ProfileEntity, Long> {
   @Transactional(readOnly = true)
   List<Long> getUsersToMarkIdle(Timestamp lastSeen);
 
+  @Query("SELECT p.user FROM ProfileEntity p WHERE p.lastSeen < :lastSeen AND p.status != 'OFFLINE'")
+  @Transactional(readOnly = true)
+  List<Long> getUsersToMarkOffline(Timestamp lastSeen);
+
   @Modifying
   @Query("UPDATE ProfileEntity p SET p.location = :location, p.locationType = :locationType WHERE p.user = :user")
   @Transactional

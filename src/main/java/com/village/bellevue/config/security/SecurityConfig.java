@@ -2,7 +2,6 @@ package com.village.bellevue.config.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,7 +25,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
@@ -104,14 +102,6 @@ public class SecurityConfig extends GlobalAuthenticationConfigurerAdapter {
       response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401 Unauthorized
       response.setContentType("application/json");
       response.getWriter().write("{\"error\": \"Invalid username or password\"}");
-    };
-  }
-
-  @Bean
-  ServletContextInitializer servletContextInitializer(
-      SessionExpirationListener sessionExpirationListener) {
-    return (ServletContext servletContext) -> {
-      servletContext.addListener(sessionExpirationListener);
     };
   }
 
