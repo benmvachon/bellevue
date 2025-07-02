@@ -101,7 +101,12 @@ const ForumForm = ({ forum, show = false, onClose }) => {
       show={show}
       onClose={onCloseWrapper}
     >
-      <h2>{forum ? 'Edit Forum' : 'New Forum'}</h2>
+      <h2>{forum ? 'Edit Building' : 'New Building'}</h2>
+      <p>
+        {forum
+          ? 'Manage building details and control who can gain entry'
+          : 'Construct a new building for you and your neighbors to hang out in'}
+      </p>
       <form onSubmit={submit}>
         <label>Name</label>
         <input

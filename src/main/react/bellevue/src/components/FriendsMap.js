@@ -52,6 +52,7 @@ function FriendsMap() {
   return (
     <div className="friends">
       <h2>Neighborhood</h2>
+      <p>Visit a friend&apos;s house and say hello!</p>
       <input
         type="text"
         placeholder="Search neighborhood..."

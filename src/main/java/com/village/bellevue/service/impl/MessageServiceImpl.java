@@ -93,11 +93,13 @@ public class MessageServiceImpl implements MessageService {
 
   @Override
   public List<MessageEntity> readAll(Long friend, Timestamp cursor, Long limit) {
+    if (friend == 0l) friend = null; // 0 is the id for the non-existent SYSTEM user
     return messageRepository.findAll(getAuthenticatedUserId(), friend, cursor, limit);
   }
 
   @Override
   public Long countAll(Long friend) {
+    if (friend == 0l) friend = null; // 0 is the id for the non-existent SYSTEM user
     return messageRepository.countAll(getAuthenticatedUserId(), friend);
   }
 

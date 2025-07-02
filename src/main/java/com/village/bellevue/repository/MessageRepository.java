@@ -37,8 +37,8 @@ public interface MessageRepository extends JpaRepository<MessageEntity, Long> {
       WHERE sender = :user OR receiver = :user
       GROUP BY other_user
     ) conv ON (
-      ((m.sender = :user AND m.receiver = conv.other_user) OR
-      (m.receiver = :user AND m.sender = conv.other_user))
+      ((m.sender = :user AND (m.receiver IS NULL OR m.receiver = conv.other_user)) OR
+      (m.receiver = :user AND (m.sender IS NULL OR m.sender = conv.other_user)))
       AND m.created = conv.last_message_time
     )
     WHERE m.created < :cursor
@@ -63,8 +63,8 @@ public interface MessageRepository extends JpaRepository<MessageEntity, Long> {
       WHERE sender = :user OR receiver = :user
       GROUP BY other_user
     ) conv ON (
-      ((m.sender = :user AND m.receiver = conv.other_user) OR
-      (m.receiver = :user AND m.sender = conv.other_user))
+      ((m.sender = :user AND (m.receiver IS NULL OR m.receiver = conv.other_user)) OR
+      (m.receiver = :user AND (m.sender IS NULL OR m.sender = conv.other_user)))
       AND m.created = conv.last_message_time
     )
     WHERE m.created >= :cursor
@@ -74,7 +74,7 @@ public interface MessageRepository extends JpaRepository<MessageEntity, Long> {
   @Transactional(readOnly = true)
   List<MessageEntity> refreshThreads(@Param("user") Long user, @Param("cursor") Timestamp cursor);
 
-  @Query("SELECT COUNT(DISTINCT(m.sender)) FROM MessageEntity m WHERE m.receiver.id = :user AND m.read = false")
+  @Query("SELECT COUNT(DISTINCT(COALESCE(m.sender.id, 0))) FROM MessageEntity m WHERE m.receiver.id = :user AND m.read = false")
   @Transactional(readOnly = true)
   Long countUnreadThreads(@Param("user") Long user);
 
@@ -95,8 +95,8 @@ public interface MessageRepository extends JpaRepository<MessageEntity, Long> {
   Long countThreads(@Param("user") Long user);
 
   @Query("SELECT m FROM MessageEntity m " +
-    "WHERE ((m.receiver.id = :user AND m.sender.id = :friend) " +
-    "OR (m.receiver.id = :friend AND m.sender.id = :user)) " +
+    "WHERE (m.receiver.id = :user AND ((:friend IS NULL AND m.sender IS NULL) OR m.sender.id = :friend)) " +
+    "OR (((:friend IS NULL AND m.receiver IS NULL) OR m.receiver.id = :friend) AND m.sender.id = :user) " +
     "AND m.created < :cursor " +
     "ORDER BY m.created DESC, m.id DESC " +
     "LIMIT :limit"
@@ -105,8 +105,8 @@ public interface MessageRepository extends JpaRepository<MessageEntity, Long> {
   List<MessageEntity> findAll(@Param("user") Long user, @Param("friend") Long friend, @Param("cursor") Timestamp cursor, @Param("limit") Long limit);
 
   @Query("SELECT COUNT(DISTINCT(m)) FROM MessageEntity m " +
-    "WHERE (m.receiver.id = :user AND m.sender.id = :friend) " +
-    "OR (m.receiver.id = :friend AND m.sender.id = :user)"
+    "WHERE (m.receiver.id = :user AND ((:friend IS NULL AND m.sender IS NULL) OR m.sender.id = :friend)) " +
+    "OR (((:friend IS NULL AND m.receiver IS NULL) OR m.receiver.id = :friend) AND m.sender.id = :user)"
   )
   @Transactional(readOnly = true)
   Long countAll(@Param("user") Long user, @Param("friend") Long friend);

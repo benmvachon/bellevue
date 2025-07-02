@@ -6,6 +6,7 @@ import SignupPage from './pages/SignupPage';
 import ProfilePage from './pages/ProfilePage';
 import ForumPage from './pages/ForumPage.js';
 import PostPage from './pages/PostPage.js';
+import MapPage from './pages/MapPage.js';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
             <Route path="/home/:id" element={<ProfilePage />} />
             <Route path="/town/:id" element={<ForumPage />} />
             <Route path="/flyer/:id" element={<PostPage />} />
+            <Route path="/map/:section" element={<MapPage />} />
           </Routes>
         </LocationProvider>
       </Router>

@@ -55,6 +55,7 @@ public class NotificationEntity {
     ACCEPTANCE,
     MESSAGE,
     EQUIPMENT,
+    SYSTEM,
     OTHER;
 
     @JsonValue

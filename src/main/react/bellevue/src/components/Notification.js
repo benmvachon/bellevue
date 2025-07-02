@@ -57,6 +57,9 @@ function Notification({ notification, onClose, openMessages }) {
       case 'FORUM':
         navigate(`/town/${stateNotification.entity}`);
         break;
+      case 'SYSTEM':
+        navigate('/map/suburbs');
+        break;
       default:
         navigate(`/${stateNotification.type}/${stateNotification.entity}`);
         break;

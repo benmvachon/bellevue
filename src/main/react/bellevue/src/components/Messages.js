@@ -145,9 +145,12 @@ function Messages({ show = false, friend, onClose }) {
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
+          disabled={friend === 0}
         />
         <button onClick={onClose}>Close</button>
-        <button onClick={send}>Send</button>
+        <button disabled={friend === 0} onClick={send}>
+          Send
+        </button>
       </div>
     </Modal>
   );

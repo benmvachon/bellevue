@@ -3,8 +3,12 @@ import Profile from './Profile';
 class Message {
   constructor(id, sender, receiver, message, read, created, _links) {
     this.id = id;
-    this.sender = sender ? Profile.fromJSON(sender) : null;
-    this.receiver = receiver ? Profile.fromJSON(receiver) : null;
+    this.sender = sender
+      ? Profile.fromJSON(sender)
+      : new Profile(0, 'SYSTEM', 'SYSTEM', 'ACTIVE');
+    this.receiver = receiver
+      ? Profile.fromJSON(receiver)
+      : new Profile(0, 'SYSTEM', 'SYSTEM', 'ACTIVE');
     this.message = message;
     this.read = read;
     this.created = new Date(created);

@@ -83,6 +83,7 @@ function ForumsMap({ setShowForumForm }) {
         <button onClick={markPostsRead}>Mark all as read</button>
         <button onClick={() => setShowForumForm(true)}>New Building</button>
       </h2>
+      <p>Enter buildings and engage in conversations with your neighbors!</p>
       <div>
         {loading ? (
           <p>Loading...</p>

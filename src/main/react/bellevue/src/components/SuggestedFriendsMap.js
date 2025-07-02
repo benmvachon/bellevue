@@ -78,6 +78,7 @@ function SuggestedFriendsMap() {
   return (
     <div className="suggested-friends">
       <h2>Suburbs</h2>
+      <p>Find potential neighbors and send them friend requests!</p>
       <input
         type="text"
         placeholder="Search suburbs..."

@@ -147,7 +147,7 @@ CREATE TABLE aggregate_rating(
 );
 CREATE TABLE message(
     id              INT UNSIGNED NOT NULL AUTO_INCREMENT,                                                       -- Unique ID for the record
-    sender          INT UNSIGNED NOT NULL,                                                                      -- ID of the user who sent the message
+    sender          INT UNSIGNED,                                                                               -- ID of the user who sent the message
     receiver        INT UNSIGNED NOT NULL,                                                                      -- ID of the user to whom the message was sent
     message         TEXT NOT NULL,                                                                              -- Text content of the message
     `read`          BOOLEAN NOT NULL DEFAULT FALSE,                                                             -- Flag indicating whether the message has been read or not
@@ -165,7 +165,7 @@ CREATE TABLE notification(
     notified        INT UNSIGNED NOT NULL,                                                                      -- ID of the user who receives the notification
     notifier        INT UNSIGNED NOT NULL,                                                                      -- ID of the user causing the notification
     type            ENUM(
-        'FORUM', 'POST', 'REPLY', 'RATING', 'REQUEST', 'ACCEPTANCE', 'MESSAGE', 'EQUIPMENT', 'OTHER'
+        'FORUM', 'POST', 'REPLY', 'RATING', 'REQUEST', 'ACCEPTANCE', 'MESSAGE', 'EQUIPMENT', 'SYSTEM', 'OTHER'
     ) NOT NULL DEFAULT 'OTHER',                                                                                 -- Type of notification (used to get the record referenced by the entity)
     entity          INT UNSIGNED,                                                                               -- ID of the object (post, request, rating) which caused the notification
     `read`          BOOLEAN NOT NULL DEFAULT 0,                                                                 -- Flag indicating whether the message has been read or not
