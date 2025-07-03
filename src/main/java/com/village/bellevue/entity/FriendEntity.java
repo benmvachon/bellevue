@@ -43,9 +43,7 @@ public class FriendEntity {
   public enum FriendshipStatus {
     PENDING_THEM,
     PENDING_YOU,
-    ACCEPTED,
-    BLOCKED_THEM,
-    BLOCKED_YOU;
+    ACCEPTED;
 
     @JsonValue
     public String toValue() {

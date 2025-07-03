@@ -115,9 +115,3 @@ CALL request_friend(9, 15);
 CALL request_friend(10, 16);
 CALL request_friend(11, 17);
 CALL request_friend(12, 18);
-
-CALL block_friend(1, 9);
-CALL block_friend(2, 10);
-CALL block_friend(3, 11);
-CALL block_friend(4, 12);
-CALL block_friend(5, 13);

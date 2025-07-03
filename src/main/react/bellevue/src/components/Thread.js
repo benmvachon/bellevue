@@ -19,34 +19,6 @@ function Thread({ thread, onClick }) {
   const [received, setReceived] = useState(false);
   const [error, setError] = useState(false);
 
-  const markAsRead = () => {
-    markThreadRead(
-      friend.id,
-      getMessage(stateThread.id, setThread, setError),
-      setError
-    );
-  };
-
-  const threadClick = () => {
-    onClick(stateThread);
-  };
-
-  useEffect(() => {
-    setThread(thread);
-  }, [thread]);
-
-  useEffect(() => {
-    if (stateThread) {
-      if (stateThread.receiver.id === userId) {
-        setFriend(stateThread.sender);
-        setReceived(true);
-      } else {
-        setFriend(stateThread.receiver);
-        setReceived(false);
-      }
-    }
-  }, [stateThread, userId]);
-
   useEffect(() => {
     if (friend) {
       onMessage(friend.id, (event) => setThread(event.message));
@@ -68,6 +40,34 @@ function Thread({ thread, onClick }) {
       };
     }
   }, [friend, stateThread]);
+
+  useEffect(() => {
+    setThread(thread);
+  }, [thread]);
+
+  useEffect(() => {
+    if (stateThread) {
+      if (stateThread.receiver.id === userId) {
+        setFriend(stateThread.sender);
+        setReceived(true);
+      } else {
+        setFriend(stateThread.receiver);
+        setReceived(false);
+      }
+    }
+  }, [stateThread, userId]);
+
+  const markAsRead = () => {
+    markThreadRead(
+      friend.id,
+      getMessage(stateThread.id, setThread, setError),
+      setError
+    );
+  };
+
+  const threadClick = () => {
+    onClick(stateThread);
+  };
 
   if (error) return JSON.stringify(error);
 

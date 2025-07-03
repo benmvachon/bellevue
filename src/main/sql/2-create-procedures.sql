@@ -1092,38 +1092,6 @@ END;
 DELIMITER ;
 
 DELIMITER //
-CREATE PROCEDURE block_friend(
-    IN p_user INT UNSIGNED,
-    IN p_friend INT UNSIGNED
-)
-BEGIN
-    -- Check if the friendship already exists
-    IF EXISTS (
-        SELECT * FROM friend
-        WHERE user = p_user AND friend = p_friend
-    ) THEN
-        -- Update the status to 'blocked'
-        UPDATE friend
-        SET status = 'BLOCKED_THEM', updated = CURRENT_TIMESTAMP
-        WHERE user = p_user AND friend = p_friend;
-
-        CALL remove_pair_from_custom_forums(p_user, p_friend);
-
-        CALL delete_friendship(p_user, p_friend);
-    ELSE
-        -- If the friendship does not exist, just insert a blocked entry
-        INSERT INTO friend (user, friend, status)
-        VALUES (p_user, p_friend, 'BLOCKED_THEM');
-    END IF;
-    -- Insert the reciprocal friendship record with status 'BLOCKED_YOU' to prevent visibility
-    INSERT INTO friend (user, friend, status)
-    VALUES (p_friend, p_user, 'BLOCKED_YOU')
-    ON DUPLICATE KEY UPDATE status = 'BLOCKED_YOU', updated = CURRENT_TIMESTAMP;
-END;
-//
-DELIMITER ;
-
-DELIMITER //
 CREATE PROCEDURE remove_friend(
     IN p_user INT UNSIGNED,
     IN p_friend INT UNSIGNED

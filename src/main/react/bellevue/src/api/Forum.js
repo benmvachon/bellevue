@@ -28,6 +28,7 @@ class Forum {
     this.favorite = favorite;
     this.unreadCount = unreadCount;
     this.notify = notify;
+    this.custom = user ? true : false;
     // TODO: process _links
   }
 

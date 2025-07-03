@@ -59,6 +59,18 @@ public class ActivityServiceImpl implements ActivityService {
   @Transactional(value = "asyncTransactionManager", timeout = 300)
   @Modifying
   @Override
+  public void markUsersOffline(Timestamp lastSeen) {
+    List<Long> users = profileRepository.getUsersToMarkOffline(lastSeen);
+    for (Long user : users) {
+      profileRepository.setStatusOffline(user);
+      publisher.publishEvent(new StatusEvent(user, "offline"));
+    }
+  }
+
+  @Async
+  @Transactional(value = "asyncTransactionManager", timeout = 300)
+  @Modifying
+  @Override
   public void markUserOffline(Long user) {
     if (profileRepository.setStatusOffline(user) > 0) {
       publisher.publishEvent(new StatusEvent(user, "offline"));

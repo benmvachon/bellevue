@@ -11,10 +11,8 @@ import Favorite from './Favorite.js';
 import SockJS from 'sockjs-client';
 import { Client } from '@stomp/stompjs';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
-
 export const api = axios.create({
-  baseURL: `${API_BASE_URL ? API_BASE_URL : ''}/api`,
+  baseURL: '/api',
   withCredentials: true
 });
 
@@ -97,6 +95,10 @@ export const getClient = async (force = false) => {
       console.log('[STOMP] Connected');
       isCreatingClient = false;
       connectedPromise.resolve();
+      // resubscribe
+      subscriptions?.forEach(({ onMessage }, destination) => {
+        subscribe(destination, onMessage);
+      });
     },
     onDisconnect: () => {
       console.log('[STOMP] Disconnected');
@@ -130,22 +132,17 @@ export const subscribe = async (destination, onMessage) => {
   const client = await getClient();
 
   const sub = client.subscribe(destination, (message) => {
-    try {
-      const body = JSON.parse(message.body);
-      onMessage(body);
-    } catch (e) {
-      console.warn('[STOMP] Received non-JSON message', message.body);
-      onMessage(message.body); // Fallback to raw
-    }
+    console.warn('[STOMP] Received non-JSON message', message.body);
+    onMessage(message.body);
   });
 
-  subscriptions.set(destination, sub);
+  subscriptions.set(destination, { sub, onMessage });
 };
 
 export const unsubscribe = (destination) => {
-  const sub = subscriptions.get(destination);
-  if (sub) {
-    sub.unsubscribe();
+  const value = subscriptions.get(destination);
+  if (value && value.sub) {
+    value.sub.unsubscribe();
     subscriptions.delete(destination);
   }
 };
@@ -159,7 +156,7 @@ export const logout = (callback, error) => {
 };
 
 export const signup = (name, username, email, password, callback, error) => {
-  const newUser = new User(name, username, email, password);
+  const newUser = new User(undefined, name, username, email, password);
   api.post('/user/signup', newUser.toJSON()).then(callback).catch(error);
 };
 
@@ -187,10 +184,6 @@ export const acceptFriend = (user, callback, error) => {
 
 export const removeFriend = (user, callback, error) => {
   api.delete(`/friend/${user}/remove`).then(callback).catch(error);
-};
-
-export const blockUser = (user, callback, error) => {
-  api.post(`/friend/${user}/bock`).then(callback).catch(error);
 };
 
 export const updateBlackboard = (blackboard, callback, error) => {
@@ -362,6 +355,10 @@ export const updateForum = (
     )
     .then((response) => callback && callback(Forum.fromJSON(response.data)))
     .catch(error);
+};
+
+export const removeFromForum = (id, callback, error) => {
+  api.put(`/forum/${id}/removeSelf`).then(callback).catch(error);
 };
 
 export const deleteForum = (id, callback, error) => {
@@ -736,7 +733,7 @@ export const unsubscribeNotificationCount = () => {
 
 export const onNotificationRead = (notification, onNotificationRead) => {
   subscribe(
-    `/user/topic/notification/unread/${notification}`,
+    `/user/topic/notification.unread.${notification}`,
     onNotificationRead
   );
 };

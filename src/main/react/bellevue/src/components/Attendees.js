@@ -15,9 +15,8 @@ function Attendees() {
 
   useEffect(() => {
     if (locationId && locationType) {
-      getFriendsInLocation(setAttendees, setError);
       onEntrance(() => getFriendsInLocation(setAttendees, setError));
-
+      getFriendsInLocation(setAttendees, setError);
       return () => {
         unsubscribeLocation();
       };
@@ -32,7 +31,7 @@ function Attendees() {
       {attendees?.content?.map((attendee) => (
         <button
           key={`attendee-${attendee.id}`}
-          onClick={() => navigate(`/profile/${attendee.id}`)}
+          onClick={() => navigate(`/home/${attendee.id}`)}
         >
           {attendee.name}
         </button>

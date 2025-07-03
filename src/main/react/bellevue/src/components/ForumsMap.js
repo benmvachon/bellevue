@@ -11,23 +11,6 @@ function ForumsMap({ setShowForumForm }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  const loadForumPage = (page) => {
-    setLoading(true);
-    getForums(
-      (forums) => {
-        setForums(forums);
-        setLoading(false);
-      },
-      (error) => {
-        setError(error);
-        setLoading(false);
-      },
-      filter,
-      query,
-      page
-    );
-  };
-
   useEffect(() => {
     setLoading(true);
     getForums(
@@ -64,25 +47,43 @@ function ForumsMap({ setShowForumForm }) {
     }
   }, [forums]);
 
+  const loadForumPage = (page) => {
+    setLoading(true);
+    getForums(
+      (forums) => {
+        setForums(forums);
+        setLoading(false);
+      },
+      (error) => {
+        setError(error);
+        setLoading(false);
+      },
+      filter,
+      query,
+      page
+    );
+  };
+
   if (error) return JSON.stringify(error);
 
   return (
     <div className="forums">
       <h2>
-        Forums
+        Town
         <button onClick={() => setFilter(!filter)}>
           {filter ? 'Show all' : 'Show unread'}
         </button>
         <input
           type="text"
-          placeholder="Search forums..."
+          placeholder="Search town..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="forum-select-input"
         />
         <button onClick={markPostsRead}>Mark all as read</button>
-        <button onClick={() => setShowForumForm(true)}>New Forum</button>
+        <button onClick={() => setShowForumForm(true)}>New Building</button>
       </h2>
+      <p>Enter buildings and engage in conversations with your neighbors!</p>
       <div>
         {loading ? (
           <p>Loading...</p>

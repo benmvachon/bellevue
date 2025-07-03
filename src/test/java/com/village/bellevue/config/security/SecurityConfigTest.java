@@ -42,6 +42,7 @@ class SecurityConfigTest {
     when(http.sessionManagement(any())).thenReturn(http);
     when(http.logout(any())).thenReturn(http);
     when(http.csrf(any())).thenReturn(http);
+    when(http.cors(any())).thenReturn(http);
 
     securityConfig.filterChain(http);
 

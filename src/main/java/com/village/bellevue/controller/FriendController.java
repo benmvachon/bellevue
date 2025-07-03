@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.village.bellevue.assembler.ProfileModelAssembler;
 import static com.village.bellevue.config.security.SecurityConfig.getAuthenticatedUserId;
-import com.village.bellevue.entity.FriendEntity.FriendshipStatus;
 import com.village.bellevue.error.FriendshipException;
 import com.village.bellevue.model.ProfileModel;
 import com.village.bellevue.service.FriendService;
@@ -89,7 +88,7 @@ public class FriendController {
     if (getAuthenticatedUserId().equals(user)) return ResponseEntity.ok("YOU");
     try {
       Optional<String> friend = friendService.getStatus(user);
-      if (friend.isEmpty() || FriendshipStatus.BLOCKED_YOU.equals(friend.get())) {
+      if (friend.isEmpty()) {
         return ResponseEntity.ok("UNSET");
       }
       return friend
@@ -122,16 +121,6 @@ public class FriendController {
     try {
       friendService.accept(user);
       return ResponseEntity.ok("Friend request accepted.");
-    } catch (FriendshipException e) {
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-    }
-  }
-
-  @PostMapping("/{user}/block")
-  public ResponseEntity<String> block(@PathVariable Long user) {
-    try {
-      friendService.block(user);
-      return ResponseEntity.ok("User blocked.");
     } catch (FriendshipException e) {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
     }

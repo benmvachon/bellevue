@@ -17,7 +17,7 @@ import com.village.bellevue.entity.id.NotificationSettingId;
 import com.village.bellevue.event.type.AcceptanceEvent;
 import com.village.bellevue.event.type.EquipmentEvent;
 import com.village.bellevue.event.type.ForumEvent;
-import com.village.bellevue.event.type.MessageEvent;
+import com.village.bellevue.event.type.NewUserEvent;
 import com.village.bellevue.event.type.NotificationReadEvent;
 import com.village.bellevue.event.type.NotificationsReadEvent;
 import com.village.bellevue.event.type.PostEvent;
@@ -115,18 +115,17 @@ public class NotificationListener {
 
   @Async
   @EventListener
-  public void handleMessageEvent(MessageEvent event) {
-    Long user = event.getUser();
-    Long friend = event.getFriend();
-    notifyFriend(user, friend, NotificationType.MESSAGE, user);
-  }
-
-  @Async
-  @EventListener
   public void handleEquipmentEvent(EquipmentEvent event) {
     Long user = event.getUser();
     Long item = event.getEquipment().getItem().getId();
     notifyFriend(user, user, NotificationType.EQUIPMENT, item);
+  }
+
+  @Async
+  @EventListener
+  public void handleNewUserEvent(NewUserEvent event) {
+    Long user = event.getUser();
+    notifyFriend(user, user, NotificationType.SYSTEM, user);
   }
 
   @Async
@@ -186,8 +185,7 @@ public class NotificationListener {
   @Transactional(value = "asyncTransactionManager", timeout = 300)
   @Modifying
   private void notifyFriend(Long user, Long friend, NotificationType type, Long entity) {
-    UserProfileEntity notifier = userProfileRepository.findById(user).orElseThrow(() -> new IllegalStateException("Not found"));
-
+    UserProfileEntity notifier = userProfileRepository.findById(user > 0 ? user : friend).orElseThrow(() -> new IllegalStateException("Not found"));
     NotificationEntity notification = new NotificationEntity();
     notification.setNotifier(notifier);
     notification.setNotified(friend);

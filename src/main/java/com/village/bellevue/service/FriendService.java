@@ -16,8 +16,6 @@ public interface FriendService {
 
   public boolean isFriend(Long user) throws FriendshipException;
 
-  public boolean isBlockedBy(Long user) throws FriendshipException;
-
   public Page<ProfileModel> readAll(String query, List<Long> excluded, int page, int size) throws FriendshipException;
 
   public Page<ProfileModel> readSuggestions(int page, int size) throws FriendshipException;
@@ -25,8 +23,6 @@ public interface FriendService {
   public Page<ProfileModel> readAll(Long user, String query, int page, int size) throws FriendshipException;
 
   public void accept(Long user) throws FriendshipException;
-
-  public void block(Long user) throws FriendshipException;
 
   public void remove(Long user) throws FriendshipException;
 }

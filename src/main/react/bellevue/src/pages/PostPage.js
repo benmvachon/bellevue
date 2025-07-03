@@ -65,12 +65,11 @@ function PostPage() {
   return (
     <div className="page-contents">
       <h2>{post.forum.name}</h2>
-      <button onClick={() => navigate(`/forum/${post.forum.id}`)}>
-        Back to forum
+      <button onClick={() => navigate(`/town/${post.forum.id}`)}>
+        Back to town
       </button>
       <div className="contents">
         <div className="posts">
-          <h3>Posts</h3>
           {i > 0 ? parentFuncs[i - 1](0, true) : getPostElement(0, true)}
         </div>
       </div>

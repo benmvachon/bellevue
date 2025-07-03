@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../utils/AuthContext';
+import NoAuthHeader from '../components/NoAuthHeader';
 
 function LoginPage() {
   const navigate = useNavigate();
@@ -32,6 +33,7 @@ function LoginPage() {
 
   return (
     <div className="page login-page">
+      <NoAuthHeader />
       <h1>Login</h1>
       <form onSubmit={onSubmit}>
         <div>

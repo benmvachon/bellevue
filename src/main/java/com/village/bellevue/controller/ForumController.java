@@ -56,8 +56,7 @@ public class ForumController {
       return ResponseEntity.status(HttpStatus.CREATED).body(entityModel);
     } catch (AuthorizationException e) {
       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-    }
-    catch (ForumException e) {
+    } catch (ForumException e) {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
   }
@@ -114,8 +113,19 @@ public class ForumController {
       return ResponseEntity.status(HttpStatus.OK).body(entityModel);
     } catch (AuthorizationException e) {
       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    } catch (ForumException e) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
-    catch (ForumException e) {
+  }
+
+  @PutMapping("/{id}/removeSelf")
+  public ResponseEntity<Void> removeSelf(@PathVariable Long id) {
+    try {
+      if (forumService.removeSelf(id)) return ResponseEntity.status(HttpStatus.OK).build();
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    } catch (AuthorizationException e) {
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    } catch (ForumException e) {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
   }

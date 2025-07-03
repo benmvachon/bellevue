@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router';
 import PropTypes from 'prop-types';
 import { addForum, updateForum } from '../api/api';
 import FriendTypeahead from './FriendTypeahead.js';
@@ -7,12 +8,24 @@ import Modal from './Modal.js';
 import Forum from '../api/Forum.js';
 
 const ForumForm = ({ forum, show = false, onClose }) => {
+  const navigate = useNavigate();
   const [name, setName] = useState(forum?.name || '');
   const [description, setDescription] = useState(forum?.description || '');
   const [tags, setTags] = useState(forum?.tags || []);
   const [users, setUsers] = useState(forum?.users || []);
   const [disabled, setDisabled] = useState(false);
   const [error, setError] = useState(false);
+
+  useEffect(() => {
+    if (show && forum) {
+      setDisabled(false);
+      setName(forum.name);
+      setDescription(forum.description);
+      setTags(forum.tags);
+      setUsers(forum.users);
+      setError(false);
+    }
+  }, [show, forum]);
 
   const onCloseWrapper = (event) => {
     event && event.preventDefault && event.preventDefault();
@@ -52,7 +65,10 @@ const ForumForm = ({ forum, show = false, onClose }) => {
         description,
         tags,
         users.map((user) => user.id),
-        onCloseWrapper,
+        (forum) => {
+          onCloseWrapper();
+          navigate(`/town/${forum.id}`);
+        },
         (error) => {
           setDisabled(false);
           setError(error);
@@ -64,7 +80,10 @@ const ForumForm = ({ forum, show = false, onClose }) => {
         description,
         tags,
         users.map((user) => user.id),
-        onCloseWrapper,
+        (forum) => {
+          onCloseWrapper();
+          navigate(`/town/${forum.id}`);
+        },
         (error) => {
           setDisabled(false);
           setError(error);
@@ -72,17 +91,6 @@ const ForumForm = ({ forum, show = false, onClose }) => {
       );
     }
   };
-
-  useEffect(() => {
-    if (show && forum) {
-      setDisabled(false);
-      setName(forum.name);
-      setDescription(forum.description);
-      setTags(forum.tags);
-      setUsers(forum.users);
-      setError(false);
-    }
-  }, [show, forum]);
 
   if (error) return <pre>{JSON.stringify(error)}</pre>;
   if (!show) return;
@@ -93,7 +101,12 @@ const ForumForm = ({ forum, show = false, onClose }) => {
       show={show}
       onClose={onCloseWrapper}
     >
-      <h2>{forum ? 'Edit Forum' : 'New Forum'}</h2>
+      <h2>{forum ? 'Edit Building' : 'New Building'}</h2>
+      <p>
+        {forum
+          ? 'Manage building details and control who can gain entry'
+          : 'Construct a new building for you and your neighbors to hang out in'}
+      </p>
       <form onSubmit={submit}>
         <label>Name</label>
         <input

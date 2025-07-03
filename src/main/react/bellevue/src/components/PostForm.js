@@ -9,6 +9,11 @@ const PostForm = ({ forum, parent, enableForumSelection = false }) => {
   const [disabled, setDisabled] = useState(false);
   const [error, setError] = useState(false);
 
+  useEffect(() => {
+    if (!newPost || !selectedForum) setDisabled(true);
+    else setDisabled(false);
+  }, [newPost, selectedForum]);
+
   const handleKeyDown = (e) => {
     switch (e.key) {
       case 'Enter':
@@ -31,11 +36,6 @@ const PostForm = ({ forum, parent, enableForumSelection = false }) => {
       );
     else addPost(selectedForum.id, newPost, () => setNewPost(''), setError);
   };
-
-  useEffect(() => {
-    if (!newPost || !selectedForum) setDisabled(true);
-    else setDisabled(false);
-  }, [newPost, selectedForum]);
 
   if (error) return <pre>{JSON.stringify(error)}</pre>;
 

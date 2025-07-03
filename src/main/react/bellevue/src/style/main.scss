@@ -1,5 +1,6 @@
 @import './variables';
 @import './mixins';
+@import './mobile';
 
 html {
   display: flex;
@@ -66,49 +67,50 @@ html {
       }
 
       div.map-slider {
+        display: flex;
+        flex-direction: column;
         bottom: 0;
         height: 92%;
-        width: 300px;
+        width: 512px;
         left: 0;
         position: absolute;
         background: white;
         z-index: 2;
         padding: 0 24px;
-        display: flex;
-        flex-direction: column;
         align-items: center;
-        justify-content: space-around;
+        justify-content: center;
 
-        div.forums {
-          display: flex;
-          height: 40%;
+        div.content {
           width: 100%;
-          flex-direction: column;
+          display: flex;
           align-items: center;
-          overflow-y: auto;
+          justify-content: space-around;
 
-          h2 {
+          div.forums, div.friends, div.suggested-friends {
             display: flex;
+            width: 100%;
             flex-direction: column;
             align-items: center;
+            overflow-y: auto;
+
+            h2 {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+            }
+
+            p {
+              width: 75%;
+            }
           }
-        }
 
-        div.friends, div.suggested-friends {
-          display: flex;
-          height: 30%;
-          width: 100%;
-          flex-direction: column;
-          align-items: center;
-          overflow-y: auto;
-        }
-
-        button.hide-map-slider {
-          height: 100%;
-          right: 0;
-          bottom: 0;
-          position: absolute;
-          border-width: 0 1px;
+          button.hide-map-slider {
+            height: 100%;
+            right: 0;
+            bottom: 0;
+            position: absolute;
+            border-width: 0 1px;
+          }
         }
       }
 
@@ -193,6 +195,64 @@ html {
 
             div.scroll-loader {
               height: 76%;
+            }
+          }
+        }
+      }
+
+      &.post-page {
+        div.contents {
+          display: flex;
+          flex-direction: column;
+          height: 76%;
+          overflow-y: auto;
+          width: calc(100% - 64px);
+
+          div.posts {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+
+            div.posts-header {
+              height: 24%;
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+            }
+
+            div.scroll-loader {
+              height: 76%;
+            }
+          }
+        }
+      }
+
+      &.map-page {
+        div.page-contents {
+          div.map {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            width: 80%;
+
+            div.forums, div.friends, div.suggested-friends {
+              display: flex;
+              height: 50%;
+              min-height: 450px;
+              width: 100%;
+              flex-direction: column;
+              align-items: center;
+              overflow-y: auto;
+    
+              h2 {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+              }
+
+              p {
+                width: 75%;
+              }
             }
           }
         }
@@ -322,10 +382,6 @@ html {
 
         h1 {
           color: white;
-
-          @media (width < 591px) {
-            display: none;
-          }
         }
       }
 
@@ -396,6 +452,13 @@ html {
           div.thread {
             display: flex;
             justify-content: space-evenly;
+
+            button {
+              text-overflow: ellipsis;
+              overflow: hidden;
+              white-space: nowrap;
+              max-width: 60%;
+            }
           }
         }
       }

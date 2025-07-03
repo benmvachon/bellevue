@@ -10,6 +10,34 @@ function SuggestedFriendsMap() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
+  useEffect(() => {
+    setLoading(true);
+    if (query) {
+      findUsers(
+        query,
+        (friends) => {
+          setSuggestedFriends(friends);
+          setLoading(false);
+        },
+        (error) => {
+          setError(error);
+          setLoading(false);
+        }
+      );
+    } else {
+      getSuggestedFriends(
+        (friends) => {
+          setSuggestedFriends(friends);
+          setLoading(false);
+        },
+        (error) => {
+          setError(error);
+          setLoading(false);
+        }
+      );
+    }
+  }, [query]);
+
   const loadSuggestedFriendPage = (page) => {
     setLoading(true);
     if (query && query.trim().length) {
@@ -42,45 +70,18 @@ function SuggestedFriendsMap() {
 
   const profileClick = (event) => {
     event.preventDefault();
-    navigate('/profile/' + event.target.value);
+    navigate('/home/' + event.target.value);
   };
-
-  useEffect(() => {
-    setLoading(true);
-    if (query) {
-      findUsers(
-        query,
-        (friends) => {
-          setSuggestedFriends(friends);
-          setLoading(false);
-        },
-        (error) => {
-          setError(error);
-          setLoading(false);
-        }
-      );
-    } else {
-      getSuggestedFriends(
-        (friends) => {
-          setSuggestedFriends(friends);
-          setLoading(false);
-        },
-        (error) => {
-          setError(error);
-          setLoading(false);
-        }
-      );
-    }
-  }, [query]);
 
   if (error) return JSON.stringify(error);
 
   return (
     <div className="suggested-friends">
-      <h2>Suggested Friends</h2>
+      <h2>Suburbs</h2>
+      <p>Find potential neighbors and send them friend requests!</p>
       <input
         type="text"
-        placeholder="Search users..."
+        placeholder="Search suburbs..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         className="user-select-input"

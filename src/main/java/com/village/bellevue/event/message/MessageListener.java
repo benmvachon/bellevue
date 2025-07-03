@@ -1,5 +1,7 @@
 package com.village.bellevue.event.message;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
@@ -12,6 +14,8 @@ import com.village.bellevue.event.type.ThreadsReadEvent;
 
 @Component
 public class MessageListener {
+  private static final Logger logger = LoggerFactory.getLogger(MessageListener.class);
+
   private final SimpMessagingTemplate messagingTemplate;
 
   public MessageListener(
@@ -25,11 +29,13 @@ public class MessageListener {
   public void handleMessageEvent(MessageEvent event) {
     Long friend = event.getFriend();
     Long user = event.getUser();
+    logger.info("Message from: " + user + " to: " + friend + " received from event queue");
     messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/thread", event);
     messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/message." + user, event);
     messagingTemplate.convertAndSendToUser(friend.toString(), "/topic/thread.unread", "update");
     messagingTemplate.convertAndSendToUser(user.toString(), "/topic/thread", event);
     messagingTemplate.convertAndSendToUser(user.toString(), "/topic/message." + friend, event);
+    logger.info("Message from: " + user + " to: " + friend + " sent to client socket subscriptions");
   }
 
   @Async

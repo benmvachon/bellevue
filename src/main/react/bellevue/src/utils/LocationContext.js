@@ -20,7 +20,7 @@ export const LocationProvider = ({ children }) => {
     if (type === 'forum') return { type: 'FORUM', id };
     if (type === 'profile') return { type: 'PROFILE', id };
     if (type === 'post') return { type: 'POST', id };
-    if (type === 'login') return { type: 'LOGIN' };
+    if (type === 'login' || type === 'signup') return { type: 'LOGIN' };
     return { type: null, id: null };
   };
 

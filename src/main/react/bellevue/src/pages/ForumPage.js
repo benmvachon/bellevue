@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../utils/AuthContext.js';
 import withAuth from '../utils/withAuth.js';
 import {
@@ -10,7 +10,8 @@ import {
   setForumNotification,
   markForumRead,
   onForumUnreadUpdate,
-  unsubscribeForumUnread
+  unsubscribeForumUnread,
+  removeFromForum
 } from '../api/api.js';
 import { updateSearchParams } from '../utils/updateSearchParams.js';
 import Attendees from '../components/Attendees.js';
@@ -20,6 +21,7 @@ import asPage from '../utils/asPage.js';
 import ForumForm from '../components/ForumForm.js';
 
 function ForumPage() {
+  const navigate = useNavigate();
   const { id = '1' } = useParams();
   const { userId } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -37,6 +39,33 @@ function ForumPage() {
   const [showForumForm, setShowForumForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+
+  useEffect(() => {
+    if (id) {
+      const forum = id === '1' ? (onlyTownHallPosts ? 1 : undefined) : id;
+      onForumUnreadUpdate(forum, () => getForum(id, setForum, setError));
+      return () => {
+        unsubscribeForumUnread(forum);
+      };
+    }
+  }, [id, onlyTownHallPosts]);
+
+  useEffect(() => {
+    if (id) {
+      setLoading(true);
+      getForum(
+        id,
+        (forum) => {
+          setForum(forum);
+          setLoading(false);
+        },
+        (error) => {
+          setError(error);
+          setLoading(false);
+        }
+      );
+    }
+  }, [id]);
 
   const favorite = () => {
     favoriteForum(id, () => getForum(id, setForum, setError), setError);
@@ -95,6 +124,10 @@ function ForumPage() {
     updateSearchParams({ excluded: [] }, searchParams, setSearchParams);
   };
 
+  const removeAccess = () => {
+    removeFromForum(forum.id, () => navigate('/'), setError);
+  };
+
   const handleDelete = () => {
     deleteForum(forum.id);
   };
@@ -103,33 +136,6 @@ function ForumPage() {
     setShowForumForm(false);
     getForum(forum.id, setForum, setError);
   };
-
-  useEffect(() => {
-    if (id) {
-      const forum = id === '1' ? (onlyTownHallPosts ? 1 : undefined) : id;
-      onForumUnreadUpdate(forum, () => getForum(id, setForum, setError));
-      return () => {
-        unsubscribeForumUnread(forum);
-      };
-    }
-  }, [id, onlyTownHallPosts]);
-
-  useEffect(() => {
-    if (id) {
-      setLoading(true);
-      getForum(
-        id,
-        (forum) => {
-          setForum(forum);
-          setLoading(false);
-        },
-        (error) => {
-          setError(error);
-          setLoading(false);
-        }
-      );
-    }
-  }, [id]);
 
   if (error) return JSON.stringify(error);
 
@@ -157,15 +163,20 @@ function ForumPage() {
           {id === '1' && (
             <button onClick={toggleFilterAll}>
               {onlyTownHallPosts
-                ? 'Show all posts'
-                : 'Show only Town Hall posts'}
+                ? 'Show all flyers'
+                : 'Show only Town Hall flyers'}
+            </button>
+          )}
+          {forum?.custom && forum?.user?.id !== userId && (
+            <button onClick={removeAccess}>Remove access</button>
+          )}
+          {forum?.user?.id === userId && (
+            <button onClick={() => setShowForumForm(true)}>
+              Edit Building
             </button>
           )}
           {forum?.user?.id === userId && (
-            <button onClick={() => setShowForumForm(true)}>Edit Forum</button>
-          )}
-          {forum?.user?.id === userId && (
-            <button onClick={handleDelete}>Delete Forum</button>
+            <button onClick={handleDelete}>Delete Building</button>
           )}
         </div>
         <div className="metadata-lists">

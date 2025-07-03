@@ -9,6 +9,7 @@ import java.util.Map;
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -22,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import static com.village.bellevue.config.security.SecurityConfig.getAuthenticatedUserId;
 import com.village.bellevue.entity.UserEntity;
 import com.village.bellevue.entity.UserProfileEntity;
+import com.village.bellevue.event.type.NewUserEvent;
 import com.village.bellevue.error.AuthorizationException;
 import com.village.bellevue.model.ProfileModel;
 import com.village.bellevue.repository.UserRepository;
@@ -32,6 +34,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
   @Autowired private UserRepository userRepository;
   @Autowired private DataSource dataSource;
+  @Autowired private ApplicationEventPublisher publisher;
 
   protected static final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -48,9 +51,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
   public ProfileModel create(UserEntity user) throws AuthorizationException {
     user.setPassword(passwordEncoder.encode(user.getPassword()));
     if (getAuthenticatedUserId() == null) {
-      try (Connection connection = dataSource.getConnection();
-           CallableStatement stmt = connection.prepareCall("{call add_user(?, ?, ?, ?, ?, ?, ?)}")) {
-  
+      try (
+        Connection connection = dataSource.getConnection();
+        CallableStatement stmt = connection.prepareCall("{call add_user(?, ?, ?, ?, ?, ?, ?)}")
+      ) {
         // Set input parameters (1–4)
         stmt.setString(1, user.getName());
         stmt.setString(2, user.getUsername());
@@ -77,6 +81,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         user.setId(userId); // Assuming UserEntity has an ID field
         UserProfileEntity profile = new UserProfileEntity(user, avatarName);
         profile.setEquipment(Map.of("hat", hatName));
+
+        publisher.publishEvent(new NewUserEvent(userId));
         return new ProfileModel(profile);
   
       } catch (SQLException e) {

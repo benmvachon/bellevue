@@ -26,26 +26,21 @@ public class ProfileModelAssembler implements RepresentationModelAssembler<Profi
     String friendshipStatus = profile.getFriendshipStatus();
     if (Objects.isNull(friendshipStatus)) friendshipStatus = "UNSET";
     return switch (friendshipStatus.toUpperCase()) {
-      case "BLOCKED_THEM", "BLOCKED_YOU" -> EntityModel.of(null);
       case "ACCEPTED" -> EntityModel.of(
         profile,
-        linkTo(methodOn(FriendController.class).block(profile.getId())).withRel("block"),
         linkTo(methodOn(FriendController.class).remove(profile.getId())).withRel("remove"),
         linkTo(methodOn(FriendController.class).read(profile.getId(), "", 0, 10)).withRel("friends"),
         linkTo(methodOn(MessageController.class).message(profile.getId(), null)).withRel("message")
       );
       case "PENDING_YOU" -> EntityModel.of(
         profile,
-        linkTo(methodOn(FriendController.class).block(profile.getId())).withRel("block"),
         linkTo(methodOn(FriendController.class).accept(profile.getId())).withRel("accept")
       );
       case "PENDING_THEM" -> EntityModel.of(
-        profile,
-        linkTo(methodOn(FriendController.class).block(profile.getId())).withRel("block")
+        profile
       );
       default -> EntityModel.of(
         profile,
-        linkTo(methodOn(FriendController.class).block(profile.getId())).withRel("block"),
         linkTo(methodOn(FriendController.class).request(profile.getId())).withRel("request")
       );
     };

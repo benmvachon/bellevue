@@ -19,6 +19,8 @@ public interface ForumService {
 
   public ForumModel update(Long id, ForumEntity forum) throws AuthorizationException, ForumException;
 
+  public boolean removeSelf(Long id) throws AuthorizationException, ForumException;
+
   public boolean turnOnNotifications(Long forum) throws AuthorizationException;
 
   public boolean turnOffNotifications(Long forum) throws AuthorizationException;

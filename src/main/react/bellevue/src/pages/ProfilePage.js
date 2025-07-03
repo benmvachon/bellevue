@@ -8,7 +8,6 @@ import {
   requestFriend,
   acceptFriend,
   removeFriend,
-  blockUser,
   updateBlackboard,
   onProfileUpdate,
   favoriteProfile,
@@ -35,6 +34,39 @@ function ProfilePage() {
   const [blackboard, setBlackboard] = useState('');
   const [showEquipment, setShowEquipment] = useState(false);
 
+  useEffect(() => {
+    onProfileUpdate(id, (message) => {
+      if (
+        message === 'blackboard' ||
+        message === 'location' ||
+        message === 'status'
+      )
+        getProfile(id, setProfile, setError);
+    });
+    onFriendshipStatusUpdate(id, () => getProfile(id, setProfile, setError));
+    setLoading(true);
+    getProfile(
+      id,
+      (profile) => {
+        setProfile(profile);
+        setLoading(false);
+      },
+      (error) => {
+        setError(error);
+        setLoading(false);
+      }
+    );
+    getFriends(id, setFriends, setError);
+    return () => {
+      unsubscribeProfile(id);
+      unsubscribeFriendshipStatus(id);
+    };
+  }, [id]);
+
+  useEffect(() => {
+    if (profile) setBlackboard(profile.blackboard);
+  }, [profile]);
+
   const self = userId === Number.parseInt(id);
 
   const refresh = () => getProfile(id, setProfile, setError);
@@ -56,42 +88,9 @@ function ProfilePage() {
     updateBlackboard(blackboard, refresh, setError);
   };
 
-  useEffect(() => {
-    setLoading(true);
-    getProfile(
-      id,
-      (profile) => {
-        setProfile(profile);
-        setLoading(false);
-      },
-      (error) => {
-        setError(error);
-        setLoading(false);
-      }
-    );
-    getFriends(id, setFriends, setError);
-    onProfileUpdate(id, (message) => {
-      if (
-        message === 'blackboard' ||
-        message === 'location' ||
-        message === 'status'
-      )
-        getProfile(id, setProfile, setError);
-    });
-    onFriendshipStatusUpdate(id, () => getProfile(id, setProfile, setError));
-    return () => {
-      unsubscribeProfile(id);
-      unsubscribeFriendshipStatus(id);
-    };
-  }, [id]);
-
-  useEffect(() => {
-    if (profile) setBlackboard(profile.blackboard);
-  }, [profile]);
-
   const friendClick = (event) => {
     event.preventDefault();
-    navigate('/profile/' + event.target.value);
+    navigate('/home/' + event.target.value);
   };
 
   const openMessages = () => setShowMessages(true);
@@ -135,11 +134,6 @@ function ProfilePage() {
             Favorite
           </button>
         );
-      buttons.push(
-        <button onClick={() => blockUser(id, refresh)} key="block">
-          Block
-        </button>
-      );
       break;
     case 'PENDING_YOU':
       buttons.push(
@@ -147,25 +141,10 @@ function ProfilePage() {
           Accept
         </button>
       );
-      buttons.push(
-        <button onClick={() => blockUser(id, refresh)} key="block">
-          Block
-        </button>
-      );
       break;
     case 'PENDING_THEM':
-      buttons.push(
-        <button onClick={() => blockUser(id, refresh)} key="block">
-          Block
-        </button>
-      );
       break;
     default:
-      buttons.push(
-        <button onClick={() => blockUser(id, refresh)} key="block">
-          Block
-        </button>
-      );
       buttons.push(
         <button onClick={() => requestFriend(id, refresh)} key="request">
           Request

@@ -1,10 +1,13 @@
 package com.village.bellevue.config.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.web.servlet.ServletContextInitializer;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+
+import java.util.Arrays;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,14 +21,19 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig extends GlobalAuthenticationConfigurerAdapter {
   private static final Logger log = LoggerFactory.getLogger(SecurityConfig.class);
+
+  @Value("${SPRING_APP_ALLOWED_ORIGINS}")
+  private String allowedOriginsRaw;
 
   @Autowired private UserDetailsServiceImpl userDetailsService;
   @Autowired PasswordEncoder passwordEncoder;
@@ -35,7 +43,8 @@ public class SecurityConfig extends GlobalAuthenticationConfigurerAdapter {
   @Bean
   SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     http
-      .csrf(csrf -> csrf.disable()) // Consider enabling CSRF in production
+      .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+      .csrf(csrf -> csrf.disable())
       .authorizeHttpRequests(authz -> authz
           .requestMatchers(
               "/index.html",
@@ -72,6 +81,20 @@ public class SecurityConfig extends GlobalAuthenticationConfigurerAdapter {
     return http.build();
   }
 
+  @Bean
+  CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration config = new CorsConfiguration();
+    List<String> origins = Arrays.asList(allowedOriginsRaw.split(","));
+    config.setAllowedOrigins(origins);
+    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+    config.setAllowedHeaders(List.of("*"));
+    config.setAllowCredentials(true);
+
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", config);
+    return source;
+  }
+
   @SuppressWarnings("unused")
   @Bean
   AuthenticationFailureHandler customAuthenticationFailureHandler() {
@@ -79,14 +102,6 @@ public class SecurityConfig extends GlobalAuthenticationConfigurerAdapter {
       response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401 Unauthorized
       response.setContentType("application/json");
       response.getWriter().write("{\"error\": \"Invalid username or password\"}");
-    };
-  }
-
-  @Bean
-  ServletContextInitializer servletContextInitializer(
-      SessionExpirationListener sessionExpirationListener) {
-    return (ServletContext servletContext) -> {
-      servletContext.addListener(sessionExpirationListener);
     };
   }
 
