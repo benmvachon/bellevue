@@ -37,7 +37,6 @@ public class AuthenticationSuccessHandlerImpl implements AuthenticationSuccessHa
 
       log.debug("Successfully authenticated as " + userId);
 
-      // Set response headers and send plain text
       response.setContentType("text/plain");
       response.setCharacterEncoding("UTF-8");
       response.getWriter().write(userId.toString());

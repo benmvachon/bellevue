@@ -81,11 +81,11 @@ public class ForumController {
     @RequestParam(defaultValue = "9") int size
   ) {
     Page<String> tags = tagService.searchTags(query, page, size);
-  
+
     PagedModel.PageMetadata metadata = new PagedModel.PageMetadata(
       tags.getSize(), tags.getNumber(), tags.getTotalElements(), tags.getTotalPages()
     );
-  
+
     PagedModel<String> pagedModel = PagedModel.of(tags.getContent(), metadata);
     return ResponseEntity.ok(pagedModel);
   }

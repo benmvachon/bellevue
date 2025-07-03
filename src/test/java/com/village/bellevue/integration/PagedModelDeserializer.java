@@ -28,7 +28,6 @@ public class PagedModelDeserializer<T> extends JsonDeserializer<PagedModel<T>> {
     ObjectMapper mapper = (ObjectMapper) p.getCodec();
     JsonNode node = mapper.readTree(p);
 
-    // Extract the fields we need
     List<T> content =
         mapper.readValue(
             node.get("content").traverse(mapper),
@@ -37,10 +36,8 @@ public class PagedModelDeserializer<T> extends JsonDeserializer<PagedModel<T>> {
     int size = node.has("size") ? node.get("size").asInt() : content.size();
     long totalElements = node.has("totalElements") ? node.get("totalElements").asLong() : content.size();
 
-    // Create a PageImpl with the extracted fields
     PageImpl<T> pageImpl = new PageImpl<>(content, PageRequest.of(page, size), totalElements);
 
-    // Return the new PagedModel instance wrapping PageImpl
     return new PagedModel<>(pageImpl);
   }
 }

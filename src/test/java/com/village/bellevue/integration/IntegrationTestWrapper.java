@@ -23,7 +23,6 @@ public abstract class IntegrationTestWrapper {
   @BeforeAll
   public static void startDocker() {
     try {
-      // 1. Load .env vars into System properties
       Path envPath = Paths.get(".env");
       if (Files.exists(envPath)) {
         List<String> lines = Files.readAllLines(envPath);
@@ -33,18 +32,16 @@ public abstract class IntegrationTestWrapper {
           if (parts.length == 2) {
             String key = parts[0].trim();
             String value = parts[1].trim();
-            System.setProperty(key, value); // this makes them available to Spring
+            System.setProperty(key, value);
           }
         }
       }
-  
-      // 2. Start docker-compose
+
       ProcessBuilder dockerProcessBuilder = new ProcessBuilder("docker-compose", "up", "-d");
-      dockerProcessBuilder.inheritIO(); // optional: logs go to console
+      dockerProcessBuilder.inheritIO();
       Process dockerProcess = dockerProcessBuilder.start();
       dockerProcess.waitFor(2, TimeUnit.MINUTES);
-  
-      // 3. Wait for MySQL to be healthy
+
       ProcessBuilder waitForMysqlProcessBuilder =
           new ProcessBuilder(
               "bash",
@@ -52,7 +49,7 @@ public abstract class IntegrationTestWrapper {
               "while [[ \"$(docker inspect -f '{{.State.Health.Status}}' mysql_db)\" != \"healthy\" ]]; do sleep 2; done");
       Process waitForMysqlProcess = waitForMysqlProcessBuilder.start();
       waitForMysqlProcess.waitFor(2, TimeUnit.MINUTES);
-  
+
     } catch (IOException | InterruptedException e) {
       throw new RuntimeException("Failed to start Docker containers", e);
     }
@@ -73,7 +70,6 @@ public abstract class IntegrationTestWrapper {
     ObjectMapper mapper = new ObjectMapper();
     mapper.registerModule(new JavaTimeModule());
 
-    // Register the custom deserializer for ForumEntity
     SimpleModule module = new SimpleModule();
     module.addDeserializer(
         PagedModel.class, new PagedModelDeserializer<>(ForumEntity.class));
@@ -86,7 +82,6 @@ public abstract class IntegrationTestWrapper {
     ObjectMapper mapper = new ObjectMapper();
     mapper.registerModule(new JavaTimeModule());
 
-    // Register the custom deserializer for PagedModel
     SimpleModule module = new SimpleModule();
     module.addDeserializer(
         PagedModel.class, new PagedModelDeserializer<>(PostModel.class));
@@ -99,7 +94,6 @@ public abstract class IntegrationTestWrapper {
     ObjectMapper mapper = new ObjectMapper();
     mapper.registerModule(new JavaTimeModule());
 
-    // Register the custom deserializer for RatingEntity
     SimpleModule module = new SimpleModule();
     module.addDeserializer(PagedModel.class, new PagedModelDeserializer<>(RatingEntity.class));
     mapper.registerModule(module);

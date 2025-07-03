@@ -175,7 +175,6 @@ public class ForumServiceImpl implements ForumService {
     if (StringUtils.isBlank(forum.getName())) throw new ForumException("'name' field is required for new forum");
     if (StringUtils.isBlank(forum.getDescription())) throw new ForumException("'description' field is required for new forum");
 
-    // Step 1: Fetch existing forum from DB
     ForumEntity existingForum = forumRepository.findById(id)
       .orElseThrow(() -> new ForumException("Forum not found"));
 
@@ -183,18 +182,14 @@ public class ForumServiceImpl implements ForumService {
 
     List<Long> newUserIds = forum.getUsers();
 
-    // Step 2: Identify removed users
     List<Long> removedUserIds = new ArrayList<>(oldUserIds);
     removedUserIds.removeAll(newUserIds);
 
-    // Step 3: Save updated forum
-    forum.setId(id); // ensure ID is preserved
+    forum.setId(id);
     model = new ForumModel(save(forum), forumModelProvider);
     List<PostDeleteEvent> postDeleteEvents = new ArrayList<>();
 
-    // Step 4: Execute procedure for removed users
     for (Long user : removedUserIds) {
-      // remove all posts
       for (Long post : postRepository.findAllByUserInForum(user, id)) {
         Optional<PostEntity> postEntity = postRepository.findById(post);
         if (postEntity.isEmpty()) continue;
@@ -212,7 +207,6 @@ public class ForumServiceImpl implements ForumService {
           postDeleteEvents.add(new PostDeleteEvent(user, post, parent, id));
         });
       }
-      // remove all ratings
       for (RatingEntity rating : ratingRepository.findAllByUserInForum(user, id)) {
         entityManager.unwrap(Session.class).doWork(connection -> {
           try (
@@ -263,7 +257,6 @@ public class ForumServiceImpl implements ForumService {
         postDeleteEvents.add(new PostDeleteEvent(user, post, parent, id));
       });
     }
-    // remove all ratings
     for (RatingEntity rating : ratingRepository.findAllByUserInForum(user, id)) {
       entityManager.unwrap(Session.class).doWork(connection -> {
         try (

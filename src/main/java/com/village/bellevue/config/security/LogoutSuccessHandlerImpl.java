@@ -35,6 +35,6 @@ public class LogoutSuccessHandlerImpl implements LogoutSuccessHandler {
       activityService.markUserOffline(userId);
     }
 
-    response.setStatus(HttpServletResponse.SC_OK); // Or any other status you want
+    response.setStatus(HttpServletResponse.SC_OK);
   }
 }

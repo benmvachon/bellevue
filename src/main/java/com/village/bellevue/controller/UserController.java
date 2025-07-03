@@ -70,28 +70,23 @@ public class UserController {
     HttpServletResponse response
   ) {
     try {
-      // Invalidate old session if present
       HttpSession oldSession = request.getSession(false);
       if (oldSession != null) {
-        oldSession.invalidate(); // Required to force a new session ID
+        oldSession.invalidate();
       }
 
-      // Manually authenticate using the AuthenticationManager
       UsernamePasswordAuthenticationToken token =
           new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword());
       Authentication authResult = authManager.authenticate(token);
 
-      // Set the authenticated user in the security context
       SecurityContextHolder.getContext().setAuthentication(authResult);
 
-      // Create a new session and store the context there
-      HttpSession newSession = request.getSession(true); // Force creation of a new session
+      HttpSession newSession = request.getSession(true);
       newSession.setAttribute(
           HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
           SecurityContextHolder.getContext()
       );
 
-      // Return user ID or any other response
       Long userId = ((UserDetailsImpl) authResult.getPrincipal()).getId();
       return ResponseEntity.ok(userId.toString());
 

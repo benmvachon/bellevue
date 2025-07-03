@@ -303,7 +303,7 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
       "p.user.id = :user " +
       "OR (p.forum.user IS NULL AND postFriend.id IS NOT NULL) " +
       "OR (p.forum.user = :user) " +
-      "OR (forumFriend.id IS NOT NULL AND fs.user.id IS NOT NULL)" +              // User is in forum_security
+      "OR (forumFriend.id IS NOT NULL AND fs.user.id IS NOT NULL)" +
     ")"
   )
   @Transactional(readOnly = true)

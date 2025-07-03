@@ -52,7 +52,6 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-// Add PropTypes validation
 AuthProvider.propTypes = {
   children: PropTypes.node.isRequired
 };

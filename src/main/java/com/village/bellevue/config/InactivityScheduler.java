@@ -23,16 +23,14 @@ public class InactivityScheduler {
   @Value("${server.servlet.session.timeout}")
   private int sessionTimeoutSeconds;
 
-  // Run every (inactivity.timeout / 2) seconds
-  @Scheduled(fixedRateString = "#{${inactivity.timeout} * 500}") // half of inactivity.timeout in ms
+  @Scheduled(fixedRateString = "#{${inactivity.timeout} * 500}")
   public void markInactiveUsers() {
     int timeoutSeconds = inactivityProperties.getTimeout();
     Instant threshold = Instant.now().minusSeconds(timeoutSeconds);
     activityService.markUsersIdle(Timestamp.from(threshold));
   }
 
-  // Run every (session timeout / 10) seconds
-  @Scheduled(fixedRateString = "#{${server.servlet.session.timeout} * 100}") // 1/10 of session timeout in ms
+  @Scheduled(fixedRateString = "#{${server.servlet.session.timeout} * 100}")
   public void markOfflineUsers() {
     Instant threshold = Instant.now().minusSeconds(sessionTimeoutSeconds);
     activityService.markUsersOffline(Timestamp.from(threshold));
