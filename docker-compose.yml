@@ -13,6 +13,7 @@ services:
     volumes:
       - ./src/main/sql:/docker-entrypoint-initdb.d
       - ./mysql.cnf:/etc/mysql/conf.d/custom.cnf
+      - mysql_data:/var/lib/mysql
     ports:
       - "3306:3306" # Or use: "${MYSQL_PORT:-3306}:3306" to make it configurable
     networks:
@@ -31,6 +32,8 @@ services:
     networks:
       - bellevue_net
     command: redis-server --notify-keyspace-events Ex
+    volumes:
+    - redis_data:/data
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -59,3 +62,7 @@ services:
 networks:
   bellevue_net:
     driver: bridge
+
+volumes:
+  redis_data:
+  mysql_data:
