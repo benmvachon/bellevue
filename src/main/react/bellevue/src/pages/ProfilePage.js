@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import React, { useEffect, useRef, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import PropTypes from 'prop-types';
 import withAuth from '../utils/withAuth.js';
 import { useAuth } from '../utils/AuthContext';
 import {
   getProfile,
-  getFriends,
   requestFriend,
   acceptFriend,
   removeFriend,
@@ -16,23 +16,18 @@ import {
   onFriendshipStatusUpdate,
   unsubscribeFriendshipStatus
 } from '../api/api.js';
-import Messages from '../components/Messages.js';
-import Equipment from '../components/Equipment.js';
-import Attendees from '../components/Attendees.js';
-import Page from '../components/Page.js';
 import asPage from '../utils/asPage.js';
+import ImageButton from '../components/ImageButton.js';
+import FavoriteButton from '../components/FavoriteButton.js';
 
-function ProfilePage() {
-  const navigate = useNavigate();
+function ProfilePage({ openMessages }) {
   const { id } = useParams();
   const { userId } = useAuth();
   const [profile, setProfile] = useState(null);
-  const [friends, setFriends] = useState(null);
-  const [showMessages, setShowMessages] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const [blackboard, setBlackboard] = useState('');
-  const [showEquipment, setShowEquipment] = useState(false);
+  const debounceTimeout = useRef(null);
 
   useEffect(() => {
     onProfileUpdate(id, (message) => {
@@ -56,7 +51,6 @@ function ProfilePage() {
         setLoading(false);
       }
     );
-    getFriends(id, setFriends, setError);
     return () => {
       unsubscribeProfile(id);
       unsubscribeFriendshipStatus(id);
@@ -64,7 +58,7 @@ function ProfilePage() {
   }, [id]);
 
   useEffect(() => {
-    if (profile) setBlackboard(profile.blackboard);
+    if (profile) setBlackboard(profile.blackboard || '');
   }, [profile]);
 
   const self = userId === Number.parseInt(id);
@@ -79,131 +73,133 @@ function ProfilePage() {
     unfavoriteProfile(id, refresh, setError);
   };
 
-  const loadFriendsPage = (page) => {
-    getFriends(id, setFriends, setError, page);
-  };
-
-  const submitBlackBoard = (event) => {
-    event && event.preventDefault();
-    updateBlackboard(blackboard, refresh, setError);
-  };
-
-  const friendClick = (event) => {
-    event.preventDefault();
-    navigate('/home/' + event.target.value);
-  };
-
-  const openMessages = () => setShowMessages(true);
-  const closeMessages = () => setShowMessages(false);
-
-  const openEquipment = () => setShowEquipment(true);
-  const closeEquipment = () => setShowEquipment(false);
-
   if (error) return JSON.stringify(error);
   if (loading) return <p>Loading...</p>;
 
   const buttons = [];
   switch (profile?.friendshipStatus) {
     case 'SELF':
-      buttons.push(
-        <button onClick={openEquipment} key="equipment">
-          Equipment
-        </button>
-      );
       break;
     case 'ACCEPTED':
       buttons.push(
-        <button onClick={openMessages} key="message">
-          Message
+        <button
+          onClick={() => removeFriend(id, refresh)}
+          key="remove"
+          className="remove"
+        >
+          remove
         </button>
       );
       buttons.push(
-        <button onClick={() => removeFriend(id, refresh)} key="remove">
-          Remove
-        </button>
+        <ImageButton
+          name="phone"
+          onClick={() => openMessages(id)}
+          className="message-button"
+        >
+          <span>message</span>
+        </ImageButton>
       );
-      if (profile.favorite)
-        buttons.push(
-          <button onClick={unfavorite} key="unfavorite">
-            Unfavorite
-          </button>
-        );
-      else
-        buttons.push(
-          <button onClick={favorite} key="favorite">
-            Favorite
-          </button>
-        );
+      buttons.push(
+        <FavoriteButton
+          favorited={profile.favorite}
+          onClick={() => (profile.favorite ? unfavorite() : favorite())}
+        />
+      );
       break;
     case 'PENDING_YOU':
       buttons.push(
         <button onClick={() => acceptFriend(id, refresh)} key="accept">
-          Accept
+          accept
         </button>
       );
       break;
     case 'PENDING_THEM':
+      buttons.push(<button key="pending">request pending</button>);
       break;
     default:
       buttons.push(
         <button onClick={() => requestFriend(id, refresh)} key="request">
-          Request
+          request
         </button>
       );
       break;
   }
 
+  const updateBlackBoard = (event) => {
+    if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+    debounceTimeout.current = setTimeout(() => {
+      updateBlackboard(event.target.value || '', refresh, setError);
+    }, 1000);
+    event && event.preventDefault();
+    setBlackboard(event.target.value || '');
+  };
+
   return (
     <div className="page-contents">
-      <h2>{profile?.name}</h2>
-      <p>{profile?.username}</p>
-      <p>
-        {profile?.avatar} {JSON.stringify(profile?.equipment)}
-      </p>
-      {self ? <p>This is you</p> : <p>{profile?.status}</p>}
-      <p>
-        {profile?.locationType} - {profile?.location?.id}
-      </p>
-      {buttons}
       {self ? (
-        <form onSubmit={submitBlackBoard}>
+        <form>
           <textarea
-            value={blackboard}
-            onChange={(e) => {
-              setBlackboard(e.target.value);
-            }}
+            name="blackboard"
+            className="chalkboard"
+            value={blackboard || ''}
+            onChange={updateBlackBoard}
+            placeholder="This is your profile. Write anything you want here!"
           />
-          <button type="submit">Update blackboard</button>
         </form>
       ) : (
-        <p>{blackboard}</p>
+        <form>
+          <textarea
+            name="blackboard"
+            className="chalkboard"
+            value={blackboard || ''}
+            disabled
+          />
+        </form>
       )}
-      <Attendees />
-      <h3>Friends</h3>
-      <div>
-        <Page
-          page={friends}
-          renderItem={(friend) => (
-            <div key={`friend-${friend.id}`}>
-              <button value={friend.id} onClick={friendClick}>
-                {friend.name} - {friend.friendshipStatus}
-              </button>
-            </div>
+      {profile && (
+        <div className="avatar">
+          <img
+            className={`image ${profile?.avatar} large`}
+            src={require(`../asset/${profile?.avatar}-large.png`)}
+            alt={profile?.avatar}
+          />
+          <img
+            className="image face large"
+            src={require('../asset/face-large.png')}
+            alt="face"
+          />
+          {profile?.equipment?.hat && (
+            <img
+              className={`image ${profile?.equipment?.hat} large`}
+              src={require(`../asset/${profile?.equipment?.hat}-large.png`)}
+              alt={profile?.equipment?.hat}
+            />
           )}
-          loadPage={loadFriendsPage}
-        />
-      </div>
-      <Messages show={showMessages} onClose={closeMessages} friend={id} />
-      {self && (
-        <Equipment
-          show={showEquipment}
-          onClose={closeEquipment}
-          refreshProfile={refresh}
-        />
+        </div>
       )}
+      <div className="metadata pixel-corners">
+        <h2>
+          {profile?.name}&nbsp;
+          <span className={`status ${profile?.status?.toLowerCase()}`}>
+            ({profile?.status?.toLowerCase()})
+          </span>
+        </h2>
+        <h3>{profile?.username}</h3>
+        <div className="buttons">
+          {self ? (
+            <span className="self-indication">This is you</span>
+          ) : (
+            buttons
+          )}
+        </div>
+      </div>
     </div>
   );
 }
+
+ProfilePage.propTypes = {
+  openMessages: PropTypes.func.isRequired
+};
 
 ProfilePage.displayName = 'ProfilePage';
 

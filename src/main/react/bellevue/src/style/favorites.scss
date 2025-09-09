@@ -1,0 +1,59 @@
+@use 'variables' as *;
+
+div.favorites-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: calc(512 * $pixel);
+  height: calc(512 * $pixel);
+  background: url('../asset/notepad.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+
+  div.favorites {
+    display: flex;
+    justify-content: center;
+    overflow-y: auto;
+    margin-top: calc(116 * $pixel);
+    margin-left: calc(140 * $pixel);
+    height: calc(356 * $pixel);
+    width: calc(320 * $pixel);
+
+    div.loader {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    div.favorite {
+      display: flex;
+
+      button {
+        background: $white;
+        font-style: italic;
+        margin: calc(2 * $pixel);
+        text-align: left;
+      }
+    }
+
+    div.pagination-buttons {
+      display: flex;
+      justify-content: space-between;
+
+      button {
+        background: $white;
+      }
+    }
+  }
+
+  div.buttons {
+    margin-bottom: calc(24 * $pixel);
+    margin-left: calc(128 * $pixel);
+    width: calc(320 * $pixel);
+
+    button {
+      background: $white;
+    }
+  }
+}

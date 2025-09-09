@@ -1,0 +1,45 @@
+@use 'variables' as *;
+
+div.notifications-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  width: calc(512 * $pixel);
+  height: calc(512 * $pixel);
+  background: url('../asset/newspaper.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+
+  div.notifications {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    margin-top: calc(64 * $pixel);
+    height: calc(384 * $pixel);
+    width: calc(352 * $pixel);
+
+    div.notification {
+      display: flex;
+      justify-content: space-evenly;
+      align-items: center;
+      height: fit-content;
+      width: 100%;
+      margin: calc(2 * $pixel) 0;
+
+      button.notification-button {
+        background: $white;
+        height: fit-content;
+      }
+    }
+  }
+
+  div.buttons {
+    margin-bottom: calc(32 * $pixel);
+    width: 100%;
+
+    button {
+      background: $white;
+    }
+  }
+}

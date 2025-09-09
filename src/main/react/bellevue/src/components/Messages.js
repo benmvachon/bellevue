@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { useAuth } from '../utils/AuthContext.js';
 import {
+  getProfile,
   getMessages,
   onMessage,
   unsubscribeMessage,
@@ -11,25 +13,29 @@ import {
 } from '../api/api.js';
 import ScrollLoader from './ScrollLoader.js';
 import Modal from './Modal.js';
+import Avatar from './Avatar.js';
 
-function Messages({ show = false, friend, onClose }) {
+function Messages({ show = false, friendId, onClose, setShowThreads }) {
   const { userId } = useAuth();
+  const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
   const [totalMessages, setTotalMessages] = useState(0);
   const [message, setMessage] = useState('');
+  const [profile, setProfile] = useState(null);
+  const [friend, setFriend] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    onMessage(friend, (event) => {
+    onMessage(friendId, (event) => {
       setTotalMessages(totalMessages + 1);
       setMessages(messages.concat([event.message]));
     });
     return () => {
-      unsubscribeMessage(friend);
+      unsubscribeMessage(friendId);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [friend, messages]);
+  }, [friendId, messages]);
 
   useEffect(() => {
     const sentOrReceived = (message) => {
@@ -38,18 +44,20 @@ function Messages({ show = false, friend, onClose }) {
     };
     messages?.forEach((message) => {
       if ('received' === sentOrReceived(message) && !message.read)
-        markMessageRead(friend, message.id);
+        markMessageRead(friendId, message.id);
     });
-  }, [friend, messages, userId]);
+  }, [friendId, messages, userId]);
 
   useEffect(() => {
     if (show) {
       setLoading(true);
+      getProfile(userId, setProfile, setError);
+      friendId > 0 && getProfile(friendId, setFriend, setError);
       getMessageCount(
-        friend,
+        friendId,
         (totalMessages) => {
           getMessages(
-            friend,
+            friendId,
             (messages) => {
               setTotalMessages(totalMessages);
               setMessages(messages ? messages.reverse() : []);
@@ -67,7 +75,7 @@ function Messages({ show = false, friend, onClose }) {
         }
       );
     }
-  }, [show, friend]);
+  }, [show, friendId, userId]);
 
   const sentOrReceived = (message) => {
     if (message.receiver.id === userId) return 'received';
@@ -78,10 +86,10 @@ function Messages({ show = false, friend, onClose }) {
     if (totalMessages <= messages.length) return;
     const cursor = messages[0].created.getTime();
     getMessageCount(
-      friend,
+      friendId,
       (totalMessages) => {
         getMessages(
-          friend,
+          friendId,
           (more) => {
             setTotalMessages(totalMessages);
             if (more) {
@@ -109,18 +117,31 @@ function Messages({ show = false, friend, onClose }) {
 
   const send = (event) => {
     event && event.preventDefault();
-    sendMessage(friend, message, () => {
+    sendMessage(friendId, message, () => {
       setMessage('');
     });
   };
 
-  if (!show) return;
+  const back = (event) => {
+    event && event.preventDefault();
+    onClose();
+    setShowThreads(true);
+  };
+
   if (error) return JSON.stringify(error);
 
   return (
     <Modal className="messages-container" show={show} onClose={onClose}>
+      <button
+        className="name pixel-corners"
+        onClick={() => friend?.id > 0 && navigate(`/home/${friend?.id}`)}
+      >
+        {friend?.name || 'SYSTEM'}
+      </button>
       {loading ? (
-        <p>Loading...</p>
+        <div className="messages">
+          <p>Loading...</p>
+        </div>
       ) : totalMessages > 0 ? (
         <ScrollLoader
           total={totalMessages}
@@ -138,19 +159,51 @@ function Messages({ show = false, friend, onClose }) {
           ))}
         </ScrollLoader>
       ) : (
-        <p>No messages</p>
+        <div className="messages">
+          <p>No messages</p>
+        </div>
       )}
       <div className="buttons">
+        <button onClick={back}>back</button>
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
-          disabled={friend === 0}
+          disabled={friendId === 0}
         />
-        <button onClick={onClose}>Close</button>
-        <button disabled={friend === 0} onClick={send}>
-          Send
+        <button disabled={friendId === 0} onClick={send}>
+          send
         </button>
+      </div>
+      {profile && (
+        <Avatar
+          userId={profile?.id}
+          userProp={profile}
+          size="medium"
+          flip
+          name={false}
+        />
+      )}
+      <div className="phone-container">
+        <img
+          className="image phone-open medium"
+          src={require('../asset/phone-open-medium.png')}
+          alt="phone"
+        />
+      </div>
+      <Avatar
+        userId={friend?.id || 0}
+        userProp={friend}
+        size="medium"
+        className="friend"
+        name={false}
+      />
+      <div className="phone-container friend">
+        <img
+          className="image phone-open medium flip"
+          src={require('../asset/phone-open-medium.png')}
+          alt="phone"
+        />
       </div>
     </Modal>
   );
@@ -158,8 +211,9 @@ function Messages({ show = false, friend, onClose }) {
 
 Messages.propTypes = {
   show: PropTypes.bool,
-  friend: PropTypes.number.isRequired,
-  onClose: PropTypes.func.isRequired
+  friendId: PropTypes.number.isRequired,
+  onClose: PropTypes.func.isRequired,
+  setShowThreads: PropTypes.func.isRequired
 };
 
 Messages.displayName = 'Messages';

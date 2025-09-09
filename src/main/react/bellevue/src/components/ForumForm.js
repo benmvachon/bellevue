@@ -93,7 +93,6 @@ const ForumForm = ({ forum, show = false, onClose }) => {
   };
 
   if (error) return <pre>{JSON.stringify(error)}</pre>;
-  if (!show) return;
 
   return (
     <Modal
@@ -133,9 +132,9 @@ const ForumForm = ({ forum, show = false, onClose }) => {
           selectedFriends={users}
         />
         <div className="buttons">
-          <button onClick={onCloseWrapper}>Close</button>
+          <button onClick={onCloseWrapper}>close</button>
           <button disabled={disabled} type="submit">
-            {forum ? 'Save' : 'Create'}
+            {forum ? 'save' : 'create'}
           </button>
         </div>
       </form>

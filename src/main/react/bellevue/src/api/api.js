@@ -297,10 +297,13 @@ export const getForums = (
   unread = false,
   query = '',
   page = 0,
-  size = 9
+  size = 9,
+  includeTownHall = false
 ) => {
   api
-    .get(`/forum?unread=${unread}&query=${query}&page=${page}&size=${size}`)
+    .get(
+      `/forum?unread=${unread}&query=${query}&page=${page}&size=${size}&includeTownHall=${includeTownHall}`
+    )
     .then((response) => {
       const page = Page.fromJSON(response.data, Forum.forumMapper);
       callback && callback(page);
@@ -770,7 +773,7 @@ export const getThreadCount = (callback, error) => {
 
 export const getThreads = (callback, error, cursor, limit = 5) => {
   let uri = `/message/threads?limit=${limit}`;
-  if (cursor) uri += `&cursor=${cursor}`;
+  if (cursor) uri += `?cursor=${cursor}`;
   api
     .get(uri)
     .then((response) => {
@@ -781,7 +784,7 @@ export const getThreads = (callback, error, cursor, limit = 5) => {
 
 export const refreshThreads = (callback, error, cursor) => {
   let uri = '/message/threads/refresh';
-  if (cursor) uri += `&cursor=${cursor}`;
+  if (cursor) uri += `?cursor=${cursor}`;
   api
     .get(uri)
     .then((response) => {

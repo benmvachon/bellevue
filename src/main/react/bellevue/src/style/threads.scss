@@ -1,0 +1,87 @@
+@use 'variables' as *;
+
+div.threads-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  width: calc(512 * $pixel);
+  height: calc(512 * $pixel);
+  background: url('../asset/thought-bubble.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+
+  div.threads {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    overflow-y: auto;
+    margin-top: calc(32 * $pixel);
+    height: calc(224 * $pixel);
+    width: calc(320 * $pixel);
+
+    div.thread {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: fit-content;
+      width: calc(304 * $pixel);
+      margin-top: calc(2 * $pixel);
+      margin-bottom: calc(2 * $pixel);
+
+      button.message, button.mark-read {
+        font-size: calc(10 * $pixel);
+        background: $white;
+        width: calc(160 * $pixel);
+      }
+
+      button.mark-read {
+        width: calc(65 * $pixel);
+      }
+
+      button.message {
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+
+        span.received-indication {
+          float: left;
+        }
+      }
+    }
+  }
+
+  div.buttons {
+    margin-bottom: calc(32 * $pixel);
+    width: 100%;
+
+    button {
+      background: $white;
+    }
+  }
+
+  div.avatar.self {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+
+    img {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+    }
+  }
+
+  div.phone-container {
+    position: absolute;
+    left: calc(128 * $pixel);
+    bottom: 0;
+
+    img {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+    }
+  }
+}

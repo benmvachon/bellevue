@@ -1,47 +1,33 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import ForumsMap from '../components/ForumsMap.js';
 import FriendsMap from '../components/FriendsMap.js';
 import SuggestedFriendsMap from '../components/SuggestedFriendsMap.js';
-import { useNavigate } from 'react-router';
+import ImageButton from './ImageButton.js';
 
 function MapSlider({ setShowForumForm }) {
-  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [index, setIndex] = useState(0);
-  const containerRef = useRef();
+  const params = useParams();
 
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (containerRef.current && !containerRef.current.contains(e.target)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    setOpen(false);
+  }, [params, params.id]);
 
   const updateIndex = (index) => {
     if (index <= 2 && index >= 0) setIndex(index);
   };
 
-  const toMap = () => {
-    let section = 'forum';
-    if (index === 1) section = 'neighborhood';
-    if (index === 2) section = 'suburbs';
-    navigate(`/map/${section}`);
-  };
-
   if (!open) {
     return (
-      <button className="show-map-slider" onClick={() => setOpen(true)}>
-        &gt;
-      </button>
+      <div className="show-map-slider">
+        <ImageButton name="map-open" onClick={() => setOpen(true)} />
+      </div>
     );
   } else {
     return (
-      <div ref={containerRef} className="map-slider">
-        <button onClick={toMap}>To Map</button>
+      <div className="map-slider">
         <div className="content">
           <button
             className="back"
@@ -60,9 +46,9 @@ function MapSlider({ setShowForumForm }) {
           >
             &gt;
           </button>
-          <button className="hide-map-slider" onClick={() => setOpen(false)}>
-            &lt;
-          </button>
+          <div className="hide-map-slider">
+            <ImageButton name="map-close" onClick={() => setOpen(false)} />
+          </div>
         </div>
       </div>
     );

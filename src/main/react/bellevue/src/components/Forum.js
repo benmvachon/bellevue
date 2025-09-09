@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import {
   getForum,
-  markForumRead,
   onForumUnreadUpdate,
   unsubscribeForumUnread
 } from '../api/api.js';
+import ImageButton from './ImageButton.js';
 
 function Forum({ id, forumProp }) {
   const navigate = useNavigate();
@@ -24,30 +24,20 @@ function Forum({ id, forumProp }) {
   }, [id, forumProp]);
 
   const forumClick = (event) => {
-    event.preventDefault();
+    event && event.preventDefault();
     navigate(`/town/${forum.id}`);
-  };
-
-  const markRead = () => {
-    markForumRead(
-      forum.id,
-      () => getForum(forum.id, setForum, setError),
-      setError
-    );
   };
 
   if (error) return JSON.stringify(error);
   if (!forum) return;
+  let name = 'building';
+  if (forum.id === 1) name = 'townhall';
 
   return (
-    <div>
-      <button onClick={forumClick}>
-        {forum.name} - ({forum.unreadCount} unread)
-      </button>
-      {forum.unreadCount > 0 && (
-        <button onClick={markRead}>Mark as read</button>
-      )}
-    </div>
+    <ImageButton name={name} size="medium" face={false} onClick={forumClick}>
+      <span className="forum-name">{forum.name}</span>
+      <span className="forum-count">{forum.unreadCount} unread</span>
+    </ImageButton>
   );
 }
 

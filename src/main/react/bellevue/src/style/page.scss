@@ -1,0 +1,23 @@
+@use 'variables' as *;
+
+div.page {
+  position: relative;
+  height: min(100dvh, 100dvw);
+  width: min(100dvh, 100dvw);
+  margin: 0;
+  background: $white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
+  
+  div.page-contents {
+    margin-left: calc(64 * $pixel);
+    height: calc(576 * $pixel);
+    width: calc(576 * $pixel);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+}

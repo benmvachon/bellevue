@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getMyFriends } from '../api/api.js';
 import Page from '../components/Page.js';
+import ImageButton from './ImageButton.js';
 
 function FriendsMap() {
   const navigate = useNavigate();
@@ -42,40 +43,58 @@ function FriendsMap() {
     );
   };
 
-  const profileClick = (event) => {
-    event.preventDefault();
-    navigate('/home/' + event.target.value);
+  const profileClick = (id) => {
+    navigate('/home/' + id);
   };
 
   if (error) return JSON.stringify(error);
 
   return (
     <div className="friends">
-      <h2>Neighborhood</h2>
-      <p>Visit a friend&apos;s house and say hello!</p>
-      <input
-        type="text"
-        placeholder="Search neighborhood..."
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        className="friends-select-input"
-      />
-      <div>
-        {loading ? (
-          <p>Loading...</p>
-        ) : (
-          <Page
-            page={myFriends}
-            renderItem={(friend) => (
-              <div key={`friend-${friend.id}`}>
-                <button value={friend.id} onClick={profileClick}>
-                  {friend.name} - {friend.friendshipStatus}
-                </button>
-              </div>
-            )}
-            loadPage={loadMyFriendPage}
-          />
-        )}
+      <div className="header pixel-corners">
+        <h2>Neighborhood</h2>
+        <input
+          type="text"
+          placeholder="Search neighborhood..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="friends-select-input"
+        />
+      </div>
+      <p className="pixel-corners">Visit a friend&apos;s house and say hello</p>
+      <div className="grid">
+        <Page
+          page={myFriends}
+          renderItem={(friend) => (
+            <ImageButton
+              name="house"
+              size="medium"
+              face={false}
+              onClick={() => profileClick(friend.id)}
+            >
+              <span>{friend.name}</span>
+              <img
+                className={`image ${friend?.avatar} small`}
+                src={require(`../asset/${friend?.avatar}-small.png`)}
+                alt={friend?.avatar}
+              />
+              <img
+                className="image face small"
+                src={require('../asset/face-small.png')}
+                alt={'face'}
+              />
+              {friend?.equipment?.hat && (
+                <img
+                  className={`image ${friend?.equipment?.hat} small`}
+                  src={require(`../asset/${friend?.equipment?.hat}-small.png`)}
+                  alt={friend?.equipment?.hat}
+                />
+              )}
+            </ImageButton>
+          )}
+          loadPage={loadMyFriendPage}
+          loading={loading}
+        />
       </div>
     </div>
   );

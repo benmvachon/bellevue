@@ -84,16 +84,16 @@ function Notifications({ show = false, onClose, openMessages }) {
 
   const markAllAsRead = () => {
     markNotificationsRead();
-    onClose();
   };
 
   if (error) return JSON.stringify(error);
-  if (!show) return;
 
   return (
     <Modal className="notifications-container" show={show} onClose={onClose}>
       {loading ? (
-        <p>Loading...</p>
+        <div className="notifications">
+          <p>Loading...</p>
+        </div>
       ) : totalNotifications > 0 ? (
         <ScrollLoader
           total={totalNotifications}
@@ -110,11 +110,13 @@ function Notifications({ show = false, onClose, openMessages }) {
           ))}
         </ScrollLoader>
       ) : (
-        <p>No notifications</p>
+        <div className="notifications">
+          <p>No notifications</p>
+        </div>
       )}
       <div className="buttons">
-        <button onClick={onClose}>Close</button>
-        <button onClick={markAllAsRead}>Mark all as read</button>
+        <button onClick={onClose}>close</button>
+        <button onClick={markAllAsRead}>mark all read</button>
       </div>
     </Modal>
   );

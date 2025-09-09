@@ -24,7 +24,8 @@ function ForumsMap({ setShowForumForm }) {
       },
       filter,
       query,
-      0
+      0,
+      8
     );
   }, [filter, query]);
 
@@ -38,7 +39,10 @@ function ForumsMap({ setShowForumForm }) {
       getForum(
         1,
         (forum) => {
-          forums.content.push(forum);
+          for (let i = 8; i > 4; i--) {
+            forums.content[i] = forums.content[i - 1];
+          }
+          forums.content[4] = forum;
           setForums({ ...forums });
           setLoading(false);
         },
@@ -60,7 +64,8 @@ function ForumsMap({ setShowForumForm }) {
       },
       filter,
       query,
-      page
+      page,
+      8
     );
   };
 
@@ -68,10 +73,10 @@ function ForumsMap({ setShowForumForm }) {
 
   return (
     <div className="forums">
-      <h2>
-        Town
+      <div className="header pixel-corners">
+        <h2>Town</h2>
         <button onClick={() => setFilter(!filter)}>
-          {filter ? 'Show all' : 'Show unread'}
+          {filter ? 'show all' : 'show unread'}
         </button>
         <input
           type="text"
@@ -80,20 +85,20 @@ function ForumsMap({ setShowForumForm }) {
           onChange={(e) => setQuery(e.target.value)}
           className="forum-select-input"
         />
-        <button onClick={markPostsRead}>Mark all as read</button>
-        <button onClick={() => setShowForumForm(true)}>New Building</button>
-      </h2>
-      <p>Enter buildings and engage in conversations with your neighbors!</p>
-      <div>
-        {loading ? (
-          <p>Loading...</p>
-        ) : (
-          <Page
-            page={forums}
-            renderItem={(forum) => <Forum id={forum.id} forumProp={forum} />}
-            loadPage={loadForumPage}
-          />
-        )}
+        <button onClick={markPostsRead}>mark all read</button>
+      </div>
+      <p className="pixel-corners">
+        Enter buildings and engage in conversations with your neighbors
+      </p>
+      <div className="grid">
+        <Page
+          page={forums}
+          renderItem={(forum) =>
+            forum && <Forum id={forum.id} forumProp={forum} />
+          }
+          loadPage={loadForumPage}
+          loading={loading}
+        />
       </div>
     </div>
   );

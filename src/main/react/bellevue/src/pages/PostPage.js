@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import withAuth from '../utils/withAuth.js';
 import { getPost } from '../api/api.js';
 import Post from '../components/Post.js';
+import PostObject from '../api/Post.js';
 import asPage from '../utils/asPage.js';
 
 function PostPage() {
-  const navigate = useNavigate();
   const { id } = useParams();
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -34,7 +34,7 @@ function PostPage() {
   const parentFuncs = [];
   let i = 0;
   const getPostElement = (depth) => (
-    <Post id={post?.id} postProp={post} depth={depth} selected />
+    <Post id={post?.id} postProp={post} depth={depth} selected showForum />
   );
 
   if (post) {
@@ -44,7 +44,7 @@ function PostPage() {
       const id = Number.parseInt('' + parent.id);
       const previousId = Number.parseInt('' + previousParent.id);
       const pointer = Number.parseInt('' + i);
-      const post = JSON.parse(JSON.stringify(parent));
+      const post = PostObject.fromJSON(parent.toJSON());
       parentFuncs[pointer] = (depth) => (
         <Post
           id={id}
@@ -54,6 +54,7 @@ function PostPage() {
           getSelectedChild={
             pointer < 1 ? getPostElement : parentFuncs[pointer - 1]
           }
+          showForum
         />
       );
       i++;
@@ -64,10 +65,6 @@ function PostPage() {
 
   return (
     <div className="page-contents">
-      <h2>{post.forum.name}</h2>
-      <button onClick={() => navigate(`/town/${post.forum.id}`)}>
-        Back to town
-      </button>
       <div className="contents">
         <div className="posts">
           {i > 0 ? parentFuncs[i - 1](0, true) : getPostElement(0, true)}

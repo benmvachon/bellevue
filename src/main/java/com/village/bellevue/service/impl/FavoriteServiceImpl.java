@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.village.bellevue.entity.FavoriteEntity;
@@ -61,12 +62,12 @@ public class FavoriteServiceImpl implements FavoriteService {
 
   @Override
   public Page<FavoriteEntity> readAll(int page, int size) {
-    return favoriteRepository.findByUser(getAuthenticatedUserId(), PageRequest.of(page, size));
+    return favoriteRepository.findByUser(getAuthenticatedUserId(), PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "created")));
   }
 
   @Override
   public Page<FavoriteEntity> readAllOfType(FavoriteType type, int page, int size) {
-    return favoriteRepository.findByUserAndType(getAuthenticatedUserId(), type, PageRequest.of(page, size));
+    return favoriteRepository.findByUserAndType(getAuthenticatedUserId(), type, PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "created")));
   }
 
   @Override

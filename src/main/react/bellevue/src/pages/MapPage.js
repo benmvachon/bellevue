@@ -1,11 +1,12 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { useNavigate, useParams } from 'react-router-dom';
+import PropTypes from 'prop-types';
 import withAuth from '../utils/withAuth.js';
 import asPage from '../utils/asPage.js';
 import ForumsMap from '../components/ForumsMap.js';
 import FriendsMap from '../components/FriendsMap.js';
 import SuggestedFriendsMap from '../components/SuggestedFriendsMap.js';
+import ImageButton from '../components/ImageButton.js';
 
 function MapPage({ setShowForumForm }) {
   const navigate = useNavigate();
@@ -20,11 +21,9 @@ function MapPage({ setShowForumForm }) {
     if (index === 2) newSection = 'suburbs';
     navigate(`/map/${newSection}`);
   };
-
   return (
-    <div className="page-contents">
-      <h2>Map</h2>
-      <div className="map">
+    <div className="map-slider">
+      <div className="content">
         <button
           className="back"
           disabled={index <= 0}
@@ -42,15 +41,18 @@ function MapPage({ setShowForumForm }) {
         >
           &gt;
         </button>
+        <div className="hide-map-slider">
+          <ImageButton name="map-close" onClick={() => navigate('/')} />
+        </div>
       </div>
     </div>
   );
 }
 
+MapPage.displayName = 'MapSlider';
+
 MapPage.propTypes = {
   setShowForumForm: PropTypes.func.isRequired
 };
-
-MapPage.displayName = 'MapPage';
 
 export default withAuth(asPage(MapPage, 'map-page', false));

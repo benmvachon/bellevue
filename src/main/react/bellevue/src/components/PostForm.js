@@ -42,6 +42,7 @@ const PostForm = ({ forum, parent, enableForumSelection = false }) => {
   return (
     <form onSubmit={submitPost}>
       <textarea
+        name="newPost"
         value={newPost}
         onChange={(e) => setNewPost(e.target.value)}
         onKeyDown={handleKeyDown}
@@ -53,7 +54,7 @@ const PostForm = ({ forum, parent, enableForumSelection = false }) => {
         />
       )}
       <button disabled={disabled} type="submit">
-        {parent ? 'Reply' : 'Post'}
+        {parent ? 'reply to flyer' : 'post new flyer'}
       </button>
     </form>
   );
