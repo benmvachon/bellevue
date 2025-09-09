@@ -37,7 +37,7 @@ function LoginPage() {
       <h1>Login</h1>
       <form onSubmit={onSubmit}>
         <div>
-          <label htmlFor="username">Username:</label>
+          <label htmlFor="username">username:</label>
           <input
             type="text"
             id="username"
@@ -48,7 +48,7 @@ function LoginPage() {
           />
         </div>
         <div>
-          <label htmlFor="password">Password:</label>
+          <label htmlFor="password">password:</label>
           <input
             type="password"
             id="password"
@@ -60,7 +60,7 @@ function LoginPage() {
         </div>
         {error && <p style={{ color: 'red' }}>{error}</p>}
         <button type="submit" disabled={loading}>
-          Login
+          login
         </button>
       </form>
     </div>

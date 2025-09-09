@@ -109,7 +109,7 @@ public class UserController {
   }
 
   @PutMapping("/blackboard")
-  public ResponseEntity<Void> create(@RequestBody String blackboard) {
+  public ResponseEntity<Void> create(@RequestBody(required = false) String blackboard) {
     profileService.setBlackboard(blackboard);
     return ResponseEntity.status(HttpStatus.CREATED).build();
   }

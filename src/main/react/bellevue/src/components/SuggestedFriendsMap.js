@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { findUsers, getSuggestedFriends } from '../api/api.js';
 import Page from '../components/Page.js';
+import ImageButton from './ImageButton.js';
 
 function SuggestedFriendsMap() {
   const navigate = useNavigate();
@@ -22,7 +23,9 @@ function SuggestedFriendsMap() {
         (error) => {
           setError(error);
           setLoading(false);
-        }
+        },
+        0,
+        9
       );
     } else {
       getSuggestedFriends(
@@ -33,7 +36,9 @@ function SuggestedFriendsMap() {
         (error) => {
           setError(error);
           setLoading(false);
-        }
+        },
+        0,
+        9
       );
     }
   }, [query]);
@@ -51,7 +56,8 @@ function SuggestedFriendsMap() {
           setError(error);
           setLoading(false);
         },
-        page
+        page,
+        9
       );
     } else {
       getSuggestedFriends(
@@ -63,45 +69,49 @@ function SuggestedFriendsMap() {
           setError(error);
           setLoading(false);
         },
-        page
+        page,
+        9
       );
     }
   };
 
-  const profileClick = (event) => {
-    event.preventDefault();
-    navigate('/home/' + event.target.value);
+  const profileClick = (id) => {
+    navigate('/home/' + id);
   };
 
   if (error) return JSON.stringify(error);
 
   return (
     <div className="suggested-friends">
-      <h2>Suburbs</h2>
-      <p>Find potential neighbors and send them friend requests!</p>
-      <input
-        type="text"
-        placeholder="Search suburbs..."
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        className="user-select-input"
-      />
-      <div>
-        {loading ? (
-          <p>Loading...</p>
-        ) : (
-          <Page
-            page={suggestedFriends}
-            renderItem={(profile) => (
-              <div key={`profile-${profile.id}`}>
-                <button value={profile.id} onClick={profileClick}>
-                  {profile.name} - {profile.friendshipStatus}
-                </button>
-              </div>
-            )}
-            loadPage={loadSuggestedFriendPage}
-          />
-        )}
+      <div className="header pixel-corners">
+        <h2>Suburbs</h2>
+        <input
+          type="text"
+          placeholder="Search suburbs..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="user-select-input"
+        />
+      </div>
+      <p className="pixel-corners">
+        Find potential neighbors and send them friend requests
+      </p>
+      <div className="grid">
+        <Page
+          page={suggestedFriends}
+          renderItem={(profile) => (
+            <ImageButton
+              name="house"
+              size="medium"
+              face={false}
+              onClick={() => profileClick(profile.id)}
+            >
+              <span>{profile.name}</span>
+            </ImageButton>
+          )}
+          loadPage={loadSuggestedFriendPage}
+          loading={loading}
+        />
       </div>
     </div>
   );

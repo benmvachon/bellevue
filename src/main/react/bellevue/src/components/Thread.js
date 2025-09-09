@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useAuth } from '../utils/AuthContext.js';
 import {
@@ -11,6 +11,7 @@ import {
   unsubscribeMessageRead,
   unsubscribeThreadCount
 } from '../api/api.js';
+import Avatar from './Avatar.js';
 
 function Thread({ thread, onClick }) {
   const { userId } = useAuth();
@@ -73,11 +74,23 @@ function Thread({ thread, onClick }) {
 
   return (
     <div className="thread">
-      <button onClick={threadClick}>
-        {friend?.name} - {stateThread.message}
+      <button
+        className="mark-read"
+        onClick={markAsRead}
+        disabled={!received || stateThread.read}
+      >
+        mark read
       </button>
-      {received && !stateThread.read && (
-        <button onClick={markAsRead}>Mark read</button>
+      <button className="message" onClick={threadClick}>
+        <span className="received-indication">{received ? '<' : '>'}</span>
+        {stateThread.message}
+      </button>
+      {friend && (
+        <Avatar
+          userId={friend?.id}
+          userProp={friend}
+          className="thread-avatar"
+        />
       )}
     </div>
   );

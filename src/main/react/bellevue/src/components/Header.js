@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import PropTypes from 'prop-types';
 import { useAuth } from '../utils/AuthContext.js';
 import {
+  getProfile,
   getNotificationCount,
   getUnreadCount,
   onNotificationCount,
@@ -9,24 +11,27 @@ import {
   unsubscribeMessage,
   unsubscribeNotification
 } from '../api/api.js';
-import Notifications from './Notifications.js';
-import Threads from './Threads.js';
-import Messages from './Messages.js';
-import Favorites from './Favorites.js';
+import ImageButton from './ImageButton.js';
 
-function Header() {
+function Header({ setShowNotifications, setShowThreads, setShowFavorites }) {
   const navigate = useNavigate();
   const { userId } = useAuth();
+  const [profile, setProfile] = useState(null);
   const [notificationCount, setNotificationCount] = useState(0);
   const [unreadThreadCount, setUnreadThreadCount] = useState(0);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [showThreads, setShowThreads] = useState(false);
-  const [showMessages, setShowMessages] = useState(false);
-  const [showFavorites, setShowFavorites] = useState(false);
-  const [friend, setFriend] = useState(-1);
   const [error, setError] = useState(false);
 
   useEffect(() => {
+    getProfile(
+      userId,
+      (profile) => {
+        setProfile(profile);
+      },
+      (error) => {
+        setError(error);
+      }
+    );
+
     onNotificationCount(() =>
       getNotificationCount(setNotificationCount, setError)
     );
@@ -38,71 +43,50 @@ function Header() {
       unsubscribeNotification();
       unsubscribeMessage();
     };
-  }, []);
+  }, [userId]);
 
   const openNotifications = () => {
     setShowNotifications(true);
-  };
-
-  const closeNotifications = () => {
-    setShowNotifications(false);
-    getNotificationCount(setNotificationCount, setError);
   };
 
   const openThreads = () => {
     setShowThreads(true);
   };
 
-  const closeThreads = () => {
-    setShowThreads(false);
-    getUnreadCount(setUnreadThreadCount, setError);
-  };
-
-  const openMessages = (friend) => {
-    setFriend(Number.parseInt(friend));
-    setShowMessages(true);
-  };
-
-  const closeMessages = () => {
-    setShowMessages(false);
-    setFriend(-1);
-  };
-
   const openFavorites = () => {
     setShowFavorites(true);
-  };
-
-  const closeFavorites = () => {
-    setShowFavorites(false);
   };
 
   if (error) return JSON.stringify(error);
 
   return (
     <div className="header">
-      <button onClick={() => navigate('/')}>Town Hall</button>
-      <button onClick={() => navigate(`/home/${userId}`)}>Home</button>
-      <button onClick={openFavorites}>Favorites</button>
-      <h1>BLORVIS</h1>
-      <button onClick={openNotifications}>
-        Notifications: {notificationCount}
-      </button>
-      <button onClick={openThreads}>Messages: {unreadThreadCount}</button>
-      <Notifications
-        show={showNotifications}
-        onClose={closeNotifications}
-        openMessages={openMessages}
+      <ImageButton name="townhall" onClick={() => navigate('/')} />
+      <ImageButton name="newspaper" onClick={openNotifications}>
+        <span className={`count${notificationCount > 0 ? ' red' : ''}`}>
+          {notificationCount}
+        </span>
+      </ImageButton>
+      <ImageButton name="phone" onClick={openThreads}>
+        <span className={`count${unreadThreadCount > 0 ? ' red' : ''}`}>
+          {unreadThreadCount}
+        </span>
+      </ImageButton>
+      <ImageButton name="notepad" onClick={openFavorites} />
+      <ImageButton
+        name={profile?.avatar}
+        hat={profile?.equipment?.hat}
+        onClick={() => navigate(`/home/${userId}`)}
       />
-      <Threads
-        show={showThreads}
-        onClose={closeThreads}
-        openMessages={openMessages}
-      />
-      <Messages show={showMessages} friend={friend} onClose={closeMessages} />
-      <Favorites show={showFavorites} onClose={closeFavorites} />
     </div>
   );
 }
+
+Header.propTypes = {
+  setShowNotifications: PropTypes.func.isRequired,
+  setShowThreads: PropTypes.func.isRequired,
+  setShowFavorites: PropTypes.func.isRequired
+};
 
 Header.displayName = 'Header';
 

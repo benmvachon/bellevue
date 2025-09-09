@@ -5,10 +5,9 @@ function NoAuthHeader() {
   const navigate = useNavigate();
 
   return (
-    <div className="header">
-      <h1>BLORVIS</h1>
-      <button onClick={() => navigate('/signup')}>Sign Up</button>
-      <button onClick={() => navigate('/login')}>Log In</button>
+    <div className="header no-auth">
+      <button onClick={() => navigate('/signup')}>sign up</button>
+      <button onClick={() => navigate('/login')}>log in</button>
     </div>
   );
 }

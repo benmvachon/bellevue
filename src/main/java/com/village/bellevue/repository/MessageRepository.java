@@ -95,8 +95,8 @@ public interface MessageRepository extends JpaRepository<MessageEntity, Long> {
   Long countThreads(@Param("user") Long user);
 
   @Query("SELECT m FROM MessageEntity m " +
-    "WHERE (m.receiver.id = :user AND ((:friend IS NULL AND m.sender IS NULL) OR m.sender.id = :friend)) " +
-    "OR (((:friend IS NULL AND m.receiver IS NULL) OR m.receiver.id = :friend) AND m.sender.id = :user) " +
+    "WHERE ((m.receiver.id = :user AND ((:friend IS NULL AND m.sender IS NULL) OR m.sender.id = :friend)) " +
+    "OR (((:friend IS NULL AND m.receiver IS NULL) OR m.receiver.id = :friend) AND m.sender.id = :user)) " +
     "AND m.created < :cursor " +
     "ORDER BY m.created DESC, m.id DESC " +
     "LIMIT :limit"

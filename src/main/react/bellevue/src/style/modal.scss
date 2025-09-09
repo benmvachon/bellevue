@@ -1,0 +1,48 @@
+@use 'variables' as *;
+
+div.modal-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background-color: $overlay-dark;
+  z-index: 5;
+}
+
+div.modal {
+  position: absolute;
+  height: 75%;
+  width: 75%;
+  z-index: 2;
+  background: $white;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  button.modal-close {
+    position: absolute;
+    top: 0;
+    right: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: calc(32 * $pixel);
+    color: $white;
+    box-shadow: none;
+
+    &:hover, &:active {
+      box-shadow: none;
+      animation: none;
+    }
+  }
+
+  div.buttons {
+    display: flex;
+    justify-content: space-evenly;
+
+    text-area {
+    width: 100%;
+    }
+  }
+}

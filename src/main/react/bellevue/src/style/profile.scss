@@ -1,0 +1,142 @@
+@use 'variables' as *;
+
+div.profile-page {
+  background: $black;
+
+  div.page-contents {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: flex-start;
+    position: relative;
+    background: url('../asset/home.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+
+    form {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      margin-top: calc(36 * $pixel);
+      width: 100%;
+
+      textarea.chalkboard {
+        background: url('../asset/chalkboard.png');
+        background-size: contain;
+        background-repeat: no-repeat;
+        height: calc(224 * $pixel);
+        width: calc(480 * $pixel);
+        border: none;
+        outline: none;
+        color: $white;
+        padding: calc(12 * $pixel);
+        font-size: calc(16 * $pixel);
+        text-align: center;
+      }
+
+      button {
+        border: solid $black calc(1 * $pixel);
+        background: $white;
+        outline: none;
+        color: $black;
+        font-size: calc(12 * $pixel);
+        height: calc(24 * $pixel);
+        width: calc(504 * $pixel);
+      }
+    }
+
+    div.avatar {
+      display: flex;
+      position: relative;
+      height: calc(256 * $pixel);
+      width: calc(256 * $pixel);
+      z-index: 2;
+
+      img {
+        position: absolute;
+        height: calc(256 * $pixel);
+        width: calc(256 * $pixel);
+      }
+    }
+
+    div.metadata {
+      display: flex;
+      flex-direction: column;
+      background: $white;
+      color: $black;
+      padding: calc(12 * $pixel);
+      width: calc(256 * $pixel);
+
+      h2 {
+        font-size: calc(16 * $pixel);
+        margin: 0;
+        text-align: center;
+
+        span.status {
+          font-size: calc(12 * $pixel);
+          font-style: italic;
+
+          &.active {
+            color: $green;
+          }
+
+          &.offline {
+            color: $red;
+          }
+        }
+      }
+
+      h3 {
+        font-size: calc(12 * $pixel);
+        margin: 0;
+        margin-top: calc(8 * $pixel);
+        margin-bottom: calc(8 * $pixel);
+        text-align: center;
+      }
+
+      div.buttons {
+        display: flex;
+        justify-content: space-evenly;
+        flex-wrap: wrap;
+        background: $white;
+        color: $black;
+        padding: calc(12 * $pixel);
+        width: calc(232 * $pixel);
+
+        span.self-indication {
+          font-size: calc(10 * $pixel);
+          text-align: center;
+          font-style: italic;
+        }
+
+        button {
+          width: 100%;
+
+          &.remove {
+            background: $red;
+            color: $white;
+            margin-bottom: calc(8 * $pixel);
+          }
+
+          &.image-button {
+            width: calc(64 * $pixel);
+
+            span {
+              width: 100%;
+              position: absolute;
+              top: 0;
+              left: 0;
+              z-index: 1;
+              background: $overlay-dark;
+              color: $white;
+              font-size: calc(8 * $pixel);
+              border-radius: calc(2 * $pixel);
+            }
+          }
+        }
+      }
+    }
+  }
+}

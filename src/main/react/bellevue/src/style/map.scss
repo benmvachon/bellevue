@@ -1,0 +1,146 @@
+@use 'variables' as *;
+
+div.show-map-slider {
+  height: calc(576 * $pixel);
+  width: calc(64 * $pixel);
+  left: 0;
+  bottom: 0;
+  position: absolute;
+  z-index: 2;
+  border: 0;
+  background: $blue;
+  display: flex;
+  align-items: center;
+}
+
+div.map-slider {
+  display: flex;
+  flex-direction: column;
+  bottom: 0;
+  height: calc(576 * $pixel);
+  width: 100%;
+  left: 0;
+  position: absolute;
+  background: $blue;
+  z-index: 3;
+  align-items: flex-start;
+  justify-content: flex-start;
+
+  div.content {
+    width: calc(576 * $pixel);
+    height: calc(576 * $pixel);
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    gap: calc(8 * $pixel);
+    background: url('../asset/map.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+
+    button.back, button.forth {
+      margin-top: calc(24 * $pixel);
+      background: $yellow;
+      color: $black;
+
+      &:disabled {
+        background: $white;
+        color: $overlay-medium;
+      }
+
+      &.back {
+        margin-left: calc(1 * $pixel);
+      }
+
+      &.forth {
+        margin-right: calc(1 * $pixel);
+      }
+    }
+
+    div.forums, div.friends, div.suggested-friends {
+      display: flex;
+      height: calc(512 * $pixel);
+      width: calc(409 * $pixel);
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      overflow-y: auto;
+
+      div.header {
+        background: $green;
+        height: calc(32 * $pixel);
+        width: 99%;
+        color: $white;
+
+        button {
+          background: $white;
+        }
+      }
+
+      p {
+        width: 96%;
+        line-height: calc(24 * $pixel);
+        text-align: center;
+        background: $white;
+        color: $black;
+      }
+
+      div.grid {
+        height: calc(400 * $pixel);
+        width: 100%;
+
+        div.loader {
+          width: 100%;
+
+          div.page-content {
+            display: grid;
+            justify-content: space-between;
+            width: 100%;
+            grid-template-columns: calc(128 * $pixel) calc(128 * $pixel) calc(128 * $pixel);
+            grid-template-rows: calc(128 * $pixel) calc(128 * $pixel) calc(128 * $pixel);
+
+            span {
+              position: absolute;
+              width: 100%;
+              top: 0;
+              left: 0;
+              z-index: 1;
+              font-size: calc(12 * $pixel);
+              background: $overlay-dark;
+              color: $white;
+              border-radius: calc(4 * $pixel);
+
+              &.forum-count {
+                top: calc(14 * $pixel);
+                font-size: calc(10 * $pixel);
+              }
+            }
+          }
+
+          div.pagination-buttons {
+            display: flex;
+            justify-content: space-between;
+
+            button {
+              background: $white;
+              height: calc(16 * $pixel);
+              width: calc(128 * $pixel);
+            }
+          }
+        }
+      }
+    }
+
+    div.hide-map-slider {
+      height: calc(576 * $pixel);
+      width: calc(64 * $pixel);
+      right: 0;
+      bottom: 0;
+      position: absolute;
+      z-index: 1;
+      border: 0;
+      background: $blue;
+      display: flex;
+      align-items: center;
+    }
+  }
+}

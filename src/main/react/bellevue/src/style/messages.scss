@@ -1,0 +1,101 @@
+@use 'variables' as *;
+
+div.modal-container {
+  div.messages-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    width: calc(512 * $pixel);
+    height: calc(512 * $pixel);
+    background: url('../asset/message-bubble.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+
+    button.name {
+      height: calc(24 * $pixel);
+      width: calc(496 * $pixel);
+      font-size: calc(16 * $pixel);
+      margin-top: calc(8 * $pixel);
+      text-align: center;
+      background: $green;
+      color: $white;
+    }
+
+    button.modal-close {
+      top: calc(32 * $pixel * -1);
+      right: calc(32 * $pixel * -1);
+    }
+
+    div.messages {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      overflow-y: auto;
+      margin-top: calc(16 * $pixel);
+      height: calc(256 * $pixel);
+      width: calc(496 * $pixel);
+
+      div.message {
+        display: flex;
+
+        &.sent {
+          justify-content: start;
+        }
+
+        &.received {
+          justify-content: end;
+
+          p {
+            text-align: right;
+          }
+        }
+
+        p {
+          max-width: 50%;
+        }
+      }
+    }
+
+    div.buttons {
+      margin-bottom: calc(32 * $pixel);
+      width: 100%;
+
+      button {
+        background: $white;
+      }
+    }
+
+    div.avatar {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      height: calc(128 * $pixel);
+      width: calc(128 * $pixel);
+
+      &.friend {
+        right: 0;
+        left: unset;
+      }
+    }
+
+    div.phone-container {
+      position: absolute;
+      left: calc(96 * $pixel);
+      bottom: 0;
+      height: calc(128 * $pixel);
+      width: calc(128 * $pixel);
+
+      &.friend {
+        right: calc(96 * $pixel);
+        left: unset;
+      }
+
+      img {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+      }
+    }
+  }
+}

@@ -155,8 +155,8 @@ public class ForumServiceImpl implements ForumService {
   }
 
   @Override
-  public Page<ForumModel> readAll(String query, boolean unread, int page, int size) {
-    Page<ForumEntity> forums = forumRepository.searchForums(getAuthenticatedUserId(), query, unread, PageRequest.of(page, size));
+  public Page<ForumModel> readAll(String query, boolean unread, int page, int size, boolean includeTownHall) {
+    Page<ForumEntity> forums = forumRepository.searchForums(getAuthenticatedUserId(), query, unread, includeTownHall, PageRequest.of(page, size));
     return forums.map(forum -> {
       try {
         return new ForumModel(forum, forumModelProvider);

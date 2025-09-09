@@ -62,7 +62,7 @@ function ScrollLoader({
       },
       {
         root: currentContainerRef,
-        rootMargin: '0px',
+        rootMargin: '0%',
         threshold: 1.0
       }
     );
@@ -87,20 +87,24 @@ function ScrollLoader({
       {topLoad &&
         total > (children ? children.length : 0) &&
         (loadingMore ? (
-          <p>Loading...</p>
+          <p>loading...</p>
         ) : (
           <button ref={loadMoreRef} onClick={loadMoreWrapper}>
-            Load more
+            loading...
           </button>
         ))}
       {children}
       {!topLoad &&
         total > (children ? children.length : 0) &&
         (loadingMore ? (
-          <p>Loading...</p>
+          <p>loading...</p>
         ) : (
-          <button ref={loadMoreRef} onClick={loadMoreWrapper}>
-            Load more
+          <button
+            className="load-more"
+            ref={loadMoreRef}
+            onClick={loadMoreWrapper}
+          >
+            loading...
           </button>
         ))}
     </div>

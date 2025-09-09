@@ -1,0 +1,62 @@
+$black: #320b0f;
+$white: #faf7e7;
+$green: #6c7d47;
+$blue: #3d405b;
+$yellow: #f4b942;
+$red: #82302a;
+$manila: #fcf4d2;
+$overlay-dark: #3d405bb5;
+$overlay-medium: #3d405b87;
+$overlay-light: #3d405b48;
+$overlay-clear: #3d405b00;
+$pixel: calc(min(100dvh, 100dvw) / 640);
+
+@counter-style hyphen {
+  system: cyclic;
+  symbols: '-';
+  suffix: ' ';
+}
+
+@keyframes swell-shrink {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes button-press {
+  from {
+    box-shadow: inset calc(1 * $pixel) calc(1 * $pixel) calc(1 * $pixel) $overlay-clear;
+  }
+
+  to {
+    box-shadow: inset calc(1 * $pixel) calc(1 * $pixel) calc(1 * $pixel) $overlay-medium;
+  }
+}
+
+@keyframes button-hover {
+  from {
+    box-shadow: calc(1 * $pixel) calc(1 * $pixel) calc(1 * $pixel) $blue;
+  }
+
+  to {
+    box-shadow: calc(1 * $pixel) calc(1 * $pixel) calc(1 * $pixel) $overlay-medium;
+  }
+}
+
+@keyframes button-unpress {
+  from {
+    box-shadow: calc(1 * $pixel) calc(1 * $pixel) calc(1 * $pixel) $overlay-medium;
+  }
+
+  to {
+    box-shadow: calc(1 * $pixel) calc(1 * $pixel) calc(1 * $pixel) $blue;
+  }
+}

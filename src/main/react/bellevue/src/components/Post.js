@@ -21,6 +21,9 @@ import {
 import Rating from './Rating.js';
 import ScrollLoader from './ScrollLoader.js';
 import PostForm from './PostForm.js';
+import Avatar from './Avatar.js';
+import { formatTimeAgo } from '../utils/DateFormatter.js';
+import FavoriteButton from './FavoriteButton.js';
 
 function Post({
   id,
@@ -222,10 +225,21 @@ function Post({
 
   return (
     <div className={selected ? 'selected post' : 'post'}>
-      <div className="post-header">
-        <button onClick={() => navigate(`/home/${post?.user.id}`)}>
-          {post?.user.name}
-        </button>
+      <div className="post-actions">
+        <p>{formatTimeAgo(post.created)}</p>
+        {post.user.id === userId && (
+          <button onClick={() => deletePost(id)}>delete</button>
+        )}
+        {showForum && (
+          <button onClick={() => navigate(`/town/${post?.forum.id}`)}>
+            go to {post.forum.name}
+          </button>
+        )}
+        {excludeForum && post.forum.id !== 1 && (
+          <button onClick={() => excludeForum(post.forum.id)}>
+            filter flyers from {post.forum.name}
+          </button>
+        )}
         <Rating
           rating={post?.rating}
           ratingCount={post?.ratingCount}
@@ -233,46 +247,37 @@ function Post({
             ratePost(post?.id, rating, undefined, setError);
           }}
         />
-        {selected ? undefined : (
-          <button onClick={() => navigate(`/flyer/${post?.id}`)}>
-            Go to flyer
-          </button>
-        )}
-        {post.favorite ? (
-          <button onClick={unfavorite}>Unfavorite</button>
-        ) : (
-          <button onClick={favorite}>Favorite</button>
-        )}
-        {post.user.id === userId && (
-          <button onClick={() => deletePost(id)}>Delete</button>
-        )}
-        {showForum && (
-          <button onClick={() => navigate(`/town/${post?.forum.id}`)}>
-            Go to {post.forum.name}
-          </button>
-        )}
-        {excludeForum && post.forum.id !== 1 && (
-          <button onClick={() => excludeForum(post.forum.id)}>
-            Filter flyers from {post.forum.name}
-          </button>
-        )}
       </div>
-      <p>{post?.content}</p>
+      <div className="post-contents">
+        <Avatar userProp={post?.user} userId={post?.user?.id} />
+        <button
+          onClick={() => !selected && navigate(`/flyer/${post?.id}`)}
+          className="post-button pixel-corners"
+        >
+          {post?.content}
+        </button>
+        <FavoriteButton
+          favorited={post.favorite}
+          onClick={() => {
+            post.favorite ? unfavorite() : favorite();
+          }}
+        />
+      </div>
       <PostForm forum={post.forum} parent={post} />
       {post.children > 0 && (
         <div className="post-children-container">
           <button onClick={toggleSort}>
-            {sortByPopular ? 'Most recent' : 'Most popular'}
+            {sortByPopular ? 'most recent' : 'most popular'}
           </button>
           <button onClick={() => setShowReplies(!showReplies)}>
             {showReplies
-              ? `Hide (${post.children}) replies`
-              : `Show (${post.children}) replies`}
+              ? `hide (${post.children}) replies`
+              : `show (${post.children}) replies`}
           </button>
           {showReplies && getSelectedChild && getSelectedChild(depth)}
           {showReplies && (
             <ScrollLoader
-              total={post.children}
+              total={selectedChildId ? post.children - 1 : post.children}
               loadMore={loadMore}
               className="post-children"
             >

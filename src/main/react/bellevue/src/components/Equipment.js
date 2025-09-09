@@ -48,7 +48,7 @@ function Equipment({ show = false, onClose, refreshProfile }) {
   return (
     <Modal className="equipment-container" show={show} onClose={onClose}>
       <div className="top-buttons">
-        <button onClick={() => setSlot('all')}>Show all</button>
+        <button onClick={() => setSlot('all')}>show all</button>
       </div>
       <div className="equipment">
         <Page
@@ -68,7 +68,7 @@ function Equipment({ show = false, onClose, refreshProfile }) {
         />
       </div>
       <div className="buttons">
-        <button onClick={onClose}>Close</button>
+        <button onClick={onClose}>close</button>
       </div>
     </Modal>
   );

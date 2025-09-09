@@ -14,11 +14,12 @@ import {
   removeFromForum
 } from '../api/api.js';
 import { updateSearchParams } from '../utils/updateSearchParams.js';
-import Attendees from '../components/Attendees.js';
 import ExcludedForums from '../components/ExcludedForums.js';
 import PostsList from '../components/PostsList.js';
 import asPage from '../utils/asPage.js';
 import ForumForm from '../components/ForumForm.js';
+import Forum from '../components/Forum.js';
+import FavoriteButton from '../components/FavoriteButton.js';
 
 function ForumPage() {
   const navigate = useNavigate();
@@ -144,54 +145,58 @@ function ForumPage() {
   return (
     <div className="page-contents">
       <div className="metadata">
-        <h2>
-          {forum?.name} - ({forum?.unreadCount} unread)
-        </h2>
-        <h3>{forum?.description}</h3>
-        <div className="forum-actions">
-          {forum.favorite ? (
-            <button onClick={unfavorite}>Unfavorite</button>
-          ) : (
-            <button onClick={favorite}>Favorite</button>
-          )}
-          {forum.unreadCount > 0 && (
-            <button onClick={markRead}>Mark as read</button>
-          )}
-          <button
-            onClick={toggleNotifications}
-          >{`Turn ${forum.notify ? 'off' : 'on'} notifications`}</button>
-          {id === '1' && (
-            <button onClick={toggleFilterAll}>
-              {onlyTownHallPosts
-                ? 'Show all flyers'
-                : 'Show only Town Hall flyers'}
-            </button>
-          )}
-          {forum?.custom && forum?.user?.id !== userId && (
-            <button onClick={removeAccess}>Remove access</button>
-          )}
-          {forum?.user?.id === userId && (
-            <button onClick={() => setShowForumForm(true)}>
-              Edit Building
-            </button>
-          )}
-          {forum?.user?.id === userId && (
-            <button onClick={handleDelete}>Delete Building</button>
-          )}
+        <div className="building-and-buttons">
+          <Forum id={forum.id} forumProp={forum} />
+          <div className="forum-actions pixel-corners">
+            <p>{forum?.description}</p>
+            <div className="forum-buttons">
+              <div className="plain-forum-buttons">
+                {forum.unreadCount > 0 && (
+                  <button onClick={markRead}>mark read</button>
+                )}
+                <button
+                  onClick={toggleNotifications}
+                >{`turn ${forum.notify ? 'off' : 'on'} notifications`}</button>
+                {id === '1' && (
+                  <button onClick={toggleFilterAll}>
+                    {onlyTownHallPosts
+                      ? 'show all flyers'
+                      : 'show only Town Hall flyers'}
+                  </button>
+                )}
+                {forum?.custom && forum?.user?.id !== userId && (
+                  <button onClick={removeAccess}>remove access</button>
+                )}
+                {forum?.user?.id === userId && (
+                  <button onClick={() => setShowForumForm(true)}>
+                    edit building
+                  </button>
+                )}
+                {forum?.user?.id === userId && (
+                  <button onClick={handleDelete}>delete building</button>
+                )}
+              </div>
+              <FavoriteButton
+                favorited={forum.favorite}
+                onClick={() => {
+                  forum.favorite ? unfavorite() : favorite();
+                }}
+              />
+            </div>
+          </div>
         </div>
-        <div className="metadata-lists">
-          {id === '1' && (
-            <ExcludedForums
-              excludedForums={excludedForums}
-              includeForum={includeForum}
-              clearFilter={clearFilter}
-            />
-          )}
-          <Attendees />
-        </div>
+        {id === '1' && (
+          <ExcludedForums
+            excludedForums={excludedForums}
+            includeForum={includeForum}
+            clearFilter={clearFilter}
+          />
+        )}
       </div>
       <div className="contents">
         <PostsList
+          key={`posts-list-${forum.id}`}
+          id={`posts-list-${forum.id}`}
           forum={forum}
           sortByPopular={sortByPopular}
           toggleSort={toggleSort}

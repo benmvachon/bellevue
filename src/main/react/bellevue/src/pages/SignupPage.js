@@ -53,7 +53,7 @@ function SignupPage() {
       <h1>Signup</h1>
       <form onSubmit={onSubmit}>
         <div>
-          <label htmlFor="name">Name:</label>
+          <label htmlFor="name">name:</label>
           <input
             type="text"
             id="name"
@@ -64,7 +64,7 @@ function SignupPage() {
           />
         </div>
         <div>
-          <label htmlFor="username">Username:</label>
+          <label htmlFor="username">username:</label>
           <input
             type="text"
             id="username"
@@ -75,7 +75,7 @@ function SignupPage() {
           />
         </div>
         <div>
-          <label htmlFor="password">Email:</label>
+          <label htmlFor="password">email:</label>
           <input
             type="email"
             id="email"
@@ -86,7 +86,7 @@ function SignupPage() {
           />
         </div>
         <div>
-          <label htmlFor="password">Password:</label>
+          <label htmlFor="password">password:</label>
           <input
             type="password"
             id="password"
@@ -98,7 +98,7 @@ function SignupPage() {
         </div>
         {error && <p style={{ color: 'red' }}>{error}</p>}
         <button type="submit" disabled={loading}>
-          Sign up
+          sign up
         </button>
       </form>
     </div>

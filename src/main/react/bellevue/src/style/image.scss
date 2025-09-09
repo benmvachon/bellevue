@@ -1,0 +1,19 @@
+@use 'variables' as *;
+
+img {
+  image-rendering: pixelated;
+
+  &.small {
+    height: calc(64 * $pixel);
+    width: calc(64 * $pixel);
+  }
+
+  &.medium {
+    height: calc(128 * $pixel);
+    width: calc(128 * $pixel);
+  }
+
+  &.flip {
+    transform: scaleX(-1);
+  }
+}

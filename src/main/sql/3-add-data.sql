@@ -1,12 +1,9 @@
-INSERT INTO avatar (name) VALUES ('cat'), ('raptor'), ('walrus'), ('bee'), ('monkey'), ('horse');
+INSERT INTO avatar (name) VALUES ('cat'), ('dinosaur'), ('walrus'), ('bee');
 INSERT INTO item (name, slot, starter, unlockable) VALUES
-('red_cap', 'hat', true, false),
-('blue_cap', 'hat', true, false),
-('yellow_cap', 'hat', true, false),
-('green_cap', 'hat', true, false),
-('black_hat', 'hat', true, false),
-('white_hat', 'hat', true, false),
-('brown_hat', 'hat', true, false);
+('red-hat', 'hat', true, false),
+('blue-hat', 'hat', true, false),
+('yellow-hat', 'hat', true, false),
+('green-hat', 'hat', true, false);
 
 INSERT INTO forum (name, description) VALUES
 ('Town Hall', 'Where neighbors gather to chat about anything and everything.'),
