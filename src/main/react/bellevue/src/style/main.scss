@@ -50,6 +50,7 @@ html {
       border: calc(2 * $pixel) solid $black;
       outline: none;
       box-shadow: inset calc(1 * $pixel) calc(1 * $pixel) calc(1 * $pixel) $overlay-medium;
+      border-radius: 0;
     }
 
     input {
@@ -59,6 +60,7 @@ html {
       border: calc(2 * $pixel) solid $black;
       outline: none;
       box-shadow: inset calc(1 * $pixel) calc(1 * $pixel) calc(1 * $pixel) $overlay-medium;
+      border-radius: 0;
     }
 
     div.scroll-loader {
