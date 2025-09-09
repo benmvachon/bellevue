@@ -145,7 +145,7 @@ public class FriendServiceImpl implements FriendService {
           "Failed to request friendship. SQL command error: " + e.getMessage(), e);
     } finally {
       entityManager.flush();
-      entityManager.clear(); // ensure the database is updated
+      entityManager.clear();
       if (success) publisher.publishEvent(new RequestEvent(getAuthenticatedUserId(), user));
       evictCaches(user);
     }

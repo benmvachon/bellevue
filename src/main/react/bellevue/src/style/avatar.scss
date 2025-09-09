@@ -1,0 +1,21 @@
+@use 'variables' as *;
+
+div.avatar {
+  span.name {
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    background: $overlay-dark;
+    color: $white;
+    font-size: calc(8 * $pixel);
+    border-radius: calc(2 * $pixel);
+  }
+
+  &.system {
+    img {
+      filter: grayscale(100%);
+    }
+  }
+}

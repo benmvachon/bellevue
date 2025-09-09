@@ -1,6 +1,31 @@
-@import './variables';
-@import './mixins';
-@import './mobile';
+@use 'variables' as *;
+@import './pixel-border';
+@import './image';
+@import './button';
+@import './header';
+@import './page';
+@import './map';
+@import './profile';
+@import './modal';
+@import './favorites';
+@import './notifications';
+@import './messages';
+@import './threads';
+@import './scroll-loader';
+@import './avatar';
+@import './forum';
+@import './post';
+
+@font-face {
+  font-family: 'pixel';
+  src:
+    url('../asset/font1.ttf') format('opentype');
+}
+
+* {
+  image-rendering: pixelated;
+  color: $black;
+}
 
 html {
   display: flex;
@@ -8,24 +33,32 @@ html {
   width: 100dvw;
   align-items: center;
   justify-content: center;
-  background: black;
+  background: $black;
+  font-size: calc(10 * $pixel);
+  color: $black;
 
   body {
-    font-family: 'Courier New', Courier, monospace;
+    font-family: 'pixel', monospace;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 
     textarea {
+      background: $white;
       resize: none;
-      font-family: 'Courier New', Courier, monospace;
+      font-family: 'pixel', monospace;
+      font-size: calc(10 * $pixel);
+      border: calc(2 * $pixel) solid $black;
+      outline: none;
+      box-shadow: inset calc(1 * $pixel) calc(1 * $pixel) calc(1 * $pixel) $overlay-medium;
     }
 
     input {
-      font-family: 'Courier New', Courier, monospace;
-    }
-
-    button {
-      font-family: 'Courier New', Courier, monospace;
+      background: $white;
+      font-family: 'pixel', monospace;
+      font-size: calc(10 * $pixel);
+      border: calc(2 * $pixel) solid $black;
+      outline: none;
+      box-shadow: inset calc(1 * $pixel) calc(1 * $pixel) calc(1 * $pixel) $overlay-medium;
     }
 
     div.scroll-loader {
@@ -46,159 +79,6 @@ html {
     }
 
     div.page {
-      position: relative;
-      height: min(100dvh, 100dvw);
-      width: min(100dvh, 100dvw);
-      margin: 0;
-      background: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      overflow-y: auto;
-
-      button.show-map-slider {
-        height: 92%;
-        left: 0;
-        bottom: 0;
-        position: absolute;
-        z-index: 1;
-        border: 0;
-        border-right: 1px solid;
-      }
-
-      div.map-slider {
-        display: flex;
-        flex-direction: column;
-        bottom: 0;
-        height: 92%;
-        width: 512px;
-        left: 0;
-        position: absolute;
-        background: white;
-        z-index: 2;
-        padding: 0 24px;
-        align-items: center;
-        justify-content: center;
-
-        div.content {
-          width: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: space-around;
-
-          div.forums, div.friends, div.suggested-friends {
-            display: flex;
-            width: 100%;
-            flex-direction: column;
-            align-items: center;
-            overflow-y: auto;
-
-            h2 {
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-            }
-
-            p {
-              width: 75%;
-            }
-          }
-
-          button.hide-map-slider {
-            height: 100%;
-            right: 0;
-            bottom: 0;
-            position: absolute;
-            border-width: 0 1px;
-          }
-        }
-      }
-
-      div.page-contents {
-        height: 92%;
-        width: 100%;
-        overflow-y: auto;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-      }
-
-      &.profile-page {
-        form {
-          display: flex;
-          flex-direction: column;
-          width: 50%;
-        }
-      }
-
-      &.forum-page {
-        div.metadata {
-          display: flex;
-          height: 24%;
-          flex-direction: column;
-          align-items: center;
-          justify-content: space-evenly;
-          width: calc(100% - 64px);
-
-          h2, h3 {
-            margin: 0;
-          }
-
-          div.actions {
-            display: flex;
-          }
-
-          div.excluded-forums-container {
-            div.excluded-forums {
-              display: flex;
-            }
-          }
-
-          div.metadata-lists {
-            display: flex;
-            justify-content: space-evenly;
-            width: 100%;
-
-            div.attendees {
-              display: flex;
-              flex-direction: row;
-              align-items: center;
-              justify-content: center;
-              flex-wrap: wrap;
-  
-              h3 {
-                width: 100%;
-                text-align: center;
-              }
-            }
-          }
-        }
-
-        div.contents {
-          display: flex;
-          flex-direction: column;
-          height: 76%;
-          overflow-y: auto;
-          width: calc(100% - 64px);
-
-          div.posts {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-
-            div.posts-header {
-              height: 24%;
-              display: flex;
-              flex-direction: column;
-              justify-content: center;
-            }
-
-            div.scroll-loader {
-              height: 76%;
-            }
-          }
-        }
-      }
 
       &.post-page {
         div.contents {
@@ -206,7 +86,7 @@ html {
           flex-direction: column;
           height: 76%;
           overflow-y: auto;
-          width: calc(100% - 64px);
+          width: calc(576 * $pixel);
 
           div.posts {
             display: flex;
@@ -222,37 +102,6 @@ html {
 
             div.scroll-loader {
               height: 76%;
-            }
-          }
-        }
-      }
-
-      &.map-page {
-        div.page-contents {
-          div.map {
-            display: flex;
-            align-items: center;
-            justify-content: space-around;
-            width: 80%;
-
-            div.forums, div.friends, div.suggested-friends {
-              display: flex;
-              height: 50%;
-              min-height: 450px;
-              width: 100%;
-              flex-direction: column;
-              align-items: center;
-              overflow-y: auto;
-    
-              h2 {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-              }
-
-              p {
-                width: 75%;
-              }
             }
           }
         }
@@ -264,10 +113,10 @@ html {
         flex-direction: column;
 
         input.typeahead-input {
-          width: calc(100% - 20px);
-          padding: 4px 8px;
+          height: 100%;
+          padding: calc(2 * $pixel) calc(4 * $pixel);
         }
-        
+
         ul.typeahead-dropdown {
           list-style: none;
           padding: 0;
@@ -275,228 +124,42 @@ html {
           position: absolute;
           top: 100%;
           left: 0;
-          width: calc(100% - 2px);
-          background-color: white;
-          border: 1px solid #ccc;
-          border-radius: 4px;
-          max-height: 200px;
+          width: calc(100% - 4 * $pixel);
+          background-color: $white;
+          border: calc(2 * $pixel) solid $black;
+          border-radius: calc(2 * $pixel);
+          max-height: calc(128 * $pixel);
           overflow-y: auto;
           z-index: 10;
           display: flex;
           flex-direction: column;
 
           li.typeahead-item {
-            padding: 4px;
+            padding: calc(2 * $pixel);
             cursor: pointer;
-            background-color: white;
-            border-bottom: 1px solid #eee;
+            background-color: $white;
+            border-bottom: calc(2 * $pixel) solid $black;
             display: flex;
 
             p {
               display: flex;
               justify-content: space-between;
-              margin: 4px 0;
+              margin: calc(2 * $pixel) 0;
               width: 100%;
 
               span.name {
-                font-size: 14px;
+                font-size: calc(12 * $pixel);
                 font-weight: 500;
               }
-  
+
               span.description {
-                font-size: 10px;
+                font-size: calc(8 * $pixel);
               }
             }
 
             &.selected {
-              background-color: #f0f0f0;
+              background-color: $yellow;
             }
-          }
-        }
-      }
-
-      div.posts {
-        h3 {
-          width: 100%;
-          text-align: center;
-        }
-
-        form {
-          display: flex;
-          flex-direction: column;
-          width: 100%;
-        }
-
-        div.post {
-          display: flex;
-          flex-direction: column;
-          padding: 8px 0 8px 16px;
-          background: white;
-
-          &.selected {
-            background: #ddd;
-
-            div.loader {
-              background: white;
-            }
-          }
-
-          div.post-header {
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-            align-items: center;
-
-            div.rating {
-              display: flex;
-
-              button.full {
-                background-color: #444c;
-              }
-
-              buttons.empty {
-                background-color: white;
-              }
-            }
-          }
-
-          div.post-children-container {
-            display: flex;
-            flex-direction: column;
-
-            div.post-children {
-              border-left: 1px solid;
-            }
-          }
-        }
-      }
-
-      div.header {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-evenly;
-        align-items: center;
-        width: 100%;
-        height: 8%;
-        background-color: #444c;
-
-        h1 {
-          color: white;
-        }
-      }
-
-      div.modal-container {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        top: 0;
-        left: 0;
-        background-color: #444c;
-        z-index: 2;
-      }
-
-      div.modal {
-        position: absolute;
-        height: 75%;
-        width: 75%;
-        padding: 16px;
-        z-index: 2;
-        background: white;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-
-        button.modal-close {
-          position: absolute;
-          top: 0;
-          right: 0;
-          border: none;
-          background: white;
-          cursor: pointer;
-          font-size: 24px;
-        }
-
-        div.buttons {
-          display: flex;
-          justify-content: space-evenly;
-
-          text-area {
-            width: 100%;
-          }
-        }
-      }
-
-      div.notifications-container {
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-
-        div.notifications {
-          overflow-y: auto;
-
-          div.notification {
-            display: flex;
-            justify-content: space-evenly;
-          }
-        }
-      }
-
-      div.threads-container {
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-
-        div.threads {
-          overflow-y: auto;
-
-          div.thread {
-            display: flex;
-            justify-content: space-evenly;
-
-            button {
-              text-overflow: ellipsis;
-              overflow: hidden;
-              white-space: nowrap;
-              max-width: 60%;
-            }
-          }
-        }
-      }
-
-      div.messages-container {
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-
-        div.messages {
-          overflow-y: auto;
-
-          div.message {
-            display: flex;
-
-            &.sent {
-              justify-content: end;
-            }
-
-            &.received {
-              justify-content: start;
-            }
-          }
-        }
-      }
-
-      div.favorites-container {
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-
-        div.favorites {
-          display: flex;
-          justify-content: center;
-          overflow-y: auto;
-
-          div.favorite {
-            display: flex;
           }
         }
       }
@@ -517,9 +180,4 @@ html {
       }
     }
   }
-}
-
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
 }

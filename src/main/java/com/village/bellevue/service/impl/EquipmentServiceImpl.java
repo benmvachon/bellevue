@@ -61,5 +61,4 @@ public class EquipmentServiceImpl implements EquipmentService {
   public Page<EquipmentEntity> readAllBySlot(String slot, int page, int size) {
     return equipmentRepository.findByUserAndSlot(getAuthenticatedUserId(), slot, PageRequest.of(page, size));
   }
-  
 }

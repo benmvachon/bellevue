@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useAuth } from '../utils/AuthContext.js';
 import {
+  getProfile,
   getThreadCount,
   getThreads,
   onThread,
@@ -14,16 +15,19 @@ import {
 import Thread from './Thread.js';
 import ScrollLoader from './ScrollLoader.js';
 import Modal from './Modal.js';
+import Avatar from './Avatar.js';
 
 function Threads({ show = false, onClose, openMessages }) {
   const { userId } = useAuth();
   const [threads, setThreads] = useState(null);
   const [totalThreads, setTotalThreads] = useState(0);
+  const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
   useEffect(() => {
     if (show) {
+      getProfile(userId, setProfile, setError);
       const getOtherUser = (thread) => {
         if (thread.receiver.id === userId) return thread.sender;
         return thread.receiver;
@@ -112,12 +116,13 @@ function Threads({ show = false, onClose, openMessages }) {
   };
 
   if (error) return JSON.stringify(error);
-  if (!show) return;
 
   return (
     <Modal className="threads-container" show={show} onClose={onClose}>
       {loading ? (
-        <p>Loading...</p>
+        <div className="threads">
+          <p>Loading...</p>
+        </div>
       ) : totalThreads > 0 ? (
         <ScrollLoader
           total={totalThreads}
@@ -133,13 +138,36 @@ function Threads({ show = false, onClose, openMessages }) {
           ))}
         </ScrollLoader>
       ) : (
-        <p>No messages</p>
+        <div className="threads">
+          <p>No messages</p>
+        </div>
       )}
       <div className="buttons">
-        <button onClick={onClose}>Close</button>
-        <button onClick={() => markThreadsRead(onClose, setError)}>
-          Mark all as read
+        <button onClick={onClose}>close</button>
+        <button onClick={() => markThreadsRead(undefined, setError)}>
+          mark all read
         </button>
+      </div>
+      {profile && (
+        <Avatar
+          userProp={profile}
+          size="medium"
+          flip
+          className="self"
+          name={false}
+        />
+      )}
+      <div className="phone-container">
+        <img
+          className="image phone small"
+          src={require('../asset/phone-small.png')}
+          alt="phone"
+        />
+        <img
+          className="image face small"
+          src={require('../asset/face-small.png')}
+          alt="face"
+        />
       </div>
     </Modal>
   );

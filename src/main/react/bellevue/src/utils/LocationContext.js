@@ -10,7 +10,6 @@ export const LocationProvider = ({ children }) => {
   const location = useLocation();
   const { userId } = useAuth();
 
-  // derive locationType and locationId immediately
   const parseLocation = (path) => {
     const parts = path.split('?')[0].split('/');
     const type = parts[1]?.toLowerCase();

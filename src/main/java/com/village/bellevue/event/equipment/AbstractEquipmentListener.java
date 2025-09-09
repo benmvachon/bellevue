@@ -47,7 +47,7 @@ public abstract class AbstractEquipmentListener<T extends UserEvent> {
       if (optional.isPresent()) this.item = optional.get().getId();
       else this.item = itemRepository.save(new ItemEntity(null, getItemName(), getItemSlot(), false, true)).getId();
     }
-    
+
     return item;
   }
 

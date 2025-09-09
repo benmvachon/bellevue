@@ -124,7 +124,7 @@ public class PostServiceImpl implements PostService {
         public boolean canReadForum(ForumEntity forum) {
           return forumRepository.canRead(forum.getId(), getAuthenticatedUserId());
         }
-    
+
         @Override
         public Optional<ProfileModel> getProfile(Long user) {
           if (user != null) {

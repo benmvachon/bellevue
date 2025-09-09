@@ -66,10 +66,11 @@ public class ForumController {
     @RequestParam(defaultValue = "") String query,
     @RequestParam(defaultValue = "false") boolean unread,
     @RequestParam(defaultValue = "0") int page,
-    @RequestParam(defaultValue = "9") int size
+    @RequestParam(defaultValue = "9") int size,
+    @RequestParam(defaultValue = "false") boolean includeTownHall
   ) {
     if (Objects.nonNull(query) && query.trim().isEmpty()) query = null;
-    Page<ForumModel> forums = forumService.readAll(query, unread, page, size);
+    Page<ForumModel> forums = forumService.readAll(query, unread, page, size, includeTownHall);
     PagedModel<EntityModel<ForumModel>> pagedModel = pagedForumAssembler.toModel(forums, forumModelAssembler);
     return ResponseEntity.status(HttpStatus.OK).body(pagedModel);
   }
@@ -81,11 +82,11 @@ public class ForumController {
     @RequestParam(defaultValue = "9") int size
   ) {
     Page<String> tags = tagService.searchTags(query, page, size);
-  
+
     PagedModel.PageMetadata metadata = new PagedModel.PageMetadata(
       tags.getSize(), tags.getNumber(), tags.getTotalElements(), tags.getTotalPages()
     );
-  
+
     PagedModel<String> pagedModel = PagedModel.of(tags.getContent(), metadata);
     return ResponseEntity.ok(pagedModel);
   }

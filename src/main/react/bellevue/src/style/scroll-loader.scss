@@ -1,0 +1,10 @@
+@use 'variables' as *;
+
+div.scroll-loader {
+  overflow-y: auto;
+  max-height: 100%;
+
+  button.load-more {
+    margin-bottom: calc(1 * $pixel);
+  }
+}

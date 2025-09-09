@@ -18,7 +18,7 @@ import com.village.bellevue.model.SuggestedFriendModel;
 
 @Repository
 public interface FriendRepository extends JpaRepository<FriendEntity, FriendId> {
-  
+
   @Query("SELECT f.friend.id FROM FriendEntity f WHERE f.user = :user AND f.status = 'ACCEPTED'")
   @Transactional(readOnly = true)
   List<Long> findFriends(@Param("user") Long user);

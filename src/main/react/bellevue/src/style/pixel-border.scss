@@ -1,0 +1,171 @@
+@use 'variables' as *;
+
+.pixel-corners,
+.pixel-corners-wrapper {
+  clip-path: polygon(
+    0 calc(100% - 10 * $pixel),
+    calc(2 * $pixel) calc(100% - 10 * $pixel),
+    calc(2 * $pixel) calc(100% - 6 * $pixel),
+    calc(4 * $pixel) calc(100% - 6 * $pixel),
+    calc(4 * $pixel) calc(100% - 4 * $pixel),
+    calc(6 * $pixel) calc(100% - 4 * $pixel),
+    calc(6 * $pixel) calc(100% - 2 * $pixel),
+    calc(10 * $pixel) calc(100% - 2 * $pixel),
+    calc(10 * $pixel) 100%,
+    calc(100% - 10 * $pixel) 100%,
+    calc(100% - 10 * $pixel) calc(100% - 2 * $pixel),
+    calc(100% - 6 * $pixel) calc(100% - 2 * $pixel),
+    calc(100% - 6 * $pixel) calc(100% - 4 * $pixel),
+    calc(100% - 4 * $pixel) calc(100% - 4 * $pixel),
+    calc(100% - 4 * $pixel) calc(100% - 6 * $pixel),
+    calc(100% - 2 * $pixel) calc(100% - 6 * $pixel),
+    calc(100% - 2 * $pixel) calc(100% - 10 * $pixel),
+    100% calc(100% - 10 * $pixel),
+    100% calc(10 * $pixel),
+    calc(100% - 2 * $pixel) calc(10 * $pixel),
+    calc(100% - 2 * $pixel) calc(6 * $pixel),
+    calc(100% - 4 * $pixel) calc(6 * $pixel),
+    calc(100% - 4 * $pixel) calc(4 * $pixel),
+    calc(100% - 6 * $pixel) calc(4 * $pixel),
+    calc(100% - 6 * $pixel) calc(2 * $pixel),
+    calc(100% - 10 * $pixel) calc(2 * $pixel),
+    calc(100% - 10 * $pixel) 0,
+    calc(10 * $pixel) 0,
+    calc(10 * $pixel) calc(2 * $pixel),
+    calc(6 * $pixel) calc(2 * $pixel),
+    calc(6 * $pixel) calc(4 * $pixel),
+    calc(4 * $pixel) calc(4 * $pixel),
+    calc(4 * $pixel) calc(6 * $pixel),
+    calc(2 * $pixel) calc(6 * $pixel),
+    calc(2 * $pixel) calc(10 * $pixel),
+    0 calc(10 * $pixel)
+  );
+  position: relative;
+}
+
+.pixel-corners {
+  border: calc(2 * $pixel) solid transparent;
+}
+
+.pixel-corners-wrapper {
+  width: fit-content;
+  height: fit-content;
+}
+
+.pixel-corners-wrapper .pixel-corners {
+  display: block;
+  clip-path: polygon(
+    calc(2 * $pixel) calc(10 * $pixel),
+    calc(4 * $pixel) calc(10 * $pixel),
+    calc(4 * $pixel) calc(6 * $pixel),
+    calc(6 * $pixel) calc(6 * $pixel),
+    calc(6 * $pixel) calc(4 * $pixel),
+    calc(10 * $pixel) calc(4 * $pixel),
+    calc(10 * $pixel) calc(2 * $pixel),
+    calc(100% - 10 * $pixel) calc(2 * $pixel),
+    calc(100% - 10 * $pixel) calc(4 * $pixel),
+    calc(100% - 6 * $pixel) calc(4 * $pixel),
+    calc(100% - 6 * $pixel) calc(6 * $pixel),
+    calc(100% - 4 * $pixel) calc(6 * $pixel),
+    calc(100% - 4 * $pixel) calc(10 * $pixel)
+    calc(100% - 2 * $pixel) calc(10 * $pixel),
+    calc(100% - 2 * $pixel) calc(100% - 10 * $pixel),
+    calc(100% - 4 * $pixel) calc(100% - 10 * $pixel),
+    calc(100% - 4 * $pixel) calc(100% - 6 * $pixel),
+    calc(100% - 6 * $pixel) calc(100% - 6 * $pixel),
+    calc(100% - 6 * $pixel) calc(100% - 4 * $pixel),
+    calc(100% - 10 * $pixel) calc(100% - 4 * $pixel),
+    calc(100% - 10 * $pixel) calc(100% - 2 * $pixel),
+    calc(10 * $pixel) calc(100% - 2 * $pixel),
+    calc(10 * $pixel) calc(100% - 4 * $pixel),
+    calc(6 * $pixel) calc(100% - 4 * $pixel),
+    calc(6 * $pixel) calc(100% - 6 * $pixel),
+    calc(4 * $pixel) calc(100% - 6 * $pixel),
+    calc(4 * $pixel) calc(100% - 10 * $pixel),
+    calc(2 * $pixel) calc(100% - 10 * $pixel)
+  );
+}
+
+.pixel-corners::after,
+.pixel-corners-wrapper::after {
+  content: '';
+  position: absolute;
+  clip-path: polygon(
+    0 calc(100% - 10 * $pixel),
+    calc(2 * $pixel) calc(100% - 10 * $pixel),
+    calc(2 * $pixel) calc(100% - 6 * $pixel),
+    calc(4 * $pixel) calc(100% - 6 * $pixel),
+    calc(4 * $pixel) calc(100% - 4 * $pixel),
+    calc(6 * $pixel) calc(100% - 4 * $pixel),
+    calc(6 * $pixel) calc(100% - 2 * $pixel),
+    calc(10 * $pixel) calc(100% - 2 * $pixel),
+    calc(10 * $pixel) 100%,
+    calc(100% - 10 * $pixel) 100%,
+    calc(100% - 10 * $pixel) calc(100% - 2 * $pixel),
+    calc(100% - 6 * $pixel) calc(100% - 2 * $pixel),
+    calc(100% - 6 * $pixel) calc(100% - 4 * $pixel),
+    calc(100% - 4 * $pixel) calc(100% - 4 * $pixel),
+    calc(100% - 4 * $pixel) calc(100% - 6 * $pixel),
+    calc(100% - 2 * $pixel) calc(100% - 6 * $pixel),
+    calc(100% - 2 * $pixel) calc(100% - 10 * $pixel),
+    100% calc(100% - 10 * $pixel),
+    100% calc(10 * $pixel),
+    calc(100% - 2 * $pixel) calc(10 * $pixel),
+    calc(100% - 2 * $pixel) calc(6 * $pixel),
+    calc(100% - 4 * $pixel) calc(6 * $pixel),
+    calc(100% - 4 * $pixel) calc(4 * $pixel),
+    calc(100% - 6 * $pixel) calc(4 * $pixel),
+    calc(100% - 6 * $pixel) calc(2 * $pixel),
+    calc(100% - 10 * $pixel) calc(2 * $pixel),
+    calc(100% - 10 * $pixel) 0,
+    calc(10 * $pixel) 0,
+    calc(10 * $pixel) calc(2 * $pixel),
+    calc(6 * $pixel) calc(2 * $pixel),
+    calc(6 * $pixel) calc(4 * $pixel),
+    calc(4 * $pixel) calc(4 * $pixel),
+    calc(4 * $pixel) calc(6 * $pixel),
+    calc(2 * $pixel) calc(6 * $pixel),
+    calc(2 * $pixel) calc(10 * $pixel),
+    0 calc(10 * $pixel),
+    0 50%,
+    calc(2 * $pixel) 50%,
+    calc(2 * $pixel) calc(10 * $pixel),
+    calc(4 * $pixel) calc(10 * $pixel),
+    calc(4 * $pixel) calc(6 * $pixel),
+    calc(6 * $pixel) calc(6 * $pixel),
+    calc(6 * $pixel) calc(4 * $pixel),
+    calc(10 * $pixel) calc(4 * $pixel),
+    calc(10 * $pixel) calc(2 * $pixel),
+    calc(100% - 10 * $pixel) calc(2 * $pixel),
+    calc(100% - 10 * $pixel) calc(4 * $pixel),
+    calc(100% - 6 * $pixel) calc(4 * $pixel),
+    calc(100% - 6 * $pixel) calc(6 * $pixel),
+    calc(100% - 4 * $pixel) calc(6 * $pixel),
+    calc(100% - 4 * $pixel) calc(10 * $pixel),
+    calc(100% - 2 * $pixel)calc(10 * $pixel),
+    calc(100% - 2 * $pixel) calc(100% - 10 * $pixel),
+    calc(100% - 4 * $pixel) calc(100% - 10 * $pixel),
+    calc(100% - 4 * $pixel) calc(100% - 6 * $pixel),
+    calc(100% - 6 * $pixel) calc(100% - 6 * $pixel),
+    calc(100% - 6 * $pixel) calc(100% - 4 * $pixel),
+    calc(100% - 10 * $pixel) calc(100% - 4 * $pixel),
+    calc(100% - 10 * $pixel) calc(100% - 2 * $pixel),
+    calc(10 * $pixel) calc(100% - 2 * $pixel),
+    calc(10 * $pixel) calc(100% - 4 * $pixel),
+    calc(6 * $pixel) calc(100% - 4 * $pixel),
+    calc(6 * $pixel) calc(100% - 6 * $pixel),
+    calc(4 * $pixel) calc(100% - 6 * $pixel),
+    calc(4 * $pixel) calc(100% - 10 * $pixel),
+    calc(2 * $pixel) calc(100% - 10 * $pixel),
+    calc(2 * $pixel) 50%,
+    0 50%
+  );
+  inset: 0;
+  background: $black;
+  display: block;
+  pointer-events: none;
+}
+
+.pixel-corners::after {
+  margin: calc(-2 * $pixel);
+}

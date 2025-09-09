@@ -1,0 +1,21 @@
+@use 'variables' as *;
+
+div.header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  align-items: center;
+  width: 100%;
+  height: calc(64 * $pixel);
+  background-color: $green;
+
+  h1 {
+    color: $white;
+  }
+
+  &.no-auth {
+    button {
+        background: $white;
+    }
+  }
+}

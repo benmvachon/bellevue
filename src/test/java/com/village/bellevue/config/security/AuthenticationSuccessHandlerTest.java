@@ -56,7 +56,6 @@ public class AuthenticationSuccessHandlerTest {
 
     authenticationSuccessHandler.onAuthenticationSuccess(request, response, authentication);
 
-    
     verify(activityService).updateLastSeen(user.getId());
   }
 

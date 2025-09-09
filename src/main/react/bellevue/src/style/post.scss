@@ -1,0 +1,165 @@
+@use 'variables' as *;
+
+div.page.post-page {
+  div.page-contents {
+    width: 100%;
+
+    div.contents {
+      height: 100%;
+
+      div.posts {
+        background: $manila;
+
+        div.post {
+          border: none;
+          border-radius: 0;
+          margin: 0;
+
+          div.scroll-loader.post-children {
+            height: fit-content;
+
+            div.post {
+              border: calc(2 * $pixel) solid $black;
+              border-bottom: 0;
+              border-radius: calc(4 * $pixel);
+              border-bottom-left-radius: 0;
+              border-bottom-right-radius: 0;
+            }
+          }
+
+          div.post-children-container {
+            div.post {
+              border: calc(2 * $pixel) solid $black;
+              border-bottom: 0;
+              border-radius: calc(4 * $pixel);
+              border-bottom-left-radius: 0;
+              border-bottom-right-radius: 0;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+div.posts {
+  h3 {
+    width: 100%;
+    text-align: center;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+
+    button {
+      background: $white;
+    }
+  }
+
+  div.post {
+    display: flex;
+    flex-direction: column;
+    padding: calc(4 * $pixel) calc(8 * $pixel);
+    border: calc(2 * $pixel) solid $black;
+    border-radius: calc(4 * $pixel);
+    background: $manila;
+    margin: calc(4 * $pixel) 0;
+
+    &.selected {
+      background: $yellow;
+    }
+
+    div.post-actions {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+
+      button {
+        background: $white;
+
+        &.image-button {
+          background: none;
+        }
+      }
+
+      div.rating {
+        display: flex;
+
+        button {
+          background-color: $white;
+
+          &.full {
+            background-color: $blue;
+          }
+        }
+
+        &:hover {
+          button {
+            background-color: $white;
+  
+            &.full {
+              background-color: $white;
+            }
+
+            &:hover {
+              background-color: $overlay-dark;
+            }
+          }
+        }
+      }
+    }
+
+    div.post-contents {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      margin-bottom: calc(2 * $pixel);
+
+      button {
+        background: $white;
+
+        &.image-button {
+          background: none;
+        }
+      }
+
+      button.post-button {
+        width: calc(100% - 136 * $pixel);
+      }
+
+      button.notepad {
+        span {
+          width: 100%;
+          position: absolute;
+          top: 0;
+          left: 0;
+          z-index: 1;
+          background: $overlay-dark;
+          color: $white;
+          font-size: calc(8 * $pixel);
+          border-radius: calc(2 * $pixel);
+        }
+      }
+    }
+
+    div.post-children-container {
+      display: flex;
+      flex-direction: column;
+
+      button {
+        background: $white;
+      }
+
+      div.post-children {
+        div.post {
+          border-bottom: 0;
+          border-bottom-left-radius: 0;
+          border-bottom-right-radius: 0;
+        }
+      }
+    }
+  }
+}

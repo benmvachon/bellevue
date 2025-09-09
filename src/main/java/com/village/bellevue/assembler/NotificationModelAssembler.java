@@ -29,7 +29,7 @@ public class NotificationModelAssembler implements RepresentationModelAssembler<
     } else if (notification.getType().equals(NotificationType.MESSAGE)) {
       entityLink = linkTo(methodOn(MessageController.class).readAll(notification.getEntity(), null, 10l)).withRel("entity");
     }
-    
+
     return EntityModel.of(
       notification,
       linkTo(methodOn(NotificationController.class).markAsRead(notification.getId())).withRel("mark"),

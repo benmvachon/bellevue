@@ -227,13 +227,17 @@ function PostsList({
       <div className="posts-header">
         <PostForm forum={forum} enableForumSelection={feed} />
         <button onClick={toggleSort}>
-          {sortByPopular ? 'Most recent' : 'Most popular'}
+          {sortByPopular ? 'most recent' : 'most popular'}
         </button>
       </div>
       {loading ? (
         <p>Loading...</p>
       ) : (
-        <ScrollLoader total={totalPosts} loadMore={loadMore}>
+        <ScrollLoader
+          total={totalPosts}
+          loadMore={loadMore}
+          className="top-level-posts"
+        >
           {posts?.map((post) => (
             <Post
               key={`post-${post.id}`}

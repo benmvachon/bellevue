@@ -11,10 +11,9 @@ public class ReactController {
   @RequestMapping(value = {"/{path:[^\\.]*}", "/{path:^(?!api|ws).*}/{id:[^\\.]*}"})
   public String redirect(HttpServletRequest request) {
     String uri = request.getRequestURI();
-    
-    // Skip backend-specific paths
+
     if (uri.startsWith("/api") || uri.startsWith("/ws") || uri.startsWith("/actuator")) {
-      return null; // Let Spring handle it
+      return null;
     }
 
     System.out.println("ReactController handling path: " + uri);

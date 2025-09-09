@@ -77,7 +77,7 @@ public class SecurityConfig extends GlobalAuthenticationConfigurerAdapter {
           .logoutSuccessHandler(logoutSuccessHandler)
           .permitAll()
       );
-  
+
     return http.build();
   }
 
@@ -99,7 +99,7 @@ public class SecurityConfig extends GlobalAuthenticationConfigurerAdapter {
   @Bean
   AuthenticationFailureHandler customAuthenticationFailureHandler() {
     return (request, response, exception) -> {
-      response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401 Unauthorized
+      response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
       response.setContentType("application/json");
       response.getWriter().write("{\"error\": \"Invalid username or password\"}");
     };

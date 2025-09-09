@@ -1,15 +1,18 @@
 import PropTypes from 'prop-types';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../utils/AuthContext.js';
 import {
   markNotificationRead,
   getNotification,
   onNotificationRead,
   unsubscribeNotificationRead
 } from '../api/api.js';
+import Avatar from './Avatar.js';
 
 function Notification({ notification, onClose, openMessages }) {
   const navigate = useNavigate();
+  const { userId } = useAuth();
   const [stateNotification, setNotification] = useState(notification);
   const [error, setError] = useState(false);
 
@@ -30,11 +33,6 @@ function Notification({ notification, onClose, openMessages }) {
 
   const markAsRead = () => {
     markNotificationRead(stateNotification.id);
-  };
-
-  const profileClick = () => {
-    navigate(`/home/${stateNotification.notifier.id}`);
-    onClose();
   };
 
   const notificationClick = () => {
@@ -68,16 +66,54 @@ function Notification({ notification, onClose, openMessages }) {
     markAsRead();
   };
 
+  const getNotificationText = () => {
+    switch (stateNotification.type) {
+      case 'POST':
+        return 'posted a new flyer';
+      case 'REPLY':
+        return 'posted a new reply to your flyer';
+      case 'RATING':
+        return 'rated your flyer';
+      case 'REQUEST':
+        return 'sent you a friend request';
+      case 'ACCEPTANCE':
+        return 'accepted your friend request';
+      case 'MESSAGE':
+        return 'sent you a message';
+      case 'EQUIPMENT':
+        return 'unlocked new equipment for you';
+      case 'FORUM':
+        return 'posted a flyer in your custom building';
+      case 'SYSTEM':
+        return 'visit the suburbs to start requesting friends';
+      default:
+        return stateNotification.type;
+    }
+  };
+
   if (error) return JSON.stringify(error);
   if (!stateNotification) return;
 
   return (
     <div className="notification">
-      <button onClick={profileClick}>{stateNotification.notifier.name}</button>
-      <button onClick={notificationClick}>{stateNotification.type}</button>
-      {!stateNotification.read && (
-        <button onClick={markAsRead}>Mark as read</button>
-      )}
+      <Avatar
+        userId={
+          stateNotification.notifier?.id === userId
+            ? 0
+            : stateNotification.notifier?.id
+        }
+        userProp={stateNotification.notifier}
+      />
+      <button className="notification-button" onClick={notificationClick}>
+        {getNotificationText()}
+      </button>
+      <button
+        className="notification-button"
+        onClick={markAsRead}
+        disabled={stateNotification.read}
+      >
+        mark read
+      </button>
     </div>
   );
 }

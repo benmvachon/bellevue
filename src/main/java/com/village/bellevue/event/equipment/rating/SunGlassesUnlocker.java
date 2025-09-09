@@ -49,5 +49,4 @@ public class SunGlassesUnlocker extends AbstractEquipmentRatingEventListener {
   protected String getItemSlot() {
     return "mask";
   }
-  
 }

@@ -55,36 +55,32 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         Connection connection = dataSource.getConnection();
         CallableStatement stmt = connection.prepareCall("{call add_user(?, ?, ?, ?, ?, ?, ?)}")
       ) {
-        // Set input parameters (1–4)
         stmt.setString(1, user.getName());
         stmt.setString(2, user.getUsername());
         stmt.setString(3, user.getEmail());
-        stmt.setBytes(4, user.getPassword().getBytes()); // Assuming password is BINARY(60)
-  
-        // Register output parameters (5–6)
-        stmt.registerOutParameter(5, Types.INTEGER);     // p_user_id
-        stmt.registerOutParameter(6, Types.VARCHAR);     // p_avatar_name
-        stmt.registerOutParameter(7, Types.VARCHAR);     // p_hat_name
-  
+        stmt.setBytes(4, user.getPassword().getBytes());
+
+        stmt.registerOutParameter(5, Types.INTEGER);
+        stmt.registerOutParameter(6, Types.VARCHAR);
+        stmt.registerOutParameter(7, Types.VARCHAR);
+
         stmt.executeUpdate();
-  
-        // Retrieve output values
+
         Long userId = stmt.getLong(5);
         String avatarName = stmt.getString(6);
         String hatName = stmt.getString(7);
-  
+
         if (stmt.wasNull()) {
           throw new AuthorizationException("User creation failed — user ID is null.");
         }
-  
-        // Construct the user profile entity (or whatever object you use)
-        user.setId(userId); // Assuming UserEntity has an ID field
+
+        user.setId(userId);
         UserProfileEntity profile = new UserProfileEntity(user, avatarName);
         profile.setEquipment(Map.of("hat", hatName));
 
         publisher.publishEvent(new NewUserEvent(userId));
         return new ProfileModel(profile);
-  
+
       } catch (SQLException e) {
         throw new AuthorizationException(
           "Failed to create user. SQL command error: " + e.getMessage(), e);
@@ -92,7 +88,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
     return null;
   }
-  
 
   @Transactional(timeout = 30)
   public void delete() throws AuthorizationException {

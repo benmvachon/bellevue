@@ -15,7 +15,7 @@ public interface ForumService {
 
   public Optional<ForumModel> read(Long id) throws AuthorizationException;
 
-  public Page<ForumModel> readAll(String query, boolean unread, int page, int size);
+  public Page<ForumModel> readAll(String query, boolean unread, int page, int size, boolean includeTownHall);
 
   public ForumModel update(Long id, ForumEntity forum) throws AuthorizationException, ForumException;
 

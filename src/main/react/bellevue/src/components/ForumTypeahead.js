@@ -11,7 +11,8 @@ const ForumTypeahead = ({ onSelect, selectedForum }) => {
       false,
       query,
       0,
-      10
+      10,
+      true
     );
   };
 

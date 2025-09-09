@@ -1,8 +1,15 @@
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
+import { useParams } from 'react-router-dom';
 import PropTypes from 'prop-types';
 
 function Modal({ show = false, onClose, children, className }) {
   const containerRef = useRef();
+  const params = useParams();
+
+  useEffect(() => {
+    onClose();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params, params.id]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -20,7 +27,7 @@ function Modal({ show = false, onClose, children, className }) {
     <div className="modal-container">
       <div ref={containerRef} className={`modal ${className}`}>
         <button className="modal-close" onClick={onClose}>
-          X
+          x
         </button>
         {children}
       </div>

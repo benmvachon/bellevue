@@ -22,5 +22,4 @@ public class ForumTagServiceImpl implements ForumTagService {
   public Page<String> searchTags(String query, int page, int size) {
     return repository.findByPrefix(getAuthenticatedUserId(), query, PageRequest.of(page, size));
   }
-  
 }
