@@ -303,7 +303,7 @@ BEGIN
             LEAVE read_loop;
         END IF;
         IF child IS NOT NULL THEN
-            SELECT COUNT(DISTINCT(r.user)), AVG(r.rating) INTO rating_count, rating
+            SELECT COUNT(DISTINCT(r.user)), IFNULL(AVG(r.rating), 0) INTO rating_count, rating
             FROM rating r LEFT JOIN friend f ON f.user = p_friend AND f.friend = r.user
             WHERE r.post = child AND (r.user = p_friend OR f.status = 'ACCEPTED') AND (r.user != p_user);
 
@@ -369,9 +369,9 @@ CREATE PROCEDURE accept_posts(
     IN p_friend INT UNSIGNED
 )
 BEGIN
-    DECLARE post INT UNSIGNED;
+    DECLARE post_id INT UNSIGNED;
     DECLARE rating_count INT UNSIGNED;
-    DECLARE rating DECIMAL(3,2);
+    DECLARE avg_rating DECIMAL(3,2);
     DECLARE done INT DEFAULT FALSE;
 
     DECLARE posts CURSOR FOR SELECT id FROM post WHERE user = p_user AND deleted = FALSE;
@@ -382,21 +382,21 @@ BEGIN
     SET done = FALSE;
     OPEN posts;
     read_loop: LOOP
-        FETCH posts INTO post;
+        FETCH posts INTO post_id;
         IF done THEN
             LEAVE read_loop;
         END IF;
-        IF post IS NOT NULL THEN
+        IF post_id IS NOT NULL THEN
 
-            SELECT COUNT(DISTINCT(r.user)), AVG(r.rating) INTO rating_count, rating
+            SELECT COUNT(DISTINCT(r.user)), IFNULL(AVG(r.rating), 0) INTO rating_count, avg_rating
             FROM rating r LEFT JOIN friend f ON f.user = p_friend AND f.friend = r.user
-            WHERE r.post = post AND (r.user = p_friend OR f.status = 'ACCEPTED') AND (r.user != p_user);
+            WHERE r.post = post_id AND f.status = 'ACCEPTED' AND r.user != p_user;
 
             INSERT INTO aggregate_rating(post, user, rating, rating_count, popularity)
-            VALUES (post, p_friend, rating, rating_count, rating_count);
+            VALUES (post_id, p_friend, avg_rating, rating_count, rating_count);
 
-            CALL add_popularity_to_parent(p_friend, post, rating_count + 1);
-            CALL accept_child_posts(p_user, p_friend, post);
+            CALL add_popularity_to_parent(p_user, post_id, rating_count + 1);
+            CALL accept_child_posts(p_user, p_friend, post_id);
             SET done = FALSE;
         END IF;
     END LOOP;

@@ -693,7 +693,7 @@ export const getNotifications = (callback, error, cursor, limit = 5) => {
 
 export const refreshNotifications = (callback, error, cursor) => {
   let uri = '/notification/refresh';
-  if (cursor) uri += `&cursor=${cursor}`;
+  if (cursor) uri += `?cursor=${cursor}`;
   api
     .get(uri)
     .then(

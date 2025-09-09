@@ -31,39 +31,40 @@ function Notification({ notification, onClose, openMessages }) {
     if (notification) setNotification(notification);
   }, [notification]);
 
-  const markAsRead = () => {
-    markNotificationRead(stateNotification.id);
+  const markAsRead = (callback) => {
+    markNotificationRead(stateNotification.id, callback);
   };
 
   const notificationClick = () => {
-    switch (stateNotification.type) {
-      case 'POST':
-      case 'REPLY':
-      case 'RATING':
-        navigate(`/flyer/${stateNotification.entity}`);
-        break;
-      case 'REQUEST':
-      case 'ACCEPTANCE':
-        navigate(`/home/${stateNotification.entity}`);
-        break;
-      case 'MESSAGE':
-        openMessages(stateNotification.entity);
-        break;
-      case 'EQUIPMENT':
-        navigate(`/home/${stateNotification.notified}`);
-        break;
-      case 'FORUM':
-        navigate(`/town/${stateNotification.entity}`);
-        break;
-      case 'SYSTEM':
-        navigate('/map/suburbs');
-        break;
-      default:
-        navigate(`/${stateNotification.type}/${stateNotification.entity}`);
-        break;
-    }
-    onClose();
-    markAsRead();
+    markAsRead(() => {
+      switch (stateNotification.type) {
+        case 'POST':
+        case 'REPLY':
+        case 'RATING':
+          navigate(`/flyer/${stateNotification.entity}`);
+          break;
+        case 'REQUEST':
+        case 'ACCEPTANCE':
+          navigate(`/home/${stateNotification.entity}`);
+          break;
+        case 'MESSAGE':
+          openMessages(stateNotification.entity);
+          break;
+        case 'EQUIPMENT':
+          navigate(`/home/${stateNotification.notified}`);
+          break;
+        case 'FORUM':
+          navigate(`/town/${stateNotification.entity}`);
+          break;
+        case 'SYSTEM':
+          navigate('/map/suburbs');
+          break;
+        default:
+          navigate(`/${stateNotification.type}/${stateNotification.entity}`);
+          break;
+      }
+      onClose();
+    });
   };
 
   const getNotificationText = () => {
