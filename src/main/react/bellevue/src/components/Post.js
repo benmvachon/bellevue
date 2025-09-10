@@ -268,14 +268,16 @@ function Post({
       <PostForm forum={post.forum} parent={post} />
       {post.children > 0 && (
         <div className="post-children-container">
-          <button className="sort-button" onClick={toggleSort}>
-            &darr; {sortByPopular ? 'most recent' : 'most popular'} &darr;
-          </button>
           <button onClick={() => setShowReplies(!showReplies)}>
             {showReplies
               ? `hide (${post.children}) replies`
               : `show (${post.children}) replies`}
           </button>
+          {showReplies && (
+            <button className="sort-button" onClick={toggleSort}>
+              &darr; {sortByPopular ? 'most recent' : 'most popular'} &darr;
+            </button>
+          )}
           {showReplies && getSelectedChild && getSelectedChild(depth)}
           {showReplies && (
             <ScrollLoader
