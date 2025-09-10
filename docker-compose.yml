@@ -31,7 +31,7 @@ services:
       - "${SPRING_DATA_REDIS_PORT}:6379"
     networks:
       - bellevue_net
-    command: redis-server --notify-keyspace-events Ex
+    command: redis-server --notify-keyspace-events Ex --stop-writes-on-bgsave-error no --save "" --appendonly no
     volumes:
     - redis_data:/data
 
