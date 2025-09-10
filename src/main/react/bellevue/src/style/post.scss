@@ -2,8 +2,6 @@
 
 div.page.post-page {
   div.page-contents {
-    width: 100%;
-
     div.contents {
       height: 100%;
 
@@ -21,9 +19,8 @@ div.page.post-page {
             div.post {
               border: calc(2 * $pixel) solid $black;
               border-bottom: 0;
-              border-radius: calc(4 * $pixel);
-              border-bottom-left-radius: 0;
-              border-bottom-right-radius: 0;
+              border-top: 0;
+              border-radius: 0
             }
           }
 
@@ -31,9 +28,8 @@ div.page.post-page {
             div.post {
               border: calc(2 * $pixel) solid $black;
               border-bottom: 0;
-              border-radius: calc(4 * $pixel);
-              border-bottom-left-radius: 0;
-              border-bottom-right-radius: 0;
+              border-top: 0;
+              border-radius: 0
             }
           }
         }
@@ -79,7 +75,7 @@ div.posts {
     border: calc(2 * $pixel) solid $black;
     border-radius: calc(4 * $pixel);
     background: $manila;
-    margin: calc(4 * $pixel) 0;
+    margin: calc(8 * $pixel) 0;
 
     &.selected {
       background: $yellow;
@@ -106,26 +102,20 @@ div.posts {
 
       div.rating {
         display: flex;
+        align-items: center;
 
         button {
+          height: calc(12 * $pixel);
+          width: calc(12 * $pixel);
           background-color: $white;
+          padding: 0;
 
           &.full {
             background-color: $blue;
           }
-        }
 
-        &:hover {
-          button {
-            background-color: $white;
-  
-            &.full {
-              background-color: $white;
-            }
-
-            &:hover {
-              background-color: $overlay-dark;
-            }
+          &:hover {
+            background-color: $black;
           }
         }
       }
@@ -168,15 +158,12 @@ div.posts {
       display: flex;
       flex-direction: column;
 
-      button {
-        background: $white;
-      }
-
       div.post-children {
         div.post {
+          margin-top: 0;
           border-bottom: 0;
-          border-bottom-left-radius: 0;
-          border-bottom-right-radius: 0;
+          border-top: 0;
+          border-radius: 0;
         }
       }
     }

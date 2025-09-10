@@ -7,6 +7,7 @@ button {
   font-size: calc(10 * $pixel);
   border: calc(2 * $pixel) solid $black;
   box-shadow: calc(1 * $pixel) calc(1 * $pixel) calc(1 * $pixel) $blue;
+  padding: calc(1 * $pixel) calc(2 * $pixel);
 
   &:disabled {
     color: $overlay-medium;
@@ -21,23 +22,32 @@ button {
 
   &:enabled {
     cursor: pointer;
+    transform: translate(calc(-1 * $pixel), calc(-1 * $pixel));
+
+    &[type=submit] {
+      background: $green;
+      color: $white;
+    }
 
     &:hover {
       box-shadow: calc(1 * $pixel) calc(1 * $pixel) calc(1 * $pixel) $overlay-medium;
       animation-name: button-hover;
       animation-duration: 0.1s;
+      transform: translate(calc(-0.5 * $pixel), calc(-0.5 * $pixel));
     }
 
     &:active {
       box-shadow: inset calc(1 * $pixel) calc(1 * $pixel) calc(1 * $pixel) $overlay-medium;
       animation-name: button-press;
       animation-duration: 0.1s;
+      transform: none;
     }
   }
 
   &.pixel-corners {
     box-shadow: none;
     animation: none;
+    transform: none;
 
     &:hover, &:active {
       box-shadow: none;
@@ -52,6 +62,7 @@ button {
     position: relative;
     background: none;
     box-shadow: none;
+    transform: none;
 
     &:hover, &:active {
       box-shadow: none;

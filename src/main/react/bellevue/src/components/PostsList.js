@@ -243,7 +243,7 @@ function PostsList({
               key={`post-${post.id}`}
               id={post.id}
               postProp={post}
-              showForum={feed}
+              showForum={feed && post.forum.id !== 1}
               depth={0}
               sortByPopularParent={sortByPopular}
               sortParentList={sortPosts}

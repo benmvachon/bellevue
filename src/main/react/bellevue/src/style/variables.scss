@@ -34,20 +34,24 @@ $pixel: calc(min(100dvh, 100dvw) / 640);
 @keyframes button-press {
   from {
     box-shadow: inset calc(1 * $pixel) calc(1 * $pixel) calc(1 * $pixel) $overlay-clear;
+    transform: translate(calc(-0.5 * $pixel), calc(-0.5 * $pixel));
   }
 
   to {
     box-shadow: inset calc(1 * $pixel) calc(1 * $pixel) calc(1 * $pixel) $overlay-medium;
+    transform: none;
   }
 }
 
 @keyframes button-hover {
   from {
     box-shadow: calc(1 * $pixel) calc(1 * $pixel) calc(1 * $pixel) $blue;
+    transform: translate(calc(-1 * $pixel), calc(-1 * $pixel));
   }
 
   to {
     box-shadow: calc(1 * $pixel) calc(1 * $pixel) calc(1 * $pixel) $overlay-medium;
+    transform: translate(calc(-0.5 * $pixel), calc(-0.5 * $pixel));
   }
 }
 
