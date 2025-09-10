@@ -123,8 +123,10 @@ div.page {
           justify-content: end;
 
           form {
+            margin-bottom: calc(8 * $pixel);
+
             textarea {
-              height: calc(58 * $pixel);
+              height: calc(48 * $pixel);
             }
 
             div.typeahead-container {

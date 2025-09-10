@@ -226,8 +226,8 @@ function PostsList({
     <div className="posts">
       <div className="posts-header">
         <PostForm forum={forum} enableForumSelection={feed} />
-        <button onClick={toggleSort}>
-          {sortByPopular ? 'most recent' : 'most popular'}
+        <button className="sort-button" onClick={toggleSort}>
+          &darr; {sortByPopular ? 'most recent' : 'most popular'} &darr;
         </button>
       </div>
       {loading ? (

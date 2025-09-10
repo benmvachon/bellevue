@@ -48,10 +48,24 @@ div.posts {
     text-align: center;
   }
 
+  button {
+    background: $white;
+
+    &.delete {
+      background: $red;
+      color: $white;
+    }
+  }
+
   form {
     display: flex;
     flex-direction: column;
     width: 100%;
+    margin-bottom: calc(8 * $pixel);
+
+    textarea {
+      height: calc(48 * $pixel);
+    }
 
     button {
       background: $white;
@@ -82,6 +96,11 @@ div.posts {
 
         &.image-button {
           background: none;
+        }
+
+        &.delete {
+          background: $red;
+          color: $white;
         }
       }
 
@@ -124,23 +143,23 @@ div.posts {
         &.image-button {
           background: none;
         }
-      }
 
-      button.post-button {
-        width: calc(100% - 136 * $pixel);
-      }
-
-      button.notepad {
-        span {
-          width: 100%;
-          position: absolute;
-          top: 0;
-          left: 0;
-          z-index: 1;
-          background: $overlay-dark;
-          color: $white;
-          font-size: calc(8 * $pixel);
-          border-radius: calc(2 * $pixel);
+        &.post-button {
+          width: calc(100% - 136 * $pixel);
+        }
+  
+        &.notepad {
+          span {
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            background: $overlay-dark;
+            color: $white;
+            font-size: calc(8 * $pixel);
+            border-radius: calc(2 * $pixel);
+          }
         }
       }
     }

@@ -72,6 +72,10 @@ const Typeahead = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    query && onSelect(undefined);
+  }, [query, onSelect]);
+
   const handleFocus = (event) => {
     event.preventDefault();
     if (!multiselect && selectedValue) {

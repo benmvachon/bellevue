@@ -228,7 +228,9 @@ function Post({
       <div className="post-actions">
         <p>{formatTimeAgo(post.created)}</p>
         {post.user.id === userId && (
-          <button onClick={() => deletePost(id)}>delete</button>
+          <button className="delete" onClick={() => deletePost(id)}>
+            delete
+          </button>
         )}
         {showForum && (
           <button onClick={() => navigate(`/town/${post?.forum.id}`)}>
@@ -266,8 +268,8 @@ function Post({
       <PostForm forum={post.forum} parent={post} />
       {post.children > 0 && (
         <div className="post-children-container">
-          <button onClick={toggleSort}>
-            {sortByPopular ? 'most recent' : 'most popular'}
+          <button className="sort-button" onClick={toggleSort}>
+            &darr; {sortByPopular ? 'most recent' : 'most popular'} &darr;
           </button>
           <button onClick={() => setShowReplies(!showReplies)}>
             {showReplies
