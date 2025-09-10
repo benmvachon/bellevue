@@ -30,26 +30,22 @@ function ForumsMap({ setShowForumForm }) {
   }, [filter, query]);
 
   useEffect(() => {
-    if (
-      forums &&
-      forums.content &&
-      !forums.content.find((forum) => forum.id === 1)
-    ) {
+    if (forums && !forums.content?.find((forum) => forum && forum.id === 1)) {
       setLoading(true);
       getForum(
         1,
         (forum) => {
           for (let i = 8; i > 4; i--) {
-            forums.content[i] = forums.content[i - 1];
+            if (forums?.content) forums.content[i] = forums?.content[i - 1];
           }
-          forums.content[4] = forum;
+          if (forums?.content) forums.content[4] = forum;
           setForums({ ...forums });
           setLoading(false);
         },
         setError
       );
     }
-  }, [forums]);
+  }, [forums, forums?.content]);
 
   const loadForumPage = (page) => {
     setLoading(true);
