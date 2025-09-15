@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { getMyFriends } from '../api/api';
 import Typeahead from './Typeahead';
+import Avatar from './Avatar';
 
 const FriendTypeahead = ({ onSelect, onRemove, selectedFriends }) => {
   const getOptions = (query, callback, error) => {
@@ -9,7 +10,7 @@ const FriendTypeahead = ({ onSelect, onRemove, selectedFriends }) => {
       (page) => callback(page?.content || []),
       error,
       query,
-      selectedFriends.map((u) => u.id),
+      selectedFriends?.map((u) => u.id) || [],
       0,
       10
     );
@@ -20,20 +21,29 @@ const FriendTypeahead = ({ onSelect, onRemove, selectedFriends }) => {
       onSelect={onSelect}
       selectedValue={selectedFriends}
       getDisplayValue={(friends) =>
-        friends.map((friend) => (
-          <button key={`friend-${friend.id}`} onClick={() => onRemove(friend)}>
-            {friend.name}
-          </button>
-        ))
+        friends?.map(
+          (friend) =>
+            friend && (
+              <Avatar
+                key={`avatar-${friend?.id}`}
+                userId={friend?.id}
+                userProp={friend}
+                name={true}
+                onClick={() => onRemove(friend)}
+              />
+            )
+        )
       }
       getDisplayOption={(option) => (
         <p>
           <span className="name">{option.name}</span>
+          <span className="description">{option.username}</span>
         </p>
       )}
       getOptions={getOptions}
       className="friend-select"
-      placeholder="Search friends..."
+      name="friend-select"
+      placeholder="Search neighbors..."
       multiselect
     />
   );

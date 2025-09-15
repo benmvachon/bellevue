@@ -6,6 +6,7 @@ function ImageButton({
   name,
   size = 'small',
   hat,
+  icon,
   face = true,
   top = 0,
   left = 0,
@@ -41,6 +42,14 @@ function ImageButton({
           alt={`${hat}`}
         />
       )}
+      {name && icon && (
+        <img
+          className={`image ${icon} icon ${size}${flip ? ' flip' : ''}`}
+          style={style}
+          src={require(`../asset/${icon}-icon.png`)}
+          alt={`${icon}`}
+        />
+      )}
     </Button>
   );
 }
@@ -49,6 +58,7 @@ ImageButton.propTypes = {
   name: PropTypes.string.isRequired,
   size: PropTypes.string,
   hat: PropTypes.string,
+  icon: PropTypes.string,
   face: PropTypes.bool,
   top: PropTypes.number,
   left: PropTypes.number,

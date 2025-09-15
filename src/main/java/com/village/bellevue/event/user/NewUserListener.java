@@ -19,7 +19,7 @@ public class NewUserListener {
   private final UserProfileRepository userProfileRepository;
   private final ApplicationEventPublisher publisher;
 
-  private final String message = "Welcome to Blorvis! Feel free to explore the app, but be sure to open the map and tab through the town and neighborhood to reach the suburbs where you can seach through the users and send them friend requests.";
+  private final String message = "Welcome to Blorvis! Feel free to explore the app, but be sure to open the map and tab through the town and neighborhood to reach the suburbs where you can search through the users and send them friend requests.";
 
   public NewUserListener(
     MessageRepository messageRepository,

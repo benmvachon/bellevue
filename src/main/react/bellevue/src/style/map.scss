@@ -37,6 +37,14 @@ div.map-slider {
     background-size: contain;
     background-repeat: no-repeat;
 
+    div.custom-building-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      width: calc(110 * $pixel);
+    }
+
     button.back, button.forth {
       margin-top: calc(24 * $pixel);
       background: $yellow;

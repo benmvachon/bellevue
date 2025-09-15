@@ -170,7 +170,7 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
     "LEFT JOIN FriendEntity f ON p.user.id = f.friend.id AND f.user = :user " +
     "WHERE p.parent.id = :post " +
     "AND p.deleted = FALSE " +
-    "AND (p.user.id = :user OR f.status = 'ACCEPTED') " +
+    "AND (p.user.id = :user OR f.status = 'ACCEPTED' OR p.forum.user IS NOT NULL) " +
     "AND (p.created < :createdCursor " +
     "OR (p.created = :createdCursor AND p.id < :idCursor)) " +
     "ORDER BY p.created DESC, p.id DESC " +
@@ -191,7 +191,7 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
     "LEFT JOIN AggregateRatingEntity a ON a.post = p.id AND a.user = :user " +
     "WHERE p.parent.id = :post " +
     "AND p.deleted = FALSE " +
-    "AND (p.user.id = :user OR f.status = 'ACCEPTED') " +
+    "AND (p.user.id = :user OR f.status = 'ACCEPTED' OR p.forum.user IS NOT NULL) " +
     "AND (a.popularity < :popularityCursor " +
     "OR (a.popularity = :popularityCursor AND p.id < :idCursor)) " +
     "ORDER BY a.popularity DESC, p.id DESC " +
@@ -211,7 +211,7 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
     "LEFT JOIN FriendEntity f ON p.user.id = f.friend.id AND f.user = :user " +
     "WHERE p.parent.id = :post " +
     "AND p.deleted = FALSE " +
-    "AND (p.user.id = :user OR f.status = 'ACCEPTED')"
+    "AND (p.user.id = :user OR f.status = 'ACCEPTED' OR p.forum.user IS NOT NULL)"
   )
   @Transactional(readOnly = true)
   Long countChildren(@Param("user") Long user, @Param("post") Long post);
@@ -221,7 +221,7 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
     "LEFT JOIN FriendEntity f ON p.user.id = f.friend.id AND f.user = :user " +
     "WHERE p.parent.id = :post AND p.id != :child " +
     "AND p.deleted = FALSE " +
-    "AND (p.user.id = :user OR f.status = 'ACCEPTED') " +
+    "AND (p.user.id = :user OR f.status = 'ACCEPTED' OR p.forum.user IS NOT NULL) " +
     "AND (p.created < :createdCursor " +
     "OR (p.created = :createdCursor AND p.id < :idCursor)) " +
     "ORDER BY p.created DESC, p.id DESC " +
@@ -243,7 +243,7 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
     "LEFT JOIN AggregateRatingEntity a ON a.post = p.id AND a.user = :user " +
     "WHERE p.parent.id = :post AND p.id != :child " +
     "AND p.deleted = FALSE " +
-    "AND (p.user.id = :user OR f.status = 'ACCEPTED') " +
+    "AND (p.user.id = :user OR f.status = 'ACCEPTED' OR p.forum.user IS NOT NULL) " +
     "AND (a.popularity < :popularityCursor " +
     "OR (a.popularity = :popularityCursor AND p.id < :idCursor)) " +
     "ORDER BY a.popularity DESC, p.id DESC " +
@@ -264,17 +264,14 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
     "LEFT JOIN FriendEntity f ON p.user.id = f.friend.id AND f.user = :user " +
     "WHERE p.parent.id = :post AND p.id != :child " +
     "AND p.deleted = FALSE " +
-    "AND (p.user.id = :user OR f.status = 'ACCEPTED')"
+    "AND (p.user.id = :user OR f.status = 'ACCEPTED' OR p.forum.user IS NOT NULL)"
   )
   @Transactional(readOnly = true)
   Long countOtherChildren(@Param("user") Long user, @Param("post") Long post, @Param("child") Long child);
 
   @Query(
     "SELECT p.user.id FROM PostEntity p " +
-    "JOIN FriendEntity f ON f.friend.id = p.user.id " +
-    "WHERE (p.user.id = :user OR f.user = :user) " +
-    "AND p.deleted = FALSE " +
-    "AND f.status = 'ACCEPTED' " +
+    "WHERE p.deleted = FALSE " +
     "AND p.id = :post"
   )
   @Transactional(readOnly = true)
@@ -282,14 +279,19 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
 
   @Query(
     "SELECT p.forum.id FROM PostEntity p " +
-    "JOIN FriendEntity f ON f.friend.id = p.user.id " +
-    "WHERE (p.user.id = :user OR f.user = :user) " +
-    "AND p.deleted = FALSE " +
-    "AND f.status = 'ACCEPTED' " +
+    "WHERE p.deleted = FALSE " +
     "AND p.id = :post"
   )
   @Transactional(readOnly = true)
   Long getForum(@Param("post") Long post, @Param("user") Long user);
+
+  @Query(
+    "SELECT CASE WHEN p.forum.user IS NOT NULL THEN true ELSE false END FROM PostEntity p " +
+    "WHERE p.deleted = FALSE " +
+    "AND p.id = :post"
+  )
+  @Transactional(readOnly = true)
+  Boolean isCustomForum(@Param("post") Long post, @Param("user") Long user);
 
   @Query(
     "SELECT CASE WHEN COUNT(p) > 0 THEN true ELSE false END " +
@@ -313,7 +315,7 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
     "SELECT p.parent.id " +
     "FROM PostEntity p " +
     "JOIN FriendEntity f ON f.friend.id = p.user.id " +
-    "WHERE (p.user.id = :user OR f.user = :user) " +
+    "WHERE (p.user.id = :user OR f.user = :user OR p.forum.user IS NOT NULL) " +
     "AND p.deleted = FALSE " +
     "AND f.status = 'ACCEPTED' " +
     "AND p.id = :post"

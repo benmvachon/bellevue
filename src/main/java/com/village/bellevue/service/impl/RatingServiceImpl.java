@@ -46,6 +46,7 @@ public class RatingServiceImpl implements RatingService {
     Long user = getAuthenticatedUserId();
     if (!postRepository.canRead(post, user)) throw new AuthorizationException("Currently authenticated user is not authorized to rating post");
     Long forum = postRepository.getForum(post, user);
+    boolean customForum = postRepository.isCustomForum(post, user);
     int depth = 1;
     List<PopularityEvent> events = new ArrayList<>();
     Long parent = postRepository.getParent(post, user);
@@ -60,11 +61,14 @@ public class RatingServiceImpl implements RatingService {
     if (depth >= 9) throw new RatingException("Post too deep for replies");
     boolean success = false;
     logger.info("Starting rating procedure for {} by {} at {}", post, user, System.currentTimeMillis());
+    String procedureCall = "{call add_or_update_rating(?, ?, ?)}";
+    if (customForum) procedureCall = "{call add_or_update_custom_forum_rating(?, ?, ?, ?)}";
     try (Connection connection = dataSource.getConnection();
-        CallableStatement stmt = connection.prepareCall("{call add_or_update_rating(?, ?, ?)}")) {
+        CallableStatement stmt = connection.prepareCall(procedureCall)) {
       stmt.setLong(1, user);
       stmt.setLong(2, post);
       stmt.setString(3, rating.toValue());
+      if (customForum) stmt.setLong(4, forum);
       stmt.executeUpdate();
       success = true;
       return success;

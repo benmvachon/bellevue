@@ -29,6 +29,16 @@ function MapSlider({ setShowForumForm }) {
     return (
       <div className="map-slider">
         <div className="content">
+          {index === 0 && (
+            <div className="custom-building-container">
+              <ImageButton
+                name="custom-building"
+                onClick={() => setShowForumForm(true)}
+              >
+                <span className="custom-button-label">New Building</span>
+              </ImageButton>
+            </div>
+          )}
           <button
             className="back"
             disabled={index <= 0}

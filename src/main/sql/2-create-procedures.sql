@@ -57,7 +57,8 @@ DELIMITER //
 CREATE PROCEDURE add_popularity_to_parent(
     IN p_user INT UNSIGNED,
     IN p_post INT UNSIGNED,
-    IN p_popularity INT UNSIGNED
+    IN p_popularity INT UNSIGNED,
+    IN p_custom_forum BOOLEAN
 )
 BEGIN
     DECLARE v_current_post INT UNSIGNED;
@@ -79,35 +80,37 @@ BEGIN
 
     SET v_current_post = p_post;
 
-    visibility_check_loop: LOOP
-        -- Get the parent of the current post
-        SELECT parent INTO v_parent FROM post WHERE id = v_current_post AND deleted = FALSE;
+    IF NOT p_custom_forum THEN
+        visibility_check_loop: LOOP
+            -- Get the parent of the current post
+            SELECT parent INTO v_parent FROM post WHERE id = v_current_post AND deleted = FALSE;
 
-        -- If no more parents, break the loop
-        IF v_parent IS NULL THEN
-            LEAVE visibility_check_loop;
-        END IF;
-
-        -- Get the author of this parent post
-        SELECT user INTO v_author FROM post WHERE id = v_parent AND deleted = FALSE;
-
-        -- Check visibility: either it's the user themselves, or they're friends
-        IF v_author != p_user THEN
-            IF NOT EXISTS (
-                SELECT 1 FROM friend
-                WHERE user = p_user AND friend = v_author AND status = 'ACCEPTED'
-            ) THEN
-                SET all_visible = FALSE;
+            -- If no more parents, break the loop
+            IF v_parent IS NULL THEN
                 LEAVE visibility_check_loop;
             END IF;
-        END IF;
 
-        -- Add this parent to the list of visible ancestors
-        INSERT IGNORE INTO temp_visible_ancestors (ancestor) VALUES (v_parent);
+            -- Get the author of this parent post
+            SELECT user INTO v_author FROM post WHERE id = v_parent AND deleted = FALSE;
 
-        -- Move up the chain
-        SET v_current_post = v_parent;
-    END LOOP;
+            -- Check visibility: either it's the user themselves, or they're friends
+            IF v_author != p_user THEN
+                IF NOT EXISTS (
+                    SELECT 1 FROM friend
+                    WHERE user = p_user AND friend = v_author AND status = 'ACCEPTED'
+                ) THEN
+                    SET all_visible = FALSE;
+                    LEAVE visibility_check_loop;
+                END IF;
+            END IF;
+
+            -- Add this parent to the list of visible ancestors
+            INSERT IGNORE INTO temp_visible_ancestors (ancestor) VALUES (v_parent);
+
+            -- Move up the chain
+            SET v_current_post = v_parent;
+        END LOOP;
+    END IF;
 
     -- If visibility check passed for all ancestors, update each one
     IF all_visible THEN
@@ -143,7 +146,9 @@ BEGIN
     SELECT p.parent INTO parent FROM post p WHERE p.id = p_post;
 
     IF parent IS NOT NULL THEN
-        UPDATE aggregate_rating a SET popularity = a.popularity - p_popularity WHERE a.user = p_user AND a.post = parent;
+        UPDATE aggregate_rating a
+        SET popularity = GREATEST(a.popularity - p_popularity, 1)
+        WHERE a.user = p_user AND a.post = parent;
         CALL remove_popularity_from_parent(p_user, parent, p_popularity);
     END IF;
 END;
@@ -218,6 +223,31 @@ END;
 DELIMITER ;
 
 DELIMITER //
+CREATE PROCEDURE add_custom_forum_rating_to_aggregate(
+    IN p_user INT UNSIGNED,
+    IN p_post INT UNSIGNED,
+    IN p_rating DECIMAL(3,2)
+)
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM aggregate_rating
+        WHERE user = p_user AND post = p_post
+    ) THEN
+        INSERT INTO aggregate_rating (user, post, rating, rating_count, popularity)
+        VALUES (p_user, p_post, p_rating, 1, 1);
+    ELSE
+        UPDATE aggregate_rating a
+        SET rating = (a.rating * a.rating_count + p_rating) / (a.rating_count + 1),
+            rating_count = a.rating_count + 1,
+            popularity = a.popularity + 1,
+            updated = CURRENT_TIMESTAMP
+        WHERE user = p_user AND post = p_post;
+    END IF;
+END;
+//
+DELIMITER ;
+
+DELIMITER //
 CREATE PROCEDURE update_rating_in_aggregate(
     IN p_user INT UNSIGNED,
     IN p_post INT UNSIGNED,
@@ -264,7 +294,7 @@ BEGIN
             UPDATE aggregate_rating a
             SET rating = stored_rating,
             rating_count = stored_count,
-            popularity = a.popularity - 1,
+            popularity = GREATEST(a.popularity - 1, 1),
             updated = CURRENT_TIMESTAMP
             WHERE user = p_user AND post = p_post;
         END IF;
@@ -310,7 +340,7 @@ BEGIN
             INSERT INTO aggregate_rating(post, user, rating, rating_count, popularity)
             VALUES (child, p_friend, rating, rating_count, rating_count);
 
-            CALL add_popularity_to_parent(p_friend, child, rating_count + 1);
+            CALL add_popularity_to_parent(p_friend, child, rating_count + 1, FALSE);
             CALL accept_child_posts(p_user, p_friend, child);
             SET done = FALSE;
         END IF;
@@ -374,7 +404,12 @@ BEGIN
     DECLARE avg_rating DECIMAL(3,2);
     DECLARE done INT DEFAULT FALSE;
 
-    DECLARE posts CURSOR FOR SELECT id FROM post WHERE user = p_user AND deleted = FALSE;
+    DECLARE posts CURSOR FOR
+    SELECT p.id FROM post p
+    JOIN forum f ON f.id = p.forum
+    WHERE p.user = p_user
+    AND p.deleted = FALSE
+    AND f.user IS NULL;
 
     -- Process posts by p_user
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
@@ -395,7 +430,7 @@ BEGIN
             INSERT INTO aggregate_rating(post, user, rating, rating_count, popularity)
             VALUES (post_id, p_friend, avg_rating, rating_count, rating_count);
 
-            CALL add_popularity_to_parent(p_user, post_id, rating_count + 1);
+            CALL add_popularity_to_parent(p_user, post_id, rating_count + 1, FALSE);
             CALL accept_child_posts(p_user, p_friend, post_id);
             SET done = FALSE;
         END IF;
@@ -415,7 +450,7 @@ BEGIN
     DECLARE popularity INT UNSIGNED;
     DECLARE done INT DEFAULT FALSE;
 
-    DECLARE posts CURSOR FOR SELECT id FROM post WHERE user = p_user AND deleted = FALSE;
+    DECLARE posts CURSOR FOR SELECT p.id FROM post p JOIN forum f on p.forum = f.id WHERE p.user = p_user AND p.deleted = FALSE AND f.user IS NULL;
 
     -- Process posts by p_user
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
@@ -457,8 +492,10 @@ BEGIN
     FROM rating r
     JOIN post p ON p.id = r.post
     LEFT JOIN friend f ON f.user = p_friend AND f.friend = p.user AND f.status = 'ACCEPTED'
+    LEFT JOIN forum fo ON fo.id = p.forum
     WHERE r.user = p_user
-    AND (p.user = p_friend OR f.user IS NOT NULL);
+    AND (p.user = p_friend OR f.user IS NOT NULL)
+    AND fo.user IS NULL;
 
     -- Process ratings by p_user
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
@@ -473,7 +510,7 @@ BEGIN
         IF post IS NOT NULL THEN
             IF rating IS NOT NULL THEN
                 CALL add_rating_to_aggregate(p_friend, post, rating);
-                CALL add_popularity_to_parent(p_friend, post, 1);
+                CALL add_popularity_to_parent(p_friend, post, 1, FALSE);
                 SET done = FALSE;
             END IF;
         END IF;
@@ -498,10 +535,12 @@ BEGIN
     FROM rating r
     JOIN post p ON p.id = r.post
     LEFT JOIN friend f ON f.user = p_friend AND f.friend = p.user AND f.status = 'ACCEPTED'
+    LEFT JOIN forum fo ON fo.id = p.forum
     WHERE r.user = p_user
-    AND (p.user = p_friend OR f.user IS NOT NULL);
+    AND (p.user = p_friend OR f.user IS NOT NULL)
+    AND fo.user IS NULL;
 
-    -- Process ratings by p_user which were visible to p_friend
+    -- Process ratings by p_user which were visible to p_friend only by virtue of their mutual friendshipt
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
 
     SET done = FALSE;
@@ -623,6 +662,54 @@ END;
 DELIMITER ;
 
 DELIMITER //
+CREATE PROCEDURE delete_custom_forum_rating(
+    IN p_user INT UNSIGNED,
+    IN p_post INT UNSIGNED,
+    IN p_forum INT UNSIGNED
+)
+BEGIN
+    DECLARE stored_rating DECIMAL(3,2);
+    DECLARE friend INT UNSIGNED;
+    DECLARE done INT DEFAULT FALSE;
+
+    DECLARE friends CURSOR FOR
+        SELECT f.user
+        FROM forum_security f
+        WHERE f.forum = p_forum
+        AND f.user != p_user;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    SELECT FIELD(r.rating, 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE') INTO stored_rating FROM rating r WHERE r.user = p_user AND r.post = p_post;
+
+    SET done = FALSE;
+    OPEN friends;
+    read_loop: LOOP
+        FETCH friends INTO friend;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+        IF friend IS NOT NULL THEN
+            CALL remove_rating_from_aggregate(friend, p_post, stored_rating);
+            CALL remove_popularity_from_parent(friend, p_post, 1);
+            SET done = FALSE;
+        END IF;
+    END LOOP;
+    CLOSE friends;
+
+    SELECT f.user INTO friend FROM forum f WHERE f.id = p_forum;
+    IF friend != p_user THEN
+        CALL remove_rating_from_aggregate(friend, p_post, stored_rating);
+        CALL remove_popularity_from_parent(friend, p_post, 1);
+    END IF;
+    CALL remove_rating_from_aggregate(p_user, p_post, stored_rating);
+    CALL remove_popularity_from_parent(p_user, p_post, 1);
+
+    DELETE FROM rating WHERE user = p_user AND post = p_post;
+END;
+//
+DELIMITER ;
+
+DELIMITER //
 CREATE PROCEDURE delete_post(
     IN p_post INT UNSIGNED
 )
@@ -685,6 +772,61 @@ END;
 DELIMITER ;
 
 DELIMITER //
+CREATE PROCEDURE delete_custom_forum_post(
+    IN p_post INT UNSIGNED,
+    IN p_forum INT UNSIGNED
+)
+BEGIN
+    DECLARE marked_for_delection INT DEFAULT FALSE;
+    DECLARE user INT UNSIGNED;
+    DECLARE friend INT UNSIGNED;
+    DECLARE popularity INT UNSIGNED;
+    DECLARE done INT DEFAULT FALSE;
+
+    DECLARE friends CURSOR FOR
+        SELECT f.user
+        FROM forum_security f
+        WHERE f.forum = p_forum;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    SELECT p.user, p.deleted INTO user, marked_for_delection FROM post p WHERE p.id = p_post;
+
+    IF NOT marked_for_delection THEN
+        UPDATE post p SET p.deleted = TRUE WHERE p.id = p_post;
+        SET done = FALSE;
+        OPEN friends;
+        read_loop: LOOP
+            FETCH friends INTO friend;
+            IF done THEN
+                LEAVE read_loop;
+            END IF;
+            IF friend IS NOT NULL THEN
+                SELECT a.popularity INTO popularity
+                    FROM aggregate_rating a
+                    WHERE a.user = friend AND a.post = p_post;
+                CALL remove_popularity_from_parent(friend, p_post, popularity + 1);
+                SET done = FALSE;
+            END IF;
+        END LOOP;
+        CLOSE friends;
+
+        SELECT a.popularity INTO popularity
+            FROM aggregate_rating a
+            WHERE a.user = user AND a.post = p_post;
+        CALL remove_popularity_from_parent(user, p_post, popularity + 1);
+
+        -- delete notifications
+        DELETE FROM notification n WHERE n.type = 'POST' AND n.entity = p_post;
+        -- delete favorites
+        DELETE FROM favorite f WHERE f.type = 'POST' AND f.entity = p_post;
+
+        DELETE FROM post WHERE id = p_post;
+    END IF;
+END;
+//
+DELIMITER ;
+
+DELIMITER //
 CREATE PROCEDURE delete_ratings(
     IN p_user INT UNSIGNED,
     IN p_friend INT UNSIGNED
@@ -698,8 +840,10 @@ BEGIN
         SELECT r.user, r.post
         FROM rating r
         JOIN post p ON p.id = r.post
+        LEFT JOIN forum f ON p.forum = f.id
         WHERE r.user = p_user
-        AND p.user = p_friend;
+        AND p.user = p_friend
+        AND f.user IS NULL;
 
     -- Delete ratings by p_user on posts by p_friend
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
@@ -736,9 +880,11 @@ BEGIN
         SELECT r.id
         FROM post r
         JOIN post p ON p.id = r.parent
+        LEFT JOIN forum f ON p.forum = f.id
         WHERE r.user = p_user
         AND p.deleted = FALSE
-        AND p.user = p_friend;
+        AND p.user = p_friend
+        AND f.user IS NULL;
 
     -- Delete replies by p_user on posts by p_friend
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
@@ -786,7 +932,8 @@ BEGIN
         -- Start with posts by p_user
         SELECT p.id AS post_id, p.parent AS parent_id, CAST(NULL AS UNSIGNED) AS ancestor_author
         FROM post p
-        WHERE p.user = p_user AND p.deleted = FALSE
+        JOIN forum f ON p.forum = f.id
+        WHERE p.user = p_user AND p.deleted = FALSE AND f.user IS NULL
 
         UNION ALL
 
@@ -840,8 +987,10 @@ BEGIN
     WITH RECURSIVE replies (id) AS (
         SELECT p.id
         FROM post p
+        JOIN forum f ON p.forum = f.id
         WHERE p.user = p_friend
         AND p.deleted = FALSE
+        AND f.user IS NULL
         UNION ALL
         SELECT c.id
         FROM post c
@@ -968,6 +1117,35 @@ END;
 DELIMITER ;
 
 DELIMITER //
+CREATE PROCEDURE delete_custom_forum_ratings(
+    IN p_user INT UNSIGNED,
+    IN p_forum INT UNSIGNED
+)
+BEGIN
+    DECLARE post INT UNSIGNED;
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE rating_cursor CURSOR FOR SELECT r.post FROM rating r JOIN post p ON r.post = p.id WHERE r.user = p_user AND p.forum = p_forum;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    OPEN rating_cursor;
+    read_loop: LOOP
+        FETCH rating_cursor INTO post;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+        IF post IS NULL THEN
+            SET done = TRUE;
+        ELSE
+            CALL delete_custom_forum_rating(p_user, post, p_forum);
+            SET done = FALSE;
+        END IF;
+    END LOOP;
+    CLOSE rating_cursor;
+END;
+//
+DELIMITER ;
+
+DELIMITER //
 CREATE PROCEDURE delete_custom_forum_posts(
     IN p_user INT UNSIGNED,
     IN p_forum INT UNSIGNED
@@ -987,7 +1165,7 @@ BEGIN
         IF post IS NULL THEN
             SET done = TRUE;
         ELSE
-            CALL delete_post(post);
+            CALL delete_custom_forum_post(post, p_forum);
             SET done = FALSE;
         END IF;
     END LOOP;
@@ -1017,6 +1195,7 @@ BEGIN
             SET done = TRUE;
         ELSE
             CALL delete_custom_forum_posts(p_user, custom_forum);
+            CALL delete_custom_forum_ratings(p_user, custom_forum);
             DELETE FROM forum_security fs WHERE fs.user = p_user AND fs.forum = custom_forum;
             SET done = FALSE;
         END IF;
@@ -1047,6 +1226,7 @@ BEGIN
             SET done = TRUE;
         ELSE
             CALL delete_custom_forum_posts(p_user, custom_forum);
+            CALL delete_custom_forum_ratings(p_user, custom_forum);
             DELETE FROM forum_security fs WHERE fs.user = p_user AND fs.forum = custom_forum;
             SET done = FALSE;
         END IF;
@@ -1126,14 +1306,45 @@ BEGIN
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
     INSERT INTO post (user, parent, forum, content) VALUES (p_user, p_parent, p_forum, p_content);
     SET o_post = LAST_INSERT_ID();
-    CALL add_popularity_to_parent(p_user, o_post, 1);
+    CALL add_popularity_to_parent(p_user, o_post, 1, FALSE);
     OPEN friend_cursor;
     read_loop: LOOP
         FETCH friend_cursor INTO friend_id;
         IF done THEN
             LEAVE read_loop;
         END IF;
-        CALL add_popularity_to_parent(friend_id, o_post, 1);
+        CALL add_popularity_to_parent(friend_id, o_post, 1, FALSE);
+    END LOOP;
+    CLOSE friend_cursor;
+    SELECT p.user INTO friend_id FROM post p WHERE p.id = p_parent AND p.deleted = FALSE;
+    CALL increment_friendship_score(p_user, friend_id);
+END;
+//
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE add_custom_forum_reply(
+    IN p_user INT UNSIGNED,
+    IN p_parent INT UNSIGNED,
+    IN p_forum INT UNSIGNED,
+    IN p_content TEXT,
+    OUT o_post INT UNSIGNED
+)
+BEGIN
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE friend_id INT UNSIGNED;
+    DECLARE friend_cursor CURSOR FOR SELECT user FROM forum_security WHERE forum = p_forum;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+    INSERT INTO post (user, parent, forum, content) VALUES (p_user, p_parent, p_forum, p_content);
+    SET o_post = LAST_INSERT_ID();
+    CALL add_popularity_to_parent(p_user, o_post, 1, TRUE);
+    OPEN friend_cursor;
+    read_loop: LOOP
+        FETCH friend_cursor INTO friend_id;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+        CALL add_popularity_to_parent(friend_id, o_post, 1, TRUE);
     END LOOP;
     CLOSE friend_cursor;
     SELECT p.user INTO friend_id FROM post p WHERE p.id = p_parent AND p.deleted = FALSE;
@@ -1181,15 +1392,136 @@ BEGIN
                 LEAVE read_loop;
             END IF;
             CALL add_rating_to_aggregate(friend_id, p_post, rating_value);
-            CALL add_popularity_to_parent(friend_id, p_post, 1);
+            CALL add_popularity_to_parent(friend_id, p_post, 1, FALSE);
         END LOOP;
         CLOSE friend_cursor;
         CALL add_rating_to_aggregate(p_user, p_post, rating_value);
-        CALL add_popularity_to_parent(p_user, p_post, 1);
+        CALL add_popularity_to_parent(p_user, p_post, 1, FALSE);
         SELECT p.user INTO friend_id FROM post p WHERE p.id = p_post AND p.deleted = FALSE;
         CALL increment_friendship_score(p_user, friend_id);
         INSERT INTO rating (user, post, rating) VALUES (p_user, p_post, p_rating);
     END IF;
+
+END;
+//
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE add_or_update_custom_forum_rating(
+    IN p_user INT UNSIGNED,
+    IN p_post INT UNSIGNED,
+    IN p_rating ENUM('ONE', 'TWO', 'THREE', 'FOUR', 'FIVE'),
+    IN p_forum INT UNSIGNED
+)
+BEGIN
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE friend_id INT UNSIGNED;
+    DECLARE rating_value DECIMAL(3,2);
+    DECLARE old_rating_value DECIMAL(3,2);
+    DECLARE existing_rating ENUM('ONE', 'TWO', 'THREE', 'FOUR', 'FIVE');
+    DECLARE friend_cursor CURSOR FOR SELECT user FROM forum_security WHERE forum = p_forum AND user != p_user;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+    SET rating_value = FIELD(p_rating, 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE');
+    SELECT r.rating INTO existing_rating FROM rating r WHERE r.user = p_user AND r.post = p_post;
+    SET done = false;
+
+    IF existing_rating IS NOT NULL THEN
+        SET old_rating_value = FIELD(existing_rating, 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE');
+        OPEN friend_cursor;
+        read_loop: LOOP
+            FETCH friend_cursor INTO friend_id;
+            IF done THEN
+                LEAVE read_loop;
+            END IF;
+            CALL update_rating_in_aggregate(friend_id, p_post, rating_value, old_rating_value);
+        END LOOP;
+        CLOSE friend_cursor;
+        SELECT f.user INTO friend_id FROM forum f WHERE f.id = p_forum;
+        IF friend_id != p_user THEN
+            CALL update_rating_in_aggregate(friend_id, p_post, rating_value, old_rating_value);
+        END IF;
+        CALL update_rating_in_aggregate(p_user, p_post, rating_value, old_rating_value);
+        UPDATE rating SET rating = p_rating, updated = CURRENT_TIMESTAMP WHERE user = p_user AND post = p_post;
+    ELSE
+        OPEN friend_cursor;
+        read_loop: LOOP
+            FETCH friend_cursor INTO friend_id;
+            IF done THEN
+                LEAVE read_loop;
+            END IF;
+            CALL add_custom_forum_rating_to_aggregate(friend_id, p_post, rating_value);
+            CALL add_popularity_to_parent(friend_id, p_post, 1, TRUE);
+        END LOOP;
+        CLOSE friend_cursor;
+        SELECT f.user INTO friend_id FROM forum f WHERE f.id = p_forum;
+        IF friend_id != p_user THEN
+            CALL increment_friendship_score(p_user, friend_id);
+            CALL add_custom_forum_rating_to_aggregate(friend_id, p_post, rating_value);
+            CALL add_popularity_to_parent(friend_id, p_post, 1, TRUE);
+        END IF;
+        CALL add_custom_forum_rating_to_aggregate(p_user, p_post, rating_value);
+        CALL add_popularity_to_parent(p_user, p_post, 1, TRUE);
+        SELECT p.user INTO friend_id FROM post p WHERE p.id = p_post AND p.deleted = FALSE;
+        CALL increment_friendship_score(p_user, friend_id);
+        INSERT INTO rating (user, post, rating) VALUES (p_user, p_post, p_rating);
+    END IF;
+
+END;
+//
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE add_user_to_custom_forum(
+    IN p_user INT UNSIGNED,
+    IN p_forum INT UNSIGNED
+)
+BEGIN
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE post_id INT UNSIGNED;
+    DECLARE rating_value DECIMAL(3,2);
+    DECLARE rating_cursor CURSOR FOR
+        SELECT r.post, FIELD(r.rating, 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE') AS rating FROM rating r
+        JOIN post p ON r.post = p.id
+        WHERE p.forum = p_forum;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    OPEN rating_cursor;
+    read_loop: LOOP
+        FETCH rating_cursor INTO post_id, rating_value;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+        CALL add_custom_forum_rating_to_aggregate(p_user, post_id, rating_value);
+        CALL add_popularity_to_parent(p_user, post_id, 1, TRUE);
+    END LOOP;
+    CLOSE rating_cursor;
+
+END;
+//
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE delete_custom_forum_aggregates(
+    IN p_user INT UNSIGNED,
+    IN p_forum INT UNSIGNED
+)
+BEGIN
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE post_id INT UNSIGNED;
+    DECLARE post_cursor CURSOR FOR
+        SELECT p.id FROM post p
+        WHERE p.forum = p_forum;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    OPEN post_cursor;
+    read_loop: LOOP
+        FETCH post_cursor INTO post_id;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+        DELETE FROM aggregate_rating WHERE user = p_user AND post = post_id;
+    END LOOP;
+    CLOSE post_cursor;
 
 END;
 //
@@ -1240,12 +1572,27 @@ CREATE PROCEDURE delete_user(
 )
 BEGIN
     DECLARE done INT DEFAULT FALSE;
+    DECLARE custom_forum_id INT UNSIGNED;
     DECLARE post_id INT UNSIGNED;
+    DECLARE custom_forum_cursor CURSOR FOR SELECT f.id FROM forum_security f WHERE f.user = p_user;
     DECLARE rating_cursor CURSOR FOR SELECT r.post FROM rating r WHERE r.user = p_user;
     DECLARE reply_cursor CURSOR FOR SELECT p.id FROM post p WHERE p.user = p_user AND p.parent IS NOT NULL AND p.deleted = FALSE;
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
 
     CALL delete_all_favorites(p_user);
+
+    SET done = FALSE;
+    OPEN custom_forum_cursor;
+    custom_forum_cursor: LOOP
+        FETCH custom_forum_cursor INTO custom_forum_id;
+        IF done THEN
+            LEAVE custom_forum_cursor;
+        END IF;
+
+        CALL delete_custom_forum_posts(p_user, custom_forum_id);
+        CALL delete_custom_forum_ratings(p_user, custom_forum_id);
+    END LOOP;
+    CLOSE custom_forum_cursor;
 
     SET done = FALSE;
     OPEN rating_cursor;

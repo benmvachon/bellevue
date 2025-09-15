@@ -6,6 +6,7 @@ import FriendTypeahead from './FriendTypeahead.js';
 import TagTypeahead from './TagTypeahead.js';
 import Modal from './Modal.js';
 import Forum from '../api/Forum.js';
+import ImageButton from './ImageButton.js';
 
 const ForumForm = ({ forum, show = false, onClose }) => {
   const navigate = useNavigate();
@@ -39,19 +40,23 @@ const ForumForm = ({ forum, show = false, onClose }) => {
   };
 
   const onTagSelect = (tag) => {
+    if (!tag) return;
     if (!(tags.indexOf(tag) >= 0)) setTags(tags.concat([tag]));
   };
 
   const onTagRemove = (tag) => {
+    if (!tag) return;
     setTags(tags.filter((t) => t !== tag));
   };
 
   const onFriendSelect = (friend) => {
+    if (!friend) return;
     if (!(users.findIndex((user) => user.id === friend.id) >= 0))
       setUsers(users.concat([friend]));
   };
 
   const onFriendRemove = (friend) => {
+    if (!friend) return;
     setUsers(users.filter((user) => user.id !== friend.id));
   };
 
@@ -96,36 +101,46 @@ const ForumForm = ({ forum, show = false, onClose }) => {
 
   return (
     <Modal
-      className="forum-form-container"
+      className="pixel-corners forum-form-container"
       show={show}
       onClose={onCloseWrapper}
     >
-      <h2>{forum ? 'Edit Building' : 'New Building'}</h2>
+      <div className="custom-building-image-container">
+        <ImageButton name="custom-building" size="medium" face={false}>
+          <span>{forum?.name || 'New Building'}</span>
+        </ImageButton>
+      </div>
       <p>
         {forum
           ? 'Manage building details and control who can gain entry'
           : 'Construct a new building for you and your neighbors to hang out in'}
       </p>
       <form onSubmit={submit}>
-        <label>Name</label>
+        <label htmlFor="name">Name</label>
         <input
+          name="name"
+          id="name"
+          autoComplete="off"
           placeholder="Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
-        <label>Description</label>
+        <label htmlFor="description">Description</label>
         <textarea
+          name="description"
+          id="description"
+          autoComplete="off"
           placeholder="Description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
         />
-        <label>Tags</label>
+        <label htmlFor="tag-select">Tags</label>
         <TagTypeahead
           onSelect={onTagSelect}
           onRemove={onTagRemove}
           selectedTags={tags}
         />
-        <label>Users</label>
+        <label htmlFor="friend-select">Neighbors</label>
         <FriendTypeahead
           onSelect={onFriendSelect}
           onRemove={onFriendRemove}

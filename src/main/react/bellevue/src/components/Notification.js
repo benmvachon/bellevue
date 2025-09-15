@@ -84,7 +84,7 @@ function Notification({ notification, onClose, openMessages }) {
       case 'EQUIPMENT':
         return 'unlocked new equipment for you';
       case 'FORUM':
-        return 'posted a flyer in your custom building';
+        return 'added you to a custom forum';
       case 'SYSTEM':
         return 'visit the suburbs to start requesting friends';
       default:

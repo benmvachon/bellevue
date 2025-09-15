@@ -10,6 +10,7 @@ function Avatar({
   size = 'small',
   flip = false,
   name = true,
+  onClick,
   className
 }) {
   const navigate = useNavigate();
@@ -26,6 +27,11 @@ function Avatar({
     }
   }, [userId, userProp, setUser]);
 
+  const clickWrapper = () => {
+    if (onClick) onClick();
+    else user?.id > 0 && navigate(`/home/${user?.id}`);
+  };
+
   if (error) return JSON.stringify(error);
 
   return (
@@ -35,7 +41,7 @@ function Avatar({
         hat={user?.equipment?.hat}
         size={size}
         flip={flip}
-        onClick={() => user?.id > 0 && navigate(`/home/${user?.id}`)}
+        onClick={clickWrapper}
       >
         {name && <span className="name">{user?.name || 'SYSTEM'}</span>}
       </ImageButton>
@@ -49,6 +55,7 @@ Avatar.propTypes = {
   size: PropTypes.string,
   flip: PropTypes.bool,
   name: PropTypes.bool,
+  onClick: PropTypes.func,
   className: PropTypes.string
 };
 

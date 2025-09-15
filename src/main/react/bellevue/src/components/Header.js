@@ -60,7 +60,7 @@ function Header({ setShowNotifications, setShowThreads, setShowFavorites }) {
   if (error) return JSON.stringify(error);
 
   return (
-    <div className="header">
+    <div className="header" key="header" id="header">
       <ImageButton name="townhall" onClick={() => navigate('/')} />
       <ImageButton name="newspaper" onClick={openNotifications}>
         <span className={`count${notificationCount > 0 ? ' red' : ''}`}>

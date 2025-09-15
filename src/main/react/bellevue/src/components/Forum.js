@@ -30,11 +30,23 @@ function Forum({ id, forumProp }) {
 
   if (error) return JSON.stringify(error);
   if (!forum) return;
-  let name = 'building';
-  if (forum.id === 1) name = 'townhall';
+  let icon = undefined;
+  let name = 'townhall';
+  if (forum?.user?.id) {
+    name = 'custom-building';
+  } else if (forum.id > 1) {
+    icon = forum.name.toLowerCase().replaceAll(' ', '-');
+    name = 'building';
+  }
 
   return (
-    <ImageButton name={name} size="medium" face={false} onClick={forumClick}>
+    <ImageButton
+      name={name}
+      size="medium"
+      face={false}
+      icon={icon}
+      onClick={forumClick}
+    >
       <span className="forum-name">{forum.name}</span>
       <span className="forum-count">{forum.unreadCount} unread</span>
     </ImageButton>

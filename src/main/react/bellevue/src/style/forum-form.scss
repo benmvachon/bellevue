@@ -1,0 +1,61 @@
+@use 'variables' as *;
+
+div.forum-form-container {
+  display: flex;
+  flex-direction: column;
+  padding: calc(16 * $pixel);
+
+  button.modal-close {
+    color: $black;
+  }
+
+  div.custom-building-image-container {
+    display: flex;
+    justify-content: center;
+    height: calc(128 * $pixel);
+
+    span {
+      font-size: calc(16 * $pixel);
+    }
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: calc(4 * $pixel);
+    height: 100%;
+
+    input, textarea {
+      padding: calc(2 * $pixel) calc(4 * $pixel);
+    }
+
+    div.typeahead-container {
+      &.friend-select {
+        div.selected-options {
+          display: flex;
+          gap: calc(2 * $pixel);
+          overflow-x: auto;
+          height: calc(64 * $pixel);
+
+          div.avatar {
+            &:hover {
+              background: $red;
+            }
+          }
+
+          button {
+            background: none;
+          }
+        }
+      }
+
+      ul.typeahead-dropdown {
+        max-height: calc(74 * $pixel);
+      }
+    }
+
+    div.buttons {
+      margin-top: calc(64 * $pixel);
+    }
+  }
+}

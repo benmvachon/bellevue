@@ -23,8 +23,8 @@ div.modal-container {
     }
 
     button.modal-close {
-      top: calc(32 * $pixel * -1);
-      right: calc(32 * $pixel * -1);
+      top: calc(-32 * $pixel);
+      right: calc(-32 * $pixel);
     }
 
     div.messages {

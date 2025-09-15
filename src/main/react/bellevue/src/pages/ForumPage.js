@@ -105,7 +105,12 @@ function ForumPage() {
       clearFilter();
     }
     setOnlyTownHallPosts(townhall);
-    updateSearchParams({ townhall }, searchParams, setSearchParams);
+    setExcludedForums([]);
+    updateSearchParams(
+      { townhall, excluded: [] },
+      searchParams,
+      setSearchParams
+    );
   };
 
   const excludeForum = (forum) => {
@@ -185,7 +190,7 @@ function ForumPage() {
             </div>
           </div>
         </div>
-        {id === '1' && (
+        {id === '1' && !onlyTownHallPosts && (
           <ExcludedForums
             excludedForums={excludedForums}
             includeForum={includeForum}

@@ -179,15 +179,31 @@ public class ForumServiceImpl implements ForumService {
       .orElseThrow(() -> new ForumException("Forum not found"));
 
     List<Long> oldUserIds = existingForum.getUsers();
-
     List<Long> newUserIds = forum.getUsers();
 
     List<Long> removedUserIds = new ArrayList<>(oldUserIds);
     removedUserIds.removeAll(newUserIds);
 
+    List<Long> addedUserIds = new ArrayList<>(newUserIds);
+    addedUserIds.removeAll(oldUserIds);
+
     forum.setId(id);
     model = new ForumModel(save(forum), forumModelProvider);
     List<PostDeleteEvent> postDeleteEvents = new ArrayList<>();
+
+    for (Long user : addedUserIds) {
+      entityManager.unwrap(Session.class).doWork(connection -> {
+        try (
+          CallableStatement stmt = connection.prepareCall("{call add_user_to_custom_forum(?, ?)}")
+        ) {
+          stmt.setLong(1, user);
+          stmt.setLong(2, id);
+          stmt.executeUpdate();
+        } catch (SQLException e) {
+          logger.error("Error adding user to forum: {}", e.getMessage(), e);
+        }
+      });
+    }
 
     for (Long user : removedUserIds) {
       for (Long post : postRepository.findAllByUserInForum(user, id)) {
@@ -195,9 +211,10 @@ public class ForumServiceImpl implements ForumService {
         if (postEntity.isEmpty()) continue;
         entityManager.unwrap(Session.class).doWork(connection -> {
           try (
-            CallableStatement stmt = connection.prepareCall("{call delete_post(?)}")
+            CallableStatement stmt = connection.prepareCall("{call delete_custom_forum_post(?, ?)}")
           ) {
             stmt.setLong(1, post);
+            stmt.setLong(2, id);
             stmt.executeUpdate();
           } catch (SQLException e) {
             logger.error("Error deleting post: {}", e.getMessage(), e);
@@ -210,16 +227,28 @@ public class ForumServiceImpl implements ForumService {
       for (RatingEntity rating : ratingRepository.findAllByUserInForum(user, id)) {
         entityManager.unwrap(Session.class).doWork(connection -> {
           try (
-            CallableStatement stmt = connection.prepareCall("{call delete_rating(?, ?)}")
+            CallableStatement stmt = connection.prepareCall("{call delete_custom_forum_rating(?, ?, ?)}")
           ) {
             stmt.setLong(1, user);
             stmt.setLong(2, rating.getPost());
+            stmt.setLong(3, id);
             stmt.executeUpdate();
           } catch (SQLException e) {
             logger.error("Error deleting rating: {}", e.getMessage(), e);
           }
         });
       }
+      entityManager.unwrap(Session.class).doWork(connection -> {
+        try (
+          CallableStatement stmt = connection.prepareCall("{call delete_custom_forum_aggregates(?, ?)}")
+        ) {
+          stmt.setLong(1, user);
+          stmt.setLong(2, id);
+          stmt.executeUpdate();
+        } catch (SQLException e) {
+          logger.error("Error deleting aggregate_ratings: {}", e.getMessage(), e);
+        }
+      });
     }
 
     publisher.publishEvent(new ForumEvent(getAuthenticatedUserId(), model));
@@ -245,9 +274,10 @@ public class ForumServiceImpl implements ForumService {
       if (postEntity.isEmpty()) continue;
       entityManager.unwrap(Session.class).doWork(connection -> {
         try (
-          CallableStatement stmt = connection.prepareCall("{call delete_post(?)}")
+          CallableStatement stmt = connection.prepareCall("{call delete_custom_forum_post(?)}")
         ) {
           stmt.setLong(1, post);
+          stmt.setLong(2, id);
           stmt.executeUpdate();
         } catch (SQLException e) {
           logger.error("Error deleting post: {}", e.getMessage(), e);
@@ -260,10 +290,11 @@ public class ForumServiceImpl implements ForumService {
     for (RatingEntity rating : ratingRepository.findAllByUserInForum(user, id)) {
       entityManager.unwrap(Session.class).doWork(connection -> {
         try (
-          CallableStatement stmt = connection.prepareCall("{call delete_rating(?, ?)}")
+          CallableStatement stmt = connection.prepareCall("{call delete_custom_forum_rating(?, ?)}")
         ) {
           stmt.setLong(1, user);
           stmt.setLong(2, rating.getPost());
+          stmt.setLong(3, id);
           stmt.executeUpdate();
         } catch (SQLException e) {
           logger.error("Error deleting rating: {}", e.getMessage(), e);

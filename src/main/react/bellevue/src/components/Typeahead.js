@@ -8,6 +8,7 @@ const Typeahead = ({
   getDisplayOption,
   getOptions,
   className,
+  name = 'typeahead',
   placeholder,
   multiselect = false
 }) => {
@@ -23,28 +24,29 @@ const Typeahead = ({
   const itemRefs = useRef([]);
 
   useEffect(() => {
+    clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      getOptions(
+        query,
+        (results) => {
+          setOptions(results);
+          setShowDropdown(document.activeElement === inputRef.current);
+          setHighlightedIndex(-1);
+        },
+        setError
+      );
+    }, 300);
+  }, [query, getOptions]);
+
+  useEffect(() => {
     if (!multiselect && selectedValue) {
+      clearTimeout(timeoutRef.current);
       setOptions([]);
       setShowDropdown(false);
       setHighlightedIndex(-1);
       return;
     }
-
-    if (!multiselect || query) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = setTimeout(() => {
-        getOptions(
-          query,
-          (results) => {
-            setOptions(results);
-            setShowDropdown(true);
-            setHighlightedIndex(-1);
-          },
-          setError
-        );
-      }, 300);
-    }
-  }, [query, selectedValue, getOptions, multiselect]);
+  }, [multiselect, selectedValue]);
 
   // Auto-scroll to highlighted item
   useEffect(() => {
@@ -125,9 +127,13 @@ const Typeahead = ({
 
   return (
     <div className={`typeahead-container ${className}`}>
-      {multiselect && <p>{getDisplayValue(selectedValue)}</p>}
+      {multiselect && (
+        <div className="selected-options">{getDisplayValue(selectedValue)}</div>
+      )}
       <input
         ref={inputRef}
+        name={name}
+        id={name}
         type="text"
         placeholder={placeholder}
         value={
@@ -141,6 +147,7 @@ const Typeahead = ({
         onFocus={handleFocus}
         onKeyDown={handleKeyDown}
         className="typeahead-input"
+        autoComplete="off"
       />
       {showDropdown && options.length > 0 && (
         <ul className="typeahead-dropdown" ref={dropdownRef}>
@@ -175,6 +182,7 @@ Typeahead.propTypes = {
   getDisplayOption: PropTypes.func.isRequired,
   getOptions: PropTypes.func.isRequired,
   className: PropTypes.string.isRequired,
+  name: PropTypes.string,
   placeholder: PropTypes.string.isRequired,
   multiselect: PropTypes.bool
 };

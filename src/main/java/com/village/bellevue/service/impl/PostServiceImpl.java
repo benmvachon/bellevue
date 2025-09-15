@@ -225,6 +225,8 @@ public class PostServiceImpl implements PostService {
     Long user = getAuthenticatedUserId();
     int depth = 1;
     PostModel post = read(parent).orElseThrow(() -> new AuthorizationException("Cannot reply to " + parent));
+    String procedureCall = "{call add_reply(?, ?, ?, ?, ?)}";
+    if (post.getForum().getUser() != null) procedureCall = "{call add_custom_forum_reply(?, ?, ?, ?, ?)}";
     List<PopularityEvent> events = new ArrayList<>();
     while (Objects.nonNull(post)) {
       if (!canRead(post.getId())) throw new AuthorizationException("Cannot reply to " + parent);
@@ -237,7 +239,7 @@ public class PostServiceImpl implements PostService {
     PostModel model = null;
     try (
       Connection connection = dataSource.getConnection();
-      CallableStatement stmt = connection.prepareCall("{call add_reply(?, ?, ?, ?, ?)}")
+      CallableStatement stmt = connection.prepareCall(procedureCall)
     ) {
       stmt.setLong(1, user);
       stmt.setLong(2, parent);
