@@ -1,0 +1,19 @@
+@use 'variables' as *;
+
+div.error-page {
+  div.page-contents {
+    h1 {
+      font-size: calc(64 * $pixel);
+    }
+    p {
+      font-style: italic;
+      background: $overlay-dark;
+      color: $white;
+      font-size: calc(24 * $pixel);
+      width: calc(384 * $pixel);;
+      text-align: center;
+      border-radius: calc(4 * $pixel);
+      padding: calc(4 * $pixel);;
+    }
+  }
+}

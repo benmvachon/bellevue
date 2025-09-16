@@ -1,12 +1,13 @@
 package com.village.bellevue.controller;
 
+import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import jakarta.servlet.http.HttpServletRequest;
 
 @Controller
-public class ReactController {
+public class ReactController implements ErrorController {
 
   @RequestMapping(value = {"/{path:[^\\.]*}", "/{path:^(?!api|ws).*}/{id:[^\\.]*}"})
   public String redirect(HttpServletRequest request) {

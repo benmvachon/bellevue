@@ -10,6 +10,7 @@ import ForumMapPage from './pages/ForumMapPage.js';
 import FriendsMapPage from './pages/FriendsMapPage.js';
 import SuggestedFriendsMapPage from './pages/SuggestedFriendsMapPage.js';
 import FriendsOfFriendsMapPage from './pages/FriendsOfFriendsMapPage.js';
+import ErrorPage from './pages/ErrorPage.js';
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
               path="/map/neighborhood/:id"
               element={<FriendsOfFriendsMapPage />}
             />
+            <Route path="/*" element={<ErrorPage />} />
           </Routes>
         </LocationProvider>
       </Router>
