@@ -2,22 +2,30 @@
 
 div.page {
   position: relative;
-  height: min(100dvh, 100dvw);
-  width: min(100dvh, 100dvw);
+  height: calc(640 * $pixel);
+  width: calc(640 * $pixel);
   margin: 0;
   background: $white;
   display: flex;
   flex-direction: column;
   align-items: center;
   overflow-y: auto;
+
+  @media (width <= 100dvh) {
+    width: calc(576 * $pixel);
+  }
   
   div.page-contents {
-    margin-left: calc(64 * $pixel);
     height: calc(576 * $pixel);
     width: calc(576 * $pixel);
     overflow-y: auto;
     display: flex;
     flex-direction: column;
     align-items: center;
+    margin-left: calc(64 * $pixel);
+
+    @media (width <= 100dvh) {
+      margin-left: 0;
+    }
   }
 }

@@ -158,6 +158,11 @@ div.posts {
             font-size: calc(10 * $pixel);
             text-align: left;
           }
+
+          ul {
+            list-style: inside;
+            list-style-type: decimal;
+          }
         }
   
         &.notepad {

@@ -11,6 +11,10 @@ div.show-map-slider {
   background: $blue;
   display: flex;
   align-items: center;
+
+  @media (width <= 100dvh) {
+    display: none;
+  }
 }
 
 div.map-slider {
@@ -153,6 +157,10 @@ div.map-slider {
       background: $blue;
       display: flex;
       align-items: center;
+
+      @media (width <= 100dvh) {
+        display: none;
+      }
     }
   }
 }

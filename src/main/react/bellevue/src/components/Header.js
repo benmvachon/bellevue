@@ -62,6 +62,11 @@ function Header({ setShowNotifications, setShowThreads, setShowFavorites }) {
   return (
     <div className="header" key="header" id="header">
       <ImageButton name="townhall" onClick={() => navigate('/')} />
+      <ImageButton
+        className="header-map-button"
+        name="map"
+        onClick={() => navigate('/map/town')}
+      />
       <ImageButton name="newspaper" onClick={openNotifications}>
         <span className={`count${notificationCount > 0 ? ' red' : ''}`}>
           {notificationCount}

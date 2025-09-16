@@ -13,6 +13,14 @@ div.header {
     color: $white;
   }
 
+  button.image-button.map {
+    display: none;
+
+    @media (width <= 100dvh) {
+      display: block;
+    }
+  }
+
   &.no-auth {
     button {
         background: $white;
