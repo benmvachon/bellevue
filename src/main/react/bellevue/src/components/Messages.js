@@ -11,10 +11,10 @@ import {
   sendMessage,
   markMessageRead
 } from '../api/api.js';
-import { formatContent } from '../utils/ContentFormatter.js';
 import ScrollLoader from './ScrollLoader.js';
 import Modal from './Modal.js';
 import Avatar from './Avatar.js';
+import Message from './Message.js';
 
 function Messages({ show = false, friendId, onClose, setShowThreads }) {
   const { userId } = useAuth();
@@ -152,12 +152,14 @@ function Messages({ show = false, friendId, onClose, setShowThreads }) {
           topLoad
         >
           {messages.map((message) => (
-            <div
-              className={`message ${sentOrReceived(message)}`}
+            <Message
               key={`message-${message.id}`}
-              dangerouslySetInnerHTML={{
-                __html: formatContent(message.message)
-              }}
+              friendId={friend}
+              id={message.id}
+              message={message.message}
+              sentOrReceived={sentOrReceived(message)}
+              read={message.read}
+              date={message.created}
             />
           ))}
         </ScrollLoader>

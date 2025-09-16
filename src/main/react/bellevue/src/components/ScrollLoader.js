@@ -89,7 +89,11 @@ function ScrollLoader({
         (loadingMore ? (
           <p>loading...</p>
         ) : (
-          <button ref={loadMoreRef} onClick={loadMoreWrapper}>
+          <button
+            className="load-more"
+            ref={loadMoreRef}
+            onClick={loadMoreWrapper}
+          >
             loading...
           </button>
         ))}

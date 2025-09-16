@@ -36,23 +36,49 @@ div.modal-container {
       height: calc(256 * $pixel);
       width: calc(496 * $pixel);
 
-      div.message {
-        display: flex;
+      div.message-wrapper {
+        position: relative;
 
-        &.sent {
-          justify-content: start;
-        }
+        div.message {
+          display: flex;
 
-        &.received {
-          justify-content: end;
+          &.sent {
+            justify-content: start;
+          }
+
+          &.received {
+            justify-content: end;
+
+            p {
+              text-align: right;
+            }
+          }
 
           p {
-            text-align: right;
+            max-width: 50%;
+            font-size: calc(12 * $pixel);
           }
         }
 
-        p {
-          max-width: 50%;
+        div.tooltip {
+          position: absolute;
+          top: 0;
+          left: 0;
+          background: $overlay-dark;
+          color: $white;
+          font-size: calc(8 * $pixel);
+          padding: calc(1 * $pixel);
+          border-radius: calc(1 * $pixel);
+
+          &.false {
+            display: none;
+          }
+
+          &.received {
+            right: 0;
+            left: auto;
+            text-align: right;
+          }
         }
       }
     }
