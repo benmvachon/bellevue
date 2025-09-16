@@ -62,7 +62,15 @@ div.modal-container {
       width: 100%;
 
       button {
-        background: $white;
+        &.send {
+          background: $green;
+          color: $white;
+        }
+
+        &.back {
+          background: $white;
+          color: $black;
+        }
       }
     }
 

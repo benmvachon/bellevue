@@ -11,6 +11,7 @@ import {
   sendMessage,
   markMessageRead
 } from '../api/api.js';
+import { formatContent } from '../utils/ContentFormatter.js';
 import ScrollLoader from './ScrollLoader.js';
 import Modal from './Modal.js';
 import Avatar from './Avatar.js';
@@ -106,6 +107,7 @@ function Messages({ show = false, friendId, onClose, setShowThreads }) {
   };
 
   const handleKeyDown = (e) => {
+    if (e.shiftKey) return;
     switch (e.key) {
       case 'Enter':
         if (message) send(e);
@@ -153,9 +155,10 @@ function Messages({ show = false, friendId, onClose, setShowThreads }) {
             <div
               className={`message ${sentOrReceived(message)}`}
               key={`message-${message.id}`}
-            >
-              <p>{message.message}</p>
-            </div>
+              dangerouslySetInnerHTML={{
+                __html: formatContent(message.message)
+              }}
+            />
           ))}
         </ScrollLoader>
       ) : (
@@ -164,14 +167,22 @@ function Messages({ show = false, friendId, onClose, setShowThreads }) {
         </div>
       )}
       <div className="buttons">
-        <button onClick={back}>back</button>
+        <button className="back" onClick={back}>
+          back
+        </button>
         <textarea
+          name="new-message"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
           disabled={friendId === 0}
         />
-        <button disabled={friendId === 0} onClick={send}>
+        <button
+          className="send"
+          disabled={friendId === 0}
+          onClick={send}
+          type="submit"
+        >
           send
         </button>
       </div>

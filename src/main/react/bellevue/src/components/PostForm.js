@@ -15,6 +15,7 @@ const PostForm = ({ forum, parent, enableForumSelection = false }) => {
   }, [newPost, selectedForum]);
 
   const handleKeyDown = (e) => {
+    if (e.shiftKey) return;
     switch (e.key) {
       case 'Enter':
         if (newPost && selectedForum) submitPost(e);

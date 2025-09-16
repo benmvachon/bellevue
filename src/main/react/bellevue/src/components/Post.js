@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
+
 import { useAuth } from '../utils/AuthContext.js';
 import {
   getPost,
@@ -23,6 +24,7 @@ import ScrollLoader from './ScrollLoader.js';
 import PostForm from './PostForm.js';
 import Avatar from './Avatar.js';
 import { formatTimeAgo } from '../utils/DateFormatter.js';
+import { formatContent } from '../utils/ContentFormatter.js';
 import FavoriteButton from './FavoriteButton.js';
 
 function Post({
@@ -223,6 +225,11 @@ function Post({
   if (error) return JSON.stringify(error);
   if (!post) return;
 
+  let size = 'sm';
+  if (post?.content?.length <= 250) size = 'md';
+  if (post?.content?.length <= 50) size = 'lg';
+  if (post?.content?.length <= 10) size = 'xl';
+
   return (
     <div className={selected ? 'selected post' : 'post'}>
       <div className="post-actions">
@@ -254,10 +261,9 @@ function Post({
         <Avatar userProp={post?.user} userId={post?.user?.id} />
         <button
           onClick={() => !selected && navigate(`/flyer/${post?.id}`)}
-          className="post-button pixel-corners"
-        >
-          {post?.content}
-        </button>
+          className={`post-button pixel-corners ${size}`}
+          dangerouslySetInnerHTML={{ __html: formatContent(post?.content) }}
+        />
         <FavoriteButton
           favorited={post.favorite}
           onClick={() => {

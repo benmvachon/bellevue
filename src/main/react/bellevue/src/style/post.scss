@@ -139,7 +139,25 @@ div.posts {
         }
 
         &.post-button {
-          width: calc(100% - 136 * $pixel);
+          width: calc(100% - 152 * $pixel);
+          padding: calc(8 * $pixel);
+
+          &.xl {
+            font-size: calc(24 * $pixel);
+          }
+
+          &.lg {
+            font-size: calc(16 * $pixel);
+          }
+
+          &.md {
+            font-size: calc(12 * $pixel);
+          }
+
+          &.sm {
+            font-size: calc(10 * $pixel);
+            text-align: left;
+          }
         }
   
         &.notepad {
