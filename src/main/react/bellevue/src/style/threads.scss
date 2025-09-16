@@ -34,6 +34,10 @@ div.threads-container {
         font-size: calc(10 * $pixel);
         background: $white;
         width: calc(160 * $pixel);
+
+        @media (width < 100dvh) {
+          font-size: calc(11 * $pixel);
+        }
       }
 
       button.mark-read {

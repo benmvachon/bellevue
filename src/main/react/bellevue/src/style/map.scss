@@ -143,9 +143,17 @@ div.map-slider {
               color: $white;
               border-radius: calc(4 * $pixel);
 
+              @media (width < 100dvh) {
+                font-size: calc(13 * $pixel);
+              }
+
               &.forum-count {
                 top: calc(14 * $pixel);
                 font-size: calc(10 * $pixel);
+
+                @media (width < 100dvh) {
+                  font-size: calc(11 * $pixel);
+                }
               }
             }
           }

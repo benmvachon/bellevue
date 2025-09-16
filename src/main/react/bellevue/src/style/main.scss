@@ -41,6 +41,10 @@ html {
   font-size: calc(10 * $pixel);
   color: $black;
 
+  @media (width < 100dvh) {
+    font-size: calc(11 * $pixel);
+  }
+
   body {
     font-family: 'pixel', monospace;
 
@@ -53,6 +57,10 @@ html {
       outline: none;
       box-shadow: inset calc(1 * $pixel) calc(1 * $pixel) calc(1 * $pixel) $overlay-medium;
       border-radius: 0;
+
+      @media (width < 100dvh) {
+        font-size: calc(11 * $pixel);
+      }
     }
 
     input {
@@ -63,6 +71,10 @@ html {
       outline: none;
       box-shadow: inset calc(1 * $pixel) calc(1 * $pixel) calc(1 * $pixel) $overlay-medium;
       border-radius: 0;
+
+      @media (width < 100dvh) {
+        font-size: calc(11 * $pixel);
+      }
     }
 
     div.equipment-container {

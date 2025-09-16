@@ -31,9 +31,17 @@ div.page {
             color: $white;
             border-radius: calc(4 * $pixel);
 
+            @media (width < 100dvh) {
+              font-size: calc(13 * $pixel);
+            }
+
             &.forum-count {
               top: calc(14 * $pixel);
               font-size: calc(10 * $pixel);
+
+              @media (width < 100dvh) {
+                font-size: calc(11 * $pixel);
+              }
             }
           }
         }
@@ -91,6 +99,10 @@ div.page {
                 color: $white;
                 font-size: calc(8 * $pixel);
                 border-radius: calc(2 * $pixel);
+
+                @media (width < 100dvh) {
+                  font-size: calc(10 * $pixel);
+                }
               }
             }
           }

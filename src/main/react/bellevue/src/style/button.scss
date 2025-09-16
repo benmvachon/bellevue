@@ -9,6 +9,10 @@ button {
   box-shadow: calc(1 * $pixel) calc(1 * $pixel) calc(1 * $pixel) $blue;
   padding: calc(1 * $pixel) calc(2 * $pixel);
 
+  @media (width < 100dvh) {
+    font-size: calc(11 * $pixel);
+  }
+
   &:disabled {
     color: $overlay-medium;
     border: calc(2 * $pixel) solid $overlay-medium;
@@ -96,6 +100,10 @@ button {
       color: $white;
       font-size: calc(8 * $pixel);
       border-radius: calc(2 * $pixel);
+
+      @media (width < 100dvh) {
+        font-size: calc(10 * $pixel);
+      }
 
       &.count {
         height: 100%;
