@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import withAuth from '../utils/withAuth.js';
 import { useAuth } from '../utils/AuthContext';
@@ -23,6 +23,7 @@ import FavoriteButton from '../components/FavoriteButton.js';
 function ProfilePage({ openMessages }) {
   const { id } = useParams();
   const { userId } = useAuth();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -73,12 +74,21 @@ function ProfilePage({ openMessages }) {
     unfavoriteProfile(id, refresh, setError);
   };
 
+  const openMap = () => {
+    navigate(`/map/neighborhood/${id}`);
+  };
+
   if (error) return JSON.stringify(error);
   if (loading) return <p>Loading...</p>;
 
   const buttons = [];
   switch (profile?.friendshipStatus) {
     case 'SELF':
+      buttons.push(
+        <ImageButton name="map" onClick={openMap} className="map">
+          <span>neighbors</span>
+        </ImageButton>
+      );
       break;
     case 'ACCEPTED':
       buttons.push(
@@ -105,6 +115,11 @@ function ProfilePage({ openMessages }) {
           onClick={() => (profile.favorite ? unfavorite() : favorite())}
         />
       );
+      buttons.push(
+        <ImageButton name="map" onClick={openMap} className="map">
+          <span>neighbors</span>
+        </ImageButton>
+      );
       break;
     case 'PENDING_YOU':
       buttons.push(
@@ -112,15 +127,34 @@ function ProfilePage({ openMessages }) {
           accept
         </button>
       );
+      buttons.push(
+        <ImageButton name="map" onClick={openMap} className="map">
+          <span>neighbors</span>
+        </ImageButton>
+      );
       break;
     case 'PENDING_THEM':
       buttons.push(<button key="pending">request pending</button>);
+      buttons.push(
+        <ImageButton name="map" onClick={openMap} className="map">
+          <span>neighbors</span>
+        </ImageButton>
+      );
       break;
     default:
       buttons.push(
-        <button onClick={() => requestFriend(id, refresh)} key="request">
+        <button
+          onClick={() => requestFriend(id, refresh)}
+          key="request"
+          className="request"
+        >
           request
         </button>
+      );
+      buttons.push(
+        <ImageButton name="map" onClick={openMap} className="map">
+          <span>neighbors</span>
+        </ImageButton>
       );
       break;
   }
@@ -185,13 +219,8 @@ function ProfilePage({ openMessages }) {
           </span>
         </h2>
         <h3>{profile?.username}</h3>
-        <div className="buttons">
-          {self ? (
-            <span className="self-indication">This is you</span>
-          ) : (
-            buttons
-          )}
-        </div>
+        {self && <span className="self-indication">This is you</span>}
+        <div className="buttons">{buttons}</div>
       </div>
     </div>
   );

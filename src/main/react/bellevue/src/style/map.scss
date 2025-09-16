@@ -136,6 +136,10 @@ div.map-slider {
           }
         }
       }
+
+      &.friends-of-friends {
+        margin-right: calc(26 * $pixel);
+      }
     }
 
     div.hide-map-slider {

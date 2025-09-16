@@ -96,6 +96,12 @@ div.profile-page {
         text-align: center;
       }
 
+      span.self-indication {
+        font-size: calc(10 * $pixel);
+        text-align: center;
+        font-style: italic;
+      }
+
       div.buttons {
         display: flex;
         justify-content: space-evenly;
@@ -105,14 +111,12 @@ div.profile-page {
         padding: calc(12 * $pixel);
         width: calc(232 * $pixel);
 
-        span.self-indication {
-          font-size: calc(10 * $pixel);
-          text-align: center;
-          font-style: italic;
-        }
-
         button {
           width: 100%;
+
+          &.request {
+            margin-bottom: calc(8 * $pixel);
+          }
 
           &.remove {
             background: $red;

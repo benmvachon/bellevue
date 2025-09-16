@@ -6,7 +6,10 @@ import SignupPage from './pages/SignupPage';
 import ProfilePage from './pages/ProfilePage';
 import ForumPage from './pages/ForumPage.js';
 import PostPage from './pages/PostPage.js';
-import MapPage from './pages/MapPage.js';
+import ForumMapPage from './pages/ForumMapPage.js';
+import FriendsMapPage from './pages/FriendsMapPage.js';
+import SuggestedFriendsMapPage from './pages/SuggestedFriendsMapPage.js';
+import FriendsOfFriendsMapPage from './pages/FriendsOfFriendsMapPage.js';
 
 function App() {
   return (
@@ -20,7 +23,13 @@ function App() {
             <Route path="/home/:id" element={<ProfilePage />} />
             <Route path="/town/:id" element={<ForumPage />} />
             <Route path="/flyer/:id" element={<PostPage />} />
-            <Route path="/map/:section" element={<MapPage />} />
+            <Route path="/map/town" element={<ForumMapPage />} />
+            <Route path="/map/neighborhood" element={<FriendsMapPage />} />
+            <Route path="/map/suburbs" element={<SuggestedFriendsMapPage />} />
+            <Route
+              path="/map/neighborhood/:id"
+              element={<FriendsOfFriendsMapPage />}
+            />
           </Routes>
         </LocationProvider>
       </Router>

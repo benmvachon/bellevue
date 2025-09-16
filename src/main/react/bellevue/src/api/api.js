@@ -212,7 +212,7 @@ export const getMyFriends = (
   query = '',
   excluded = [],
   page = 0,
-  size = 10
+  size = 9
 ) => {
   api
     .get(
@@ -225,7 +225,7 @@ export const getMyFriends = (
     .catch(error);
 };
 
-export const getSuggestedFriends = (callback, error, page = 0, size = 10) => {
+export const getSuggestedFriends = (callback, error, page = 0, size = 9) => {
   api
     .get(`/friend/suggestions?page=${page}&size=${size}`)
     .then((response) => {
@@ -235,7 +235,7 @@ export const getSuggestedFriends = (callback, error, page = 0, size = 10) => {
     .catch(error);
 };
 
-export const getFriends = (friend, callback, error, page = 0, size = 10) => {
+export const getFriends = (friend, callback, error, page = 0, size = 9) => {
   api
     .get(`/friend/${friend}/friends?page=${page}&size=${size}`)
     .then((response) => {
@@ -245,7 +245,7 @@ export const getFriends = (friend, callback, error, page = 0, size = 10) => {
     .catch(error);
 };
 
-export const findUsers = (query, callback, error, page = 0, size = 10) => {
+export const findUsers = (query, callback, error, page = 0, size = 9) => {
   api
     .get(`/user/search/${query}?page=${page}&size=${size}`)
     .then((response) => {
