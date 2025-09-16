@@ -1,0 +1,28 @@
+@use 'variables' as *;
+
+div.confirmation-dialog {
+  height: calc(128 * $pixel);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+
+  button.modal-close {
+    color: $black;
+  }
+
+  p {
+    text-align: center;
+    font-size: calc(16 * $pixel);
+  }
+
+  div.buttons {
+    button.confirm {
+      background: $red;
+      color: $white;
+    }
+
+    button.cancel {
+      background: $white;
+    }
+  }
+}

@@ -20,6 +20,7 @@ import asPage from '../utils/asPage.js';
 import ForumForm from '../components/ForumForm.js';
 import Forum from '../components/Forum.js';
 import FavoriteButton from '../components/FavoriteButton.js';
+import ConfirmationDialog from '../components/ConfirmationDialog.js';
 
 function ForumPage() {
   const navigate = useNavigate();
@@ -38,6 +39,7 @@ function ForumPage() {
     return param ? param.split(',') : [];
   });
   const [showForumForm, setShowForumForm] = useState(false);
+  const [showConfirmationDialog, setShowConfirmationDialog] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -136,6 +138,7 @@ function ForumPage() {
 
   const handleDelete = () => {
     deleteForum(forum.id);
+    navigate('/');
   };
 
   const closeForumEditor = () => {
@@ -178,7 +181,12 @@ function ForumPage() {
                   </button>
                 )}
                 {forum?.user?.id === userId && (
-                  <button onClick={handleDelete}>delete building</button>
+                  <button
+                    className="delete"
+                    onClick={() => setShowConfirmationDialog(true)}
+                  >
+                    delete building
+                  </button>
                 )}
               </div>
               <FavoriteButton
@@ -214,6 +222,14 @@ function ForumPage() {
         forum={forum}
         show={showForumForm}
         onClose={closeForumEditor}
+      />
+      <ConfirmationDialog
+        show={showConfirmationDialog}
+        onConfirm={() => {
+          handleDelete();
+          setShowConfirmationDialog(false);
+        }}
+        onCancel={() => setShowConfirmationDialog(false)}
       />
     </div>
   );

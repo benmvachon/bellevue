@@ -19,6 +19,7 @@ import {
 import asPage from '../utils/asPage.js';
 import ImageButton from '../components/ImageButton.js';
 import FavoriteButton from '../components/FavoriteButton.js';
+import ConfirmationDialog from '../components/ConfirmationDialog.js';
 
 function ProfilePage({ openMessages }) {
   const { id } = useParams();
@@ -28,6 +29,7 @@ function ProfilePage({ openMessages }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const [blackboard, setBlackboard] = useState('');
+  const [showConfirmationDialog, setShowConfirmationDialog] = useState(false);
   const debounceTimeout = useRef(null);
 
   useEffect(() => {
@@ -93,7 +95,7 @@ function ProfilePage({ openMessages }) {
     case 'ACCEPTED':
       buttons.push(
         <button
-          onClick={() => removeFriend(id, refresh)}
+          onClick={() => setShowConfirmationDialog(true)}
           key="remove"
           className="remove"
         >
@@ -222,6 +224,14 @@ function ProfilePage({ openMessages }) {
         {self && <span className="self-indication">This is you</span>}
         <div className="buttons">{buttons}</div>
       </div>
+      <ConfirmationDialog
+        show={showConfirmationDialog}
+        onConfirm={() => {
+          removeFriend(id, refresh);
+          setShowConfirmationDialog(false);
+        }}
+        onCancel={() => setShowConfirmationDialog(false)}
+      />
     </div>
   );
 }

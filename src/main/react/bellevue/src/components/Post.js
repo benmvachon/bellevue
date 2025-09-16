@@ -26,6 +26,7 @@ import Avatar from './Avatar.js';
 import { formatTimeAgo } from '../utils/DateFormatter.js';
 import { formatContent } from '../utils/ContentFormatter.js';
 import FavoriteButton from './FavoriteButton.js';
+import ConfirmationDialog from './ConfirmationDialog.js';
 
 function Post({
   id,
@@ -45,6 +46,7 @@ function Post({
   const [sortByPopular, setSortByPopular] = useState(sortByPopularParent);
   const [replies, setReplies] = useState([]);
   const [showReplies, setShowReplies] = useState(depth < 2);
+  const [showConfirmationDialog, setShowConfirmationDialog] = useState(false);
   const [error, setError] = useState(false);
 
   useEffect(() => {
@@ -235,7 +237,10 @@ function Post({
       <div className="post-actions">
         <p>{formatTimeAgo(post.created)}</p>
         {post.user.id === userId && (
-          <button className="delete" onClick={() => deletePost(id)}>
+          <button
+            className="delete"
+            onClick={() => setShowConfirmationDialog(true)}
+          >
             delete
           </button>
         )}
@@ -307,6 +312,14 @@ function Post({
           )}
         </div>
       )}
+      <ConfirmationDialog
+        show={showConfirmationDialog}
+        onConfirm={() => {
+          deletePost(id);
+          setShowConfirmationDialog(false);
+        }}
+        onCancel={() => setShowConfirmationDialog(false)}
+      />
     </div>
   );
 }

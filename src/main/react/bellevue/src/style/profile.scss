@@ -9,7 +9,6 @@ div.profile-page {
     flex-wrap: wrap;
     justify-content: flex-start;
     align-items: flex-start;
-    position: relative;
     background: url('../asset/home.png');
     background-size: contain;
     background-repeat: no-repeat;
@@ -34,6 +33,7 @@ div.profile-page {
         padding: calc(12 * $pixel);
         font-size: calc(16 * $pixel);
         text-align: center;
+        box-shadow: none;
       }
 
       button {

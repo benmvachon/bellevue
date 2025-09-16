@@ -58,6 +58,11 @@ div.page {
 
               button {
                 width: calc(256 * $pixel);
+
+                &.delete {
+                  background: $red;
+                  color: $white;
+                }
               }
             }
 
