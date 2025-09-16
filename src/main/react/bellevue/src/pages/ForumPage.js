@@ -40,11 +40,13 @@ function ForumPage() {
   });
   const [showForumForm, setShowForumForm] = useState(false);
   const [showConfirmationDialog, setShowConfirmationDialog] = useState(false);
+  const [onConfirm, setOnConfirm] = useState(() => {});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
   useEffect(() => {
     if (id) {
+      setError(false);
       const forum = id === '1' ? (onlyTownHallPosts ? 1 : undefined) : id;
       onForumUnreadUpdate(forum, () => getForum(id, setForum, setError));
       return () => {
@@ -55,6 +57,7 @@ function ForumPage() {
 
   useEffect(() => {
     if (id) {
+      setError(false);
       setLoading(true);
       getForum(
         id,
@@ -71,14 +74,17 @@ function ForumPage() {
   }, [id]);
 
   const favorite = () => {
+    setError(false);
     favoriteForum(id, () => getForum(id, setForum, setError), setError);
   };
 
   const unfavorite = () => {
+    setError(false);
     unfavoriteForum(id, () => getForum(id, setForum, setError), setError);
   };
 
   const markRead = () => {
+    setError(false);
     markForumRead(
       forum.id,
       () => getForum(forum.id, setForum, setError),
@@ -87,6 +93,7 @@ function ForumPage() {
   };
 
   const toggleNotifications = () => {
+    setError(false);
     setForumNotification(
       forum.id,
       !forum.notify,
@@ -133,15 +140,19 @@ function ForumPage() {
   };
 
   const removeAccess = () => {
+    setError(false);
     removeFromForum(forum.id, () => navigate('/'), setError);
+    navigate('/');
   };
 
   const handleDelete = () => {
-    deleteForum(forum.id);
+    setError(false);
+    deleteForum(forum.id, () => navigate('/'), setError);
     navigate('/');
   };
 
   const closeForumEditor = () => {
+    setError(false);
     setShowForumForm(false);
     getForum(forum.id, setForum, setError);
   };
@@ -173,7 +184,17 @@ function ForumPage() {
                   </button>
                 )}
                 {forum?.custom && forum?.user?.id !== userId && (
-                  <button onClick={removeAccess}>remove access</button>
+                  <button
+                    className="delete"
+                    onClick={() => {
+                      setOnConfirm(() => {
+                        return removeAccess;
+                      });
+                      setShowConfirmationDialog(true);
+                    }}
+                  >
+                    leave building
+                  </button>
                 )}
                 {forum?.user?.id === userId && (
                   <button onClick={() => setShowForumForm(true)}>
@@ -183,7 +204,12 @@ function ForumPage() {
                 {forum?.user?.id === userId && (
                   <button
                     className="delete"
-                    onClick={() => setShowConfirmationDialog(true)}
+                    onClick={() => {
+                      setOnConfirm(() => {
+                        return handleDelete;
+                      });
+                      setShowConfirmationDialog(true);
+                    }}
                   >
                     delete building
                   </button>
@@ -226,7 +252,7 @@ function ForumPage() {
       <ConfirmationDialog
         show={showConfirmationDialog}
         onConfirm={() => {
-          handleDelete();
+          onConfirm();
           setShowConfirmationDialog(false);
         }}
         onCancel={() => setShowConfirmationDialog(false)}
