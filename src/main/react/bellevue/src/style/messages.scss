@@ -25,6 +25,10 @@ div.modal-container {
     button.modal-close {
       top: calc(-32 * $pixel);
       right: calc(-32 * $pixel);
+
+      @media (width < 100dvh) {
+        right: 0;
+      }
     }
 
     div.messages {

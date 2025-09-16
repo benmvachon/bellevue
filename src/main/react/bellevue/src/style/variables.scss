@@ -9,7 +9,7 @@ $overlay-dark: #3d405bb5;
 $overlay-medium: #3d405b87;
 $overlay-light: #3d405b48;
 $overlay-clear: #3d405b00;
-$pixel: calc(min(100dvh / 640, 100dvw / 576));
+$pixel: calc(min(100dvh / 640, 100dvw / 512));
 
 @counter-style hyphen {
   system: cyclic;

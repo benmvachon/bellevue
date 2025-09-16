@@ -38,8 +38,12 @@ div.map-slider {
     justify-content: flex-end;
     gap: calc(8 * $pixel);
     background: url('../asset/map.png');
-    background-size: contain;
+    background-size: cover;
     background-repeat: no-repeat;
+
+    @media (width < 100dvh) {
+      width: calc(512 * $pixel);
+    }
 
     div.custom-building-container {
       display: flex;
@@ -47,6 +51,10 @@ div.map-slider {
       justify-content: center;
       height: 100%;
       width: calc(110 * $pixel);
+
+      @media (width < 100dvh) {
+        width: calc(64 * $pixel);
+      }
     }
 
     button.back, button.forth {
@@ -77,6 +85,11 @@ div.map-slider {
       align-items: center;
       overflow-y: auto;
 
+      @media (width < 100dvh) {
+        height: calc(576 * $pixel);
+        width: calc(384 * $pixel);
+      }
+
       div.header {
         background: $green;
         height: calc(32 * $pixel);
@@ -94,11 +107,20 @@ div.map-slider {
         text-align: center;
         background: $white;
         color: $black;
+
+        @media (width < 100dvh) {
+          padding: calc(6 * $pixel) 0;
+          line-height: calc(10 * $pixel);
+        }
       }
 
       div.grid {
         height: calc(400 * $pixel);
         width: 100%;
+
+        @media (width < 100dvh) {
+          height: calc(472 * $pixel);
+        }
 
         div.loader {
           width: 100%;

@@ -10,6 +10,10 @@ div.page {
       height: calc(160 * $pixel);
       width: calc(576 * $pixel);
 
+      @media (width < 100dvh) {
+        width: calc(512 * $pixel);
+      }
+
       div.building-and-buttons {
         width: 100%;
         display: flex;
@@ -41,6 +45,10 @@ div.page {
           align-items: center;
           width: calc(384 * $pixel);
 
+          @media (width < 100dvh) {
+            width: calc(320 * $pixel);
+          }
+
           p {
             text-align: center;
           }
@@ -58,6 +66,10 @@ div.page {
 
               button {
                 width: calc(256 * $pixel);
+
+                @media (width < 100dvh) {
+                  width: calc(192 * $pixel);
+                }
 
                 &.delete {
                   background: $red;
@@ -95,7 +107,7 @@ div.page {
 
         p {
           line-height: normal;
-          width: calc(128 * $pixel);
+          width: calc(160 * $pixel);
           margin: 0;
         }
 
@@ -115,6 +127,10 @@ div.page {
       height: calc(416 * $pixel);
       width: calc(568 * $pixel);
       padding: 0 calc(4 * $pixel);
+
+      @media (width < 100dvh) {
+        width: calc(504 * $pixel);
+      }
 
       div.posts {
         display: flex;

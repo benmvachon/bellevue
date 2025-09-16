@@ -9,6 +9,10 @@ div.page.post-page {
       overflow-y: auto;
       width: calc(576 * $pixel);
 
+      @media (width <= 100dvh) {
+        width: calc(512 * $pixel);
+      }
+
       div.posts {
         background: $manila;
 

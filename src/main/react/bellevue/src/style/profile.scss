@@ -10,8 +10,9 @@ div.profile-page {
     justify-content: flex-start;
     align-items: flex-start;
     background: url('../asset/home.png');
-    background-size: contain;
+    background-size: cover;
     background-repeat: no-repeat;
+    background-position: center;
 
     form {
       display: flex;
@@ -69,6 +70,10 @@ div.profile-page {
       padding: calc(12 * $pixel);
       width: calc(256 * $pixel);
 
+      @media (width < 100dvh) {
+        width: calc(222 * $pixel);
+      }
+
       h2 {
         font-size: calc(16 * $pixel);
         margin: 0;
@@ -110,6 +115,10 @@ div.profile-page {
         color: $black;
         padding: calc(12 * $pixel);
         width: calc(232 * $pixel);
+
+        @media (width < 100dvh) {
+          width: calc(200 * $pixel);
+        }
 
         button {
           width: 100%;
