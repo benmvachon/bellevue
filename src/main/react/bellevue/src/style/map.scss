@@ -43,6 +43,7 @@ div.map-slider {
 
     @media (width < 100dvh) {
       width: calc(512 * $pixel);
+      gap: calc(4 * $pixel);
     }
 
     div.custom-building-container {
@@ -96,6 +97,12 @@ div.map-slider {
         width: 99%;
         color: $white;
 
+        h2 {
+          @media (width < 100dvh) {
+            display: none;
+          }
+        }
+
         button {
           background: $white;
         }
@@ -111,6 +118,7 @@ div.map-slider {
         @media (width < 100dvh) {
           padding: calc(6 * $pixel) 0;
           line-height: calc(10 * $pixel);
+          min-height: calc(16 * $pixel);
         }
       }
 
@@ -119,7 +127,7 @@ div.map-slider {
         width: 100%;
 
         @media (width < 100dvh) {
-          height: calc(472 * $pixel);
+          height: calc(454 * $pixel);
         }
 
         div.loader {
@@ -144,15 +152,16 @@ div.map-slider {
               border-radius: calc(4 * $pixel);
 
               @media (width < 100dvh) {
-                font-size: calc(13 * $pixel);
+                font-size: $mobile-small-font;
+                width: 96%;
               }
 
               &.forum-count {
-                top: calc(14 * $pixel);
-                font-size: calc(10 * $pixel);
+                top: calc(50% + 12 * $pixel);
+                font-size: $extra-small-font;
 
                 @media (width < 100dvh) {
-                  font-size: calc(11 * $pixel);
+                  font-size: $mobile-extra-small-font;
                 }
               }
             }

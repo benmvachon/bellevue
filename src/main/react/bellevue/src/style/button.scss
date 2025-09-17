@@ -4,13 +4,13 @@ button {
   font-family: 'pixel', monospace;
   background: none;
   cursor: pointer;
-  font-size: calc(10 * $pixel);
+  font-size: $extra-small-font;
   border: calc(2 * $pixel) solid $black;
   box-shadow: calc(1 * $pixel) calc(1 * $pixel) calc(1 * $pixel) $blue;
   padding: calc(1 * $pixel) calc(2 * $pixel);
 
   @media (width < 100dvh) {
-    font-size: calc(11 * $pixel);
+    font-size: $mobile-extra-small-font;
   }
 
   &:disabled {
@@ -98,11 +98,11 @@ button {
       z-index: 1;
       background: $overlay-dark;
       color: $white;
-      font-size: calc(8 * $pixel);
+      font-size: $label-font;
       border-radius: calc(2 * $pixel);
 
       @media (width < 100dvh) {
-        font-size: calc(10 * $pixel);
+        font-size: $mobile-label-font;
       }
 
       &.count {

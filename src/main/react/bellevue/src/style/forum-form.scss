@@ -19,6 +19,12 @@ div.forum-form-container {
     }
   }
 
+  p {
+    margin: calc(4 * $pixel) 0;
+    text-align: center;
+    font-style: italic;
+  }
+
   form {
     display: flex;
     flex-direction: column;

@@ -250,7 +250,10 @@ function Post({
           </button>
         )}
         {excludeForum && post.forum.id !== 1 && (
-          <button onClick={() => excludeForum(post.forum.id)}>
+          <button
+            className="filter"
+            onClick={() => excludeForum(post.forum.id)}
+          >
             filter flyers from {post.forum.name}
           </button>
         )}

@@ -31,12 +31,12 @@ div.threads-container {
       margin-bottom: calc(2 * $pixel);
 
       button.message, button.mark-read {
-        font-size: calc(10 * $pixel);
+        font-size: $extra-small-font;
         background: $white;
         width: calc(160 * $pixel);
 
         @media (width < 100dvh) {
-          font-size: calc(11 * $pixel);
+          font-size: $mobile-extra-small-font;
         }
       }
 

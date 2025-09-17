@@ -63,7 +63,7 @@ div.modal-container {
             font-size: calc(12 * $pixel);
 
             @media (width < 100dvh) {
-              font-size: calc(13 * $pixel);
+              font-size: $mobile-small-font;
             }
           }
         }
@@ -74,12 +74,12 @@ div.modal-container {
           left: 0;
           background: $overlay-dark;
           color: $white;
-          font-size: calc(8 * $pixel);
+          font-size: $label-font;
           padding: calc(1 * $pixel);
           border-radius: calc(1 * $pixel);
 
           @media (width < 100dvh) {
-            font-size: calc(10 * $pixel);
+            font-size: $mobile-label-font;
           }
 
           &.false {

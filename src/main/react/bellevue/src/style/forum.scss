@@ -32,15 +32,16 @@ div.page {
             border-radius: calc(4 * $pixel);
 
             @media (width < 100dvh) {
-              font-size: calc(13 * $pixel);
+              font-size: $mobile-small-font;
+              width: 96%;
             }
 
             &.forum-count {
-              top: calc(14 * $pixel);
-              font-size: calc(10 * $pixel);
+              top: calc(50% + 12 * $pixel);
+              font-size: $extra-small-font;
 
               @media (width < 100dvh) {
-                font-size: calc(11 * $pixel);
+                font-size: $mobile-extra-small-font;
               }
             }
           }
@@ -97,11 +98,11 @@ div.page {
                 z-index: 1;
                 background: $overlay-dark;
                 color: $white;
-                font-size: calc(8 * $pixel);
+                font-size: $label-font;
                 border-radius: calc(2 * $pixel);
 
                 @media (width < 100dvh) {
-                  font-size: calc(10 * $pixel);
+                  font-size: $mobile-label-font;
                 }
               }
             }
@@ -116,6 +117,10 @@ div.page {
         height: calc(20 * $pixel);
         width: 96%;
         overflow-x: auto;
+
+        @media (width < 100dvh) {
+          display: none;
+        }
 
         p {
           line-height: normal;

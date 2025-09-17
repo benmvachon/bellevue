@@ -47,7 +47,7 @@ div.profile-page {
         width: calc(504 * $pixel);
 
         @media (width < 100dvh) {
-          font-size: calc(13 * $pixel);
+          font-size: $mobile-small-font;
         }
       }
     }
@@ -88,7 +88,7 @@ div.profile-page {
           font-style: italic;
 
           @media (width < 100dvh) {
-            font-size: calc(13 * $pixel);
+            font-size: $mobile-small-font;
           }
 
           &.active {
@@ -109,17 +109,17 @@ div.profile-page {
         text-align: center;
 
         @media (width < 100dvh) {
-          font-size: calc(13 * $pixel);
+          font-size: $mobile-small-font;
         }
       }
 
       span.self-indication {
-        font-size: calc(10 * $pixel);
+        font-size: $extra-small-font;
         text-align: center;
         font-style: italic;
 
         @media (width < 100dvh) {
-          font-size: calc(11 * $pixel);
+          font-size: $mobile-extra-small-font;
         }
       }
 
@@ -160,11 +160,11 @@ div.profile-page {
               z-index: 1;
               background: $overlay-dark;
               color: $white;
-              font-size: calc(8 * $pixel);
+              font-size: $label-font;
               border-radius: calc(2 * $pixel);
 
               @media (width < 100dvh) {
-                font-size: calc(10 * $pixel);
+                font-size: $mobile-label-font;
               }
             }
           }

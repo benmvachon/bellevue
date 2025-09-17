@@ -38,11 +38,11 @@ html {
   align-items: center;
   justify-content: center;
   background: $black;
-  font-size: calc(10 * $pixel);
+  font-size: $extra-small-font;
   color: $black;
 
   @media (width < 100dvh) {
-    font-size: calc(11 * $pixel);
+    font-size: $mobile-extra-small-font;
   }
 
   body {
@@ -52,28 +52,28 @@ html {
       background: $white;
       resize: none;
       font-family: 'pixel', monospace;
-      font-size: calc(10 * $pixel);
+      font-size: $extra-small-font;
       border: calc(2 * $pixel) solid $black;
       outline: none;
       box-shadow: inset calc(1 * $pixel) calc(1 * $pixel) calc(1 * $pixel) $overlay-medium;
       border-radius: 0;
 
       @media (width < 100dvh) {
-        font-size: calc(11 * $pixel);
+        font-size: $mobile-extra-small-font;
       }
     }
 
     input {
       background: $white;
       font-family: 'pixel', monospace;
-      font-size: calc(10 * $pixel);
+      font-size: $extra-small-font;
       border: calc(2 * $pixel) solid $black;
       outline: none;
       box-shadow: inset calc(1 * $pixel) calc(1 * $pixel) calc(1 * $pixel) $overlay-medium;
       border-radius: 0;
 
       @media (width < 100dvh) {
-        font-size: calc(11 * $pixel);
+        font-size: $mobile-extra-small-font;
       }
     }
 
