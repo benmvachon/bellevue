@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import withAuth from '../utils/withAuth.js';
 import { useAuth } from '../utils/AuthContext';
@@ -16,21 +16,26 @@ import {
   onFriendshipStatusUpdate,
   unsubscribeFriendshipStatus
 } from '../api/api.js';
-import asPage from '../utils/asPage.js';
 import ImageButton from '../components/ImageButton.js';
 import FavoriteButton from '../components/FavoriteButton.js';
 import ConfirmationDialog from '../components/ConfirmationDialog.js';
 
-function ProfilePage({ openMessages }) {
+function ProfilePage() {
   const { id } = useParams();
   const { userId } = useAuth();
   const navigate = useNavigate();
+  const { setClassName, setMapSlider, openMessages } = useOutletContext();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const [blackboard, setBlackboard] = useState('');
   const [showConfirmationDialog, setShowConfirmationDialog] = useState(false);
   const debounceTimeout = useRef(null);
+
+  useEffect(() => {
+    setClassName('profile-page');
+    setMapSlider(true);
+  });
 
   useEffect(() => {
     onProfileUpdate(id, (message) => {
@@ -242,4 +247,4 @@ ProfilePage.propTypes = {
 
 ProfilePage.displayName = 'ProfilePage';
 
-export default withAuth(asPage(ProfilePage, 'profile-page'));
+export default withAuth(ProfilePage);

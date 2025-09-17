@@ -3,16 +3,21 @@
 div.page.signup-page, div.page.login-page {
   background: $manila;
 
-  form {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: calc(4 * $pixel);
+  div.page-contents {
+    width: 100%;
+    margin-left: 0;
 
-    div.section {
+    form {
       display: flex;
-      justify-content: space-between;
-      width: 100%;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: calc(4 * $pixel);
+
+      div.section {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+      }
     }
   }
 }

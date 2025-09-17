@@ -1,8 +1,15 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import withAuth from '../utils/withAuth.js';
-import asPage from '../utils/asPage.js';
 
 function ErrorPage() {
+  const { setClassName, setMapSlider } = useOutletContext();
+
+  useEffect(() => {
+    setClassName('error-page');
+    setMapSlider(true);
+  });
+
   return (
     <div className="page-contents">
       <h1>ERROR</h1>
@@ -16,4 +23,4 @@ function ErrorPage() {
 
 ErrorPage.displayName = 'ErrorPage';
 
-export default withAuth(asPage(ErrorPage, 'error-page'));
+export default withAuth(ErrorPage);

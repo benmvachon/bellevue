@@ -1,16 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useOutletContext, useParams } from 'react-router-dom';
 import withAuth from '../utils/withAuth.js';
 import { getPost } from '../api/api.js';
 import Post from '../components/Post.js';
 import PostObject from '../api/Post.js';
-import asPage from '../utils/asPage.js';
 
 function PostPage() {
   const { id } = useParams();
+  const { setClassName, setMapSlider } = useOutletContext();
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+
+  useEffect(() => {
+    setClassName('post-page');
+    setMapSlider(true);
+  });
 
   useEffect(() => {
     setLoading(true);
@@ -76,4 +81,4 @@ function PostPage() {
 
 PostPage.displayName = 'PostPage';
 
-export default withAuth(asPage(PostPage, 'post-page'));
+export default withAuth(PostPage);

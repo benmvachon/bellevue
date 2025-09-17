@@ -1,12 +1,17 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import withAuth from '../utils/withAuth.js';
-import asPage from '../utils/asPage.js';
 import SuggestedFriendsMap from '../components/SuggestedFriendsMap.js';
 import ImageButton from '../components/ImageButton.js';
 
 function SuggestedFriendsMapPage() {
   const navigate = useNavigate();
+  const { setClassName, setMapSlider } = useOutletContext();
+
+  useEffect(() => {
+    setClassName('map-page');
+    setMapSlider(false);
+  });
 
   return (
     <div className="map-slider">
@@ -30,4 +35,4 @@ SuggestedFriendsMapPage.displayName = 'SuggestedFriendsMapPage';
 
 SuggestedFriendsMapPage.propTypes = {};
 
-export default withAuth(asPage(SuggestedFriendsMapPage, 'map-page', false));
+export default withAuth(SuggestedFriendsMapPage);

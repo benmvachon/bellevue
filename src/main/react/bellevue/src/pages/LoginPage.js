@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import { useAuth } from '../utils/AuthContext';
-import NoAuthHeader from '../components/NoAuthHeader';
 
 function LoginPage() {
   const navigate = useNavigate();
@@ -10,6 +9,12 @@ function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  const { setClassName } = useOutletContext();
+
+  useEffect(() => {
+    setClassName('login-page');
+  });
 
   useEffect(() => {
     if (isAuthenticated) handleLogout();
@@ -32,8 +37,7 @@ function LoginPage() {
   };
 
   return (
-    <div className="page login-page">
-      <NoAuthHeader />
+    <div className="page-contents">
       <h1>Login</h1>
       <form onSubmit={onSubmit}>
         <div>

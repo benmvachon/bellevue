@@ -1,5 +1,10 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import {
+  useNavigate,
+  useOutletContext,
+  useParams,
+  useSearchParams
+} from 'react-router-dom';
 import { useAuth } from '../utils/AuthContext.js';
 import withAuth from '../utils/withAuth.js';
 import {
@@ -16,7 +21,6 @@ import {
 import { updateSearchParams } from '../utils/updateSearchParams.js';
 import ExcludedForums from '../components/ExcludedForums.js';
 import PostsList from '../components/PostsList.js';
-import asPage from '../utils/asPage.js';
 import ForumForm from '../components/ForumForm.js';
 import Forum from '../components/Forum.js';
 import FavoriteButton from '../components/FavoriteButton.js';
@@ -27,6 +31,7 @@ function ForumPage() {
   const { id = '1' } = useParams();
   const { userId } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { setClassName, setMapSlider } = useOutletContext();
   const [forum, setForum] = useState(null);
   const [sortByPopular, setSortByPopular] = useState(
     searchParams.get('popular') === 'true'
@@ -43,6 +48,11 @@ function ForumPage() {
   const [onConfirm, setOnConfirm] = useState(() => {});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+
+  useEffect(() => {
+    setClassName('forum-page');
+    setMapSlider(true);
+  });
 
   useEffect(() => {
     if (id) {
@@ -263,4 +273,4 @@ function ForumPage() {
 
 ForumPage.displayName = 'ForumPage';
 
-export default withAuth(asPage(ForumPage, 'forum-page'));
+export default withAuth(ForumPage);

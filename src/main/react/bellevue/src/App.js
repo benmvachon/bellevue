@@ -11,6 +11,7 @@ import FriendsMapPage from './pages/FriendsMapPage.js';
 import SuggestedFriendsMapPage from './pages/SuggestedFriendsMapPage.js';
 import FriendsOfFriendsMapPage from './pages/FriendsOfFriendsMapPage.js';
 import ErrorPage from './pages/ErrorPage.js';
+import { AuthLayout, NoAuthLayout } from './utils/Layout.js';
 
 function App() {
   return (
@@ -18,20 +19,27 @@ function App() {
       <Router>
         <LocationProvider>
           <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/signup" element={<SignupPage />} />
-            <Route path="/" element={<ForumPage />} />
-            <Route path="/home/:id" element={<ProfilePage />} />
-            <Route path="/town/:id" element={<ForumPage />} />
-            <Route path="/flyer/:id" element={<PostPage />} />
-            <Route path="/map/town" element={<ForumMapPage />} />
-            <Route path="/map/neighborhood" element={<FriendsMapPage />} />
-            <Route path="/map/suburbs" element={<SuggestedFriendsMapPage />} />
-            <Route
-              path="/map/neighborhood/:id"
-              element={<FriendsOfFriendsMapPage />}
-            />
-            <Route path="/*" element={<ErrorPage />} />
+            <Route element={<NoAuthLayout />}>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/signup" element={<SignupPage />} />
+            </Route>
+            <Route element={<AuthLayout />}>
+              <Route path="/" element={<ForumPage />} />
+              <Route path="/home/:id" element={<ProfilePage />} />
+              <Route path="/town/:id" element={<ForumPage />} />
+              <Route path="/flyer/:id" element={<PostPage />} />
+              <Route path="/map/town" element={<ForumMapPage />} />
+              <Route path="/map/neighborhood" element={<FriendsMapPage />} />
+              <Route
+                path="/map/suburbs"
+                element={<SuggestedFriendsMapPage />}
+              />
+              <Route
+                path="/map/neighborhood/:id"
+                element={<FriendsOfFriendsMapPage />}
+              />
+              <Route path="/*" element={<ErrorPage />} />
+            </Route>
           </Routes>
         </LocationProvider>
       </Router>

@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import { useAuth } from '../utils/AuthContext';
 import { signup } from '../api/api.js';
-import NoAuthHeader from '../components/NoAuthHeader.js';
 
 function SignupPage() {
   const navigate = useNavigate();
@@ -13,6 +12,12 @@ function SignupPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  const { setClassName } = useOutletContext();
+
+  useEffect(() => {
+    setClassName('signup-page');
+  });
 
   useEffect(() => {
     if (isAuthenticated) handleLogout();
@@ -48,8 +53,7 @@ function SignupPage() {
   };
 
   return (
-    <div className="page signup-page">
-      <NoAuthHeader />
+    <div className="page-contents">
       <h1>Signup</h1>
       <form onSubmit={onSubmit}>
         <div className="section">
