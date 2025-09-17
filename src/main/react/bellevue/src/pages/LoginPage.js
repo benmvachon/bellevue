@@ -45,6 +45,7 @@ function LoginPage() {
             onChange={(e) => setUsername(e.target.value)}
             required
             disabled={loading}
+            autoComplete="off"
           />
         </div>
         <div>
@@ -56,6 +57,7 @@ function LoginPage() {
             onChange={(e) => setPassword(e.target.value)}
             required
             disabled={loading}
+            autoComplete="off"
           />
         </div>
         {error && <p style={{ color: 'red' }}>{error}</p>}

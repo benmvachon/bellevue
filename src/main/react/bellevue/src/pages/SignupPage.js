@@ -52,7 +52,7 @@ function SignupPage() {
       <NoAuthHeader />
       <h1>Signup</h1>
       <form onSubmit={onSubmit}>
-        <div>
+        <div className="section">
           <label htmlFor="name">name:</label>
           <input
             type="text"
@@ -61,20 +61,10 @@ function SignupPage() {
             onChange={(e) => setName(e.target.value)}
             required
             disabled={loading}
+            autoComplete="off"
           />
         </div>
-        <div>
-          <label htmlFor="username">username:</label>
-          <input
-            type="text"
-            id="username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-            disabled={loading}
-          />
-        </div>
-        <div>
+        <div className="section">
           <label htmlFor="password">email:</label>
           <input
             type="email"
@@ -83,9 +73,22 @@ function SignupPage() {
             onChange={(e) => setEmail(e.target.value)}
             required
             disabled={loading}
+            autoComplete="off"
           />
         </div>
-        <div>
+        <div className="section">
+          <label htmlFor="username">username:</label>
+          <input
+            type="text"
+            id="username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+            disabled={loading}
+            autoComplete="off"
+          />
+        </div>
+        <div className="section">
           <label htmlFor="password">password:</label>
           <input
             type="password"
@@ -94,6 +97,7 @@ function SignupPage() {
             onChange={(e) => setPassword(e.target.value)}
             required
             disabled={loading}
+            autoComplete="off"
           />
         </div>
         {error && <p style={{ color: 'red' }}>{error}</p>}

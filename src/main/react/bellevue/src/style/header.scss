@@ -23,7 +23,9 @@ div.header {
 
   &.no-auth {
     button {
-        background: $white;
+      span {
+        top: calc(4 * $pixel);
+      }
     }
   }
 }
