@@ -136,6 +136,12 @@ div.profile-page {
           width: calc(200 * $pixel);
         }
 
+        p {
+          width: 100%;
+          text-align: center;
+          font-style: italic;
+        }
+
         button {
           width: 100%;
 

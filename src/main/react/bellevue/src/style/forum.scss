@@ -60,10 +60,12 @@ div.page {
 
           p {
             text-align: center;
+            margin: calc(2 * $pixel);
           }
 
           div.forum-buttons {
             display: flex;
+            flex-direction: column;
             justify-content: space-evenly;
             width: 100%;
 
@@ -72,6 +74,7 @@ div.page {
               flex-direction: column;
               justify-content: space-evenly;
               align-items: center;
+              margin-bottom: calc(2 * $pixel);
 
               button {
                 width: calc(256 * $pixel);
@@ -87,22 +90,28 @@ div.page {
               }
             }
 
-            button.notepad {
-              width: calc(64 * $pixel);
+            div.image-forum-buttons {
+              display: flex;
+              justify-content: space-evenly;
+              align-items: center;
 
-              span {
-                width: 100%;
-                position: absolute;
-                top: 0;
-                left: 0;
-                z-index: 1;
-                background: $overlay-dark;
-                color: $white;
-                font-size: $label-font;
-                border-radius: calc(2 * $pixel);
+              button.image-button {
+                width: calc(64 * $pixel);
 
-                @media (width < 100dvh) {
-                  font-size: $mobile-label-font;
+                span {
+                  width: 100%;
+                  position: absolute;
+                  top: 0;
+                  left: 0;
+                  z-index: 1;
+                  background: $overlay-dark;
+                  color: $white;
+                  font-size: $label-font;
+                  border-radius: calc(2 * $pixel);
+
+                  @media (width < 100dvh) {
+                    font-size: $mobile-label-font;
+                  }
                 }
               }
             }

@@ -25,6 +25,7 @@ import ForumForm from '../components/ForumForm.js';
 import Forum from '../components/Forum.js';
 import FavoriteButton from '../components/FavoriteButton.js';
 import ConfirmationDialog from '../components/ConfirmationDialog.js';
+import ImageButton from '../components/ImageButton.js';
 
 function ForumPage() {
   const navigate = useNavigate();
@@ -183,19 +184,21 @@ function ForumPage() {
                 {forum.unreadCount > 0 && (
                   <button onClick={markRead}>mark read</button>
                 )}
-                <button
-                  onClick={toggleNotifications}
-                >{`turn ${forum.notify ? 'off' : 'on'} notifications`}</button>
+              </div>
+              <div className="image-forum-buttons">
+                <ImageButton name="newspaper" onClick={toggleNotifications}>
+                  <span>{forum.notify ? 'dont notify' : 'notify'}</span>
+                </ImageButton>
                 {id === '1' && (
-                  <button onClick={toggleFilterAll}>
-                    {onlyTownHallPosts
-                      ? 'show all flyers'
-                      : 'show only Town Hall flyers'}
-                  </button>
+                  <ImageButton name="townhall" onClick={toggleFilterAll}>
+                    <span>
+                      {onlyTownHallPosts ? 'show all' : 'Town Hall only'}
+                    </span>
+                  </ImageButton>
                 )}
                 {forum?.custom && forum?.user?.id !== userId && (
-                  <button
-                    className="delete"
+                  <ImageButton
+                    name="move-out"
                     onClick={() => {
                       setOnConfirm(() => {
                         return removeAccess;
@@ -203,17 +206,20 @@ function ForumPage() {
                       setShowConfirmationDialog(true);
                     }}
                   >
-                    leave building
-                  </button>
+                    <span>leave</span>
+                  </ImageButton>
                 )}
                 {forum?.user?.id === userId && (
-                  <button onClick={() => setShowForumForm(true)}>
-                    edit building
-                  </button>
+                  <ImageButton
+                    name="custom-building"
+                    onClick={() => setShowForumForm(true)}
+                  >
+                    <span>edit</span>
+                  </ImageButton>
                 )}
                 {forum?.user?.id === userId && (
-                  <button
-                    className="delete"
+                  <ImageButton
+                    name="bulldozer"
                     onClick={() => {
                       setOnConfirm(() => {
                         return handleDelete;
@@ -221,16 +227,16 @@ function ForumPage() {
                       setShowConfirmationDialog(true);
                     }}
                   >
-                    delete building
-                  </button>
+                    <span>delete</span>
+                  </ImageButton>
                 )}
+                <FavoriteButton
+                  favorited={forum.favorite}
+                  onClick={() => {
+                    forum.favorite ? unfavorite() : favorite();
+                  }}
+                />
               </div>
-              <FavoriteButton
-                favorited={forum.favorite}
-                onClick={() => {
-                  forum.favorite ? unfavorite() : favorite();
-                }}
-              />
             </div>
           </div>
         </div>

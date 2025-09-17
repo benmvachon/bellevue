@@ -99,13 +99,13 @@ function ProfilePage() {
       break;
     case 'ACCEPTED':
       buttons.push(
-        <button
+        <ImageButton
+          name="move-out"
           onClick={() => setShowConfirmationDialog(true)}
           key="remove"
-          className="remove"
         >
-          remove
-        </button>
+          <span>remove</span>
+        </ImageButton>
       );
       buttons.push(
         <ImageButton
@@ -130,9 +130,13 @@ function ProfilePage() {
       break;
     case 'PENDING_YOU':
       buttons.push(
-        <button onClick={() => acceptFriend(id, refresh)} key="accept">
-          accept
-        </button>
+        <ImageButton
+          name="move-in"
+          onClick={() => acceptFriend(id, refresh)}
+          key="accept"
+        >
+          <span>accept</span>
+        </ImageButton>
       );
       buttons.push(
         <ImageButton name="map" onClick={openMap} className="map">
@@ -141,7 +145,7 @@ function ProfilePage() {
       );
       break;
     case 'PENDING_THEM':
-      buttons.push(<button key="pending">request pending</button>);
+      buttons.push(<p key="pending">request pending</p>);
       buttons.push(
         <ImageButton name="map" onClick={openMap} className="map">
           <span>neighbors</span>
@@ -150,13 +154,14 @@ function ProfilePage() {
       break;
     default:
       buttons.push(
-        <button
+        <ImageButton
+          name="move-in"
           onClick={() => requestFriend(id, refresh)}
           key="request"
           className="request"
         >
-          request
-        </button>
+          <span>request</span>
+        </ImageButton>
       );
       buttons.push(
         <ImageButton name="map" onClick={openMap} className="map">
