@@ -71,16 +71,13 @@ function ProfilePage() {
         setProfile(profile);
         setLoading(false);
       },
-      (error) => {
-        setError(error);
-        setLoading(false);
-      }
+      () => navigate('/error')
     );
     return () => {
       unsubscribeProfile(id);
       unsubscribeFriendshipStatus(id);
     };
-  }, [id]);
+  }, [navigate, id]);
 
   useEffect(() => {
     if (profile) setBlackboard(profile.blackboard || '');

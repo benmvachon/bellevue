@@ -92,13 +92,10 @@ function ForumPage() {
           setForum(forum);
           setLoading(false);
         },
-        (error) => {
-          setError(error);
-          setLoading(false);
-        }
+        () => navigate('/error')
       );
     }
-  }, [id]);
+  }, [navigate, id]);
 
   const favorite = () => {
     setError(false);

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useOutletContext, useParams } from 'react-router-dom';
+import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import withAuth from '../utils/withAuth.js';
 import { getPost } from '../api/api.js';
 import Post from '../components/Post.js';
@@ -7,6 +7,7 @@ import PostObject from '../api/Post.js';
 
 function PostPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { setClassName, setMapSlider, pushAlert } = useOutletContext();
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -42,12 +43,9 @@ function PostPage() {
           setPost(post);
           setLoading(false);
         },
-        (error) => {
-          setError(error);
-          setLoading(false);
-        }
+        () => navigate('/error')
       );
-  }, [id]);
+  }, [navigate, id]);
 
   if (loading) return <p>Loading...</p>;
 
