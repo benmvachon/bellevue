@@ -7,12 +7,12 @@ import ImageButton from '../components/ImageButton.js';
 
 function ForumMapPage({ setShowForumForm }) {
   const navigate = useNavigate();
-  const { setClassName, setMapSlider } = useOutletContext();
+  const outletContext = useOutletContext();
 
   useEffect(() => {
-    setClassName('forum-map-page');
-    setMapSlider(false);
-  }, [setClassName, setMapSlider]);
+    outletContext.setClassName('forum-map-page');
+    outletContext.setMapSlider(false);
+  }, [outletContext]);
 
   return (
     <div className="map-slider">
@@ -20,7 +20,11 @@ function ForumMapPage({ setShowForumForm }) {
         <div className="custom-building-container">
           <ImageButton
             name="custom-building"
-            onClick={() => setShowForumForm(true)}
+            onClick={() =>
+              outletContext
+                ? outletContext.setShowForumForm(true)
+                : setShowForumForm(true)
+            }
           >
             <span className="custom-button-label">New Building</span>
           </ImageButton>
@@ -28,7 +32,7 @@ function ForumMapPage({ setShowForumForm }) {
         <button className="back" disabled onClick={() => {}}>
           &lt;
         </button>
-        <ForumsMap setShowForumForm={setShowForumForm} />
+        <ForumsMap />
         <button className="forth" onClick={() => navigate('/map/neighborhood')}>
           &gt;
         </button>
