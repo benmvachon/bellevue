@@ -156,12 +156,17 @@ div.page {
 
       @media (width < 100dvh) {
         width: calc(504 * $pixel);
+        height: calc(496 * $pixel);
       }
 
       div.posts {
         display: flex;
         flex-direction: column;
         height: calc(416 * $pixel);
+
+        @media (width < 100dvh) {
+          height: calc(436 * $pixel);
+        }
 
         div.posts-header {
           height: calc(112 * $pixel);
@@ -188,6 +193,10 @@ div.page {
 
         div.scroll-loader.top-level-posts {
             height: calc(304 * $pixel);
+
+            @media (width < 100dvh) {
+              height: calc(384 * $pixel);
+            }
         }
       }
     }
