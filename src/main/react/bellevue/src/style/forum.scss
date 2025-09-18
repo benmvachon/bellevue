@@ -163,6 +163,7 @@ div.page {
         display: flex;
         flex-direction: column;
         height: calc(416 * $pixel);
+        overflow: hidden;
 
         @media (width < 100dvh) {
           height: calc(436 * $pixel);
