@@ -199,7 +199,7 @@ function Messages({
         </button>
         <textarea
           name="new-message"
-          placeholder="new message..."
+          placeholder={friendId === 0 ? 'no replies' : 'new message...'}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
