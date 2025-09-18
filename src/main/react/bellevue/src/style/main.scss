@@ -50,6 +50,10 @@ html {
   body {
     font-family: 'pixel', monospace;
 
+    @media (width < 72dvh) {
+      transform: scaleY(1.1);
+    }
+
     textarea {
       background: $white;
       resize: none;
@@ -76,21 +80,6 @@ html {
 
       @media (width < 100dvh) {
         font-size: $mobile-extra-small-font;
-      }
-    }
-
-    div.equipment-container {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-
-      div.equipment {
-        overflow-y: auto;
-
-        div.item {
-          display: flex;
-          justify-content: space-evenly;
-        }
       }
     }
   }
