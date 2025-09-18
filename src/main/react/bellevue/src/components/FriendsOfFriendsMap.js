@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { getFriends, getProfile } from '../api/api.js';
 import Page from '../components/Page.js';
@@ -7,10 +7,27 @@ import ImageButton from './ImageButton.js';
 
 function FriendsOfFriendsMap({ id }) {
   const navigate = useNavigate();
+  const { pushAlert } = useOutletContext();
   const [friend, setFriend] = useState(undefined);
   const [friends, setFriends] = useState(undefined);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+
+  useEffect(() => {
+    if (error) {
+      pushAlert({
+        key: JSON.stringify(error),
+        type: 'error',
+        content: (
+          <div>
+            <h3>Error: {error.code}</h3>
+            <p>{error.message}</p>
+          </div>
+        )
+      });
+      setError(false);
+    }
+  }, [pushAlert, error]);
 
   useEffect(() => {
     setLoading(true);
@@ -57,8 +74,6 @@ function FriendsOfFriendsMap({ id }) {
   const profileClick = (id) => {
     navigate('/home/' + id);
   };
-
-  if (error) return JSON.stringify(error);
 
   return (
     <div className="friends friends-of-friends">

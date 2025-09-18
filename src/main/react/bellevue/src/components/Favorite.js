@@ -1,13 +1,32 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { getForum, getPost, getProfile } from '../api/api.js';
 
-function Favorites({ favorite }) {
+function Favorite({ favorite, pushAlert }) {
   const navigate = useNavigate();
+  const outletContext = useOutletContext();
   const [entity, setEntity] = useState(undefined);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+
+  useEffect(() => {
+    if (error) {
+      let func = pushAlert;
+      if (outletContext) func = outletContext.pushAlert;
+      func({
+        key: JSON.stringify(error),
+        type: 'error',
+        content: (
+          <div>
+            <h3>Error: {error.code}</h3>
+            <p>{error.message}</p>
+          </div>
+        )
+      });
+      setError(false);
+    }
+  }, [outletContext, pushAlert, error]);
 
   useEffect(() => {
     setLoading(true);
@@ -68,8 +87,6 @@ function Favorites({ favorite }) {
     }
   };
 
-  if (error) return JSON.stringify(error);
-
   return (
     <div className="favorite">
       {loading ? (
@@ -83,10 +100,11 @@ function Favorites({ favorite }) {
   );
 }
 
-Favorites.propTypes = {
-  favorite: PropTypes.object.isRequired
+Favorite.propTypes = {
+  favorite: PropTypes.object.isRequired,
+  pushAlert: PropTypes.func.isRequired
 };
 
-Favorites.displayName = 'Favorites';
+Favorite.displayName = 'Favorite';
 
-export default Favorites;
+export default Favorite;

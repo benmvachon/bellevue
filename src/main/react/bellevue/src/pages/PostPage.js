@@ -7,7 +7,7 @@ import PostObject from '../api/Post.js';
 
 function PostPage() {
   const { id } = useParams();
-  const { setClassName, setMapSlider } = useOutletContext();
+  const { setClassName, setMapSlider, pushAlert } = useOutletContext();
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -15,7 +15,23 @@ function PostPage() {
   useEffect(() => {
     setClassName('post-page');
     setMapSlider(true);
-  });
+  }, [setClassName, setMapSlider]);
+
+  useEffect(() => {
+    if (error) {
+      pushAlert({
+        key: JSON.stringify(error),
+        type: 'error',
+        content: (
+          <div>
+            <h3>Error: {error.code}</h3>
+            <p>{error.message}</p>
+          </div>
+        )
+      });
+      setError(false);
+    }
+  }, [pushAlert, error]);
 
   useEffect(() => {
     setLoading(true);
@@ -33,7 +49,6 @@ function PostPage() {
       );
   }, [id]);
 
-  if (error) return JSON.stringify(error);
   if (loading) return <p>Loading...</p>;
 
   const parentFuncs = [];

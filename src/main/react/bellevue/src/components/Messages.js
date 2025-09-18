@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { useAuth } from '../utils/AuthContext.js';
 import {
@@ -16,9 +16,16 @@ import Modal from './Modal.js';
 import Avatar from './Avatar.js';
 import Message from './Message.js';
 
-function Messages({ show = false, friendId, onClose, setShowThreads }) {
+function Messages({
+  show = false,
+  friendId,
+  onClose,
+  setShowThreads,
+  pushAlert
+}) {
   const { userId } = useAuth();
   const navigate = useNavigate();
+  const outletContext = useOutletContext();
   const [messages, setMessages] = useState([]);
   const [totalMessages, setTotalMessages] = useState(0);
   const [message, setMessage] = useState('');
@@ -28,15 +35,35 @@ function Messages({ show = false, friendId, onClose, setShowThreads }) {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    onMessage(friendId, (event) => {
-      setTotalMessages(totalMessages + 1);
-      setMessages(messages.concat([event.message]));
-    });
-    return () => {
-      unsubscribeMessage(friendId);
-    };
+    if (error) {
+      let func = pushAlert;
+      if (outletContext) func = outletContext.pushAlert;
+      func({
+        key: JSON.stringify(error),
+        type: 'error',
+        content: (
+          <div>
+            <h3>Error: {error.code}</h3>
+            <p>{error.message}</p>
+          </div>
+        )
+      });
+      setError(false);
+    }
+  }, [outletContext, pushAlert, error]);
+
+  useEffect(() => {
+    if (show && friendId) {
+      onMessage(friendId, (event) => {
+        setTotalMessages(totalMessages + 1);
+        setMessages(messages.concat([event.message]));
+      });
+      return () => {
+        unsubscribeMessage(friendId);
+      };
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [friendId, messages]);
+  }, [friendId, messages, show]);
 
   useEffect(() => {
     const sentOrReceived = (message) => {
@@ -129,8 +156,6 @@ function Messages({ show = false, friendId, onClose, setShowThreads }) {
     onClose();
     setShowThreads(true);
   };
-
-  if (error) return JSON.stringify(error);
 
   return (
     <Modal className="messages-container" show={show} onClose={onClose}>
@@ -226,7 +251,8 @@ Messages.propTypes = {
   show: PropTypes.bool,
   friendId: PropTypes.number.isRequired,
   onClose: PropTypes.func.isRequired,
-  setShowThreads: PropTypes.func.isRequired
+  setShowThreads: PropTypes.func.isRequired,
+  pushAlert: PropTypes.func
 };
 
 Messages.displayName = 'Messages';

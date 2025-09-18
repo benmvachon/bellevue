@@ -20,6 +20,7 @@
 @import './confirmation-dialog';
 @import './error';
 @import './signup';
+@import './alert';
 
 @font-face {
   font-family: 'pixel';
@@ -93,4 +94,24 @@ html {
       }
     }
   }
+}
+
+h1 {
+  font-size: $extra-large-font;
+  margin: calc(12 * $pixel);
+}
+
+h2 {
+  font-size: $header-font;
+  margin: calc(8 * $pixel);
+}
+
+h3 {
+  font-size: $large-font;
+  margin: calc(4 * $pixel);
+}
+
+h4 {
+  font-size: $medium-font;
+  margin: calc(4 * $pixel);
 }

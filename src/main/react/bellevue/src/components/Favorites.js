@@ -1,14 +1,34 @@
 import React, { useEffect, useState } from 'react';
+import { useOutletContext } from 'react-router';
 import PropTypes from 'prop-types';
 import { getFavorites } from '../api/api.js';
 import Page from './Page.js';
 import Modal from './Modal.js';
 import Favorite from './Favorite.js';
 
-function Favorites({ show = false, onClose }) {
+function Favorites({ show = false, onClose, pushAlert }) {
+  const outletContext = useOutletContext();
   const [favorites, setFavorites] = useState(undefined);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+
+  useEffect(() => {
+    if (error) {
+      let func = pushAlert;
+      if (outletContext) func = outletContext.pushAlert;
+      func({
+        key: JSON.stringify(error),
+        type: 'error',
+        content: (
+          <div>
+            <h3>Error: {error.code}</h3>
+            <p>{error.message}</p>
+          </div>
+        )
+      });
+      setError(false);
+    }
+  }, [outletContext, pushAlert, error]);
 
   useEffect(() => {
     if (show) {
@@ -30,8 +50,6 @@ function Favorites({ show = false, onClose }) {
     getFavorites(setFavorites, setError, page);
   };
 
-  if (error) return JSON.stringify(error);
-
   return (
     <Modal className="favorites-container" show={show} onClose={onClose}>
       {loading ? (
@@ -42,7 +60,11 @@ function Favorites({ show = false, onClose }) {
             <Page
               page={favorites}
               renderItem={(favorite) => (
-                <Favorite favorite={favorite} key={`favorite-${favorite.id}`} />
+                <Favorite
+                  favorite={favorite}
+                  key={`favorite-${favorite.id}`}
+                  pushAlert={pushAlert}
+                />
               )}
               loadPage={loadPage}
               reverse
@@ -62,7 +84,8 @@ function Favorites({ show = false, onClose }) {
 Favorites.propTypes = {
   show: PropTypes.bool,
   friend: PropTypes.number.isRequired,
-  onClose: PropTypes.func.isRequired
+  onClose: PropTypes.func.isRequired,
+  pushAlert: PropTypes.func.isRequired
 };
 
 Favorites.displayName = 'Favorites';

@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import { useAuth } from '../utils/AuthContext.js';
 import {
   markNotificationRead,
@@ -10,11 +10,30 @@ import {
 } from '../api/api.js';
 import Avatar from './Avatar.js';
 
-function Notification({ notification, onClose, openMessages }) {
+function Notification({ notification, onClose, openMessages, pushAlert }) {
   const navigate = useNavigate();
+  const outletContext = useOutletContext();
   const { userId } = useAuth();
   const [stateNotification, setNotification] = useState(notification);
   const [error, setError] = useState(false);
+
+  useEffect(() => {
+    if (error) {
+      let func = pushAlert;
+      if (outletContext) func = outletContext.pushAlert;
+      func({
+        key: JSON.stringify(error),
+        type: 'error',
+        content: (
+          <div>
+            <h3>Error: {error.code}</h3>
+            <p>{error.message}</p>
+          </div>
+        )
+      });
+      setError(false);
+    }
+  }, [outletContext, pushAlert, error]);
 
   useEffect(() => {
     if (stateNotification) {
@@ -92,7 +111,6 @@ function Notification({ notification, onClose, openMessages }) {
     }
   };
 
-  if (error) return JSON.stringify(error);
   if (!stateNotification) return;
 
   return (
@@ -104,6 +122,7 @@ function Notification({ notification, onClose, openMessages }) {
             : stateNotification.notifier?.id
         }
         userProp={stateNotification.notifier}
+        pushAlert={outletContext ? outletContext.pushAlert : pushAlert}
       />
       <button className="notification-button" onClick={notificationClick}>
         {getNotificationText()}
@@ -122,7 +141,8 @@ function Notification({ notification, onClose, openMessages }) {
 Notification.propTypes = {
   notification: PropTypes.object.isRequired,
   onClose: PropTypes.func.isRequired,
-  openMessages: PropTypes.func.isRequired
+  openMessages: PropTypes.func.isRequired,
+  pushAlert: PropTypes.func
 };
 
 Notification.displayName = 'Notification';

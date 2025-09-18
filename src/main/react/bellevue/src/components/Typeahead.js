@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import PropTypes from 'prop-types';
 
 const Typeahead = ({
@@ -10,8 +11,10 @@ const Typeahead = ({
   className,
   name = 'typeahead',
   placeholder,
-  multiselect = false
+  multiselect = false,
+  pushAlert
 }) => {
+  const outletContext = useOutletContext();
   const [query, setQuery] = useState('');
   const [options, setOptions] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -22,6 +25,24 @@ const Typeahead = ({
   const dropdownRef = useRef();
   const timeoutRef = useRef();
   const itemRefs = useRef([]);
+
+  useEffect(() => {
+    if (error) {
+      let func = pushAlert;
+      if (outletContext) func = outletContext.pushAlert;
+      func({
+        key: JSON.stringify(error),
+        type: 'error',
+        content: (
+          <div>
+            <h3>Error: {error.code}</h3>
+            <p>{error.message}</p>
+          </div>
+        )
+      });
+      setError(false);
+    }
+  }, [outletContext, pushAlert, error]);
 
   useEffect(() => {
     clearTimeout(timeoutRef.current);
@@ -151,24 +172,20 @@ const Typeahead = ({
       />
       {showDropdown && options.length > 0 && (
         <ul className="typeahead-dropdown" ref={dropdownRef}>
-          {error ? (
-            <pre>{JSON.stringify(error)}</pre>
-          ) : (
-            options.map((option, index) => (
-              <li
-                key={option.id}
-                ref={(el) => (itemRefs.current[index] = el)}
-                onClick={() => handleSelect(option)}
-                className={`typeahead-item${
-                  index === highlightedIndex ? ' selected' : ''
-                }`}
-                onMouseDown={(e) => e.preventDefault()}
-                onMouseEnter={() => setHighlightedIndex(index)}
-              >
-                {getDisplayOption(option)}
-              </li>
-            ))
-          )}
+          {options?.map((option, index) => (
+            <li
+              key={option.id}
+              ref={(el) => (itemRefs.current[index] = el)}
+              onClick={() => handleSelect(option)}
+              className={`typeahead-item${
+                index === highlightedIndex ? ' selected' : ''
+              }`}
+              onMouseDown={(e) => e.preventDefault()}
+              onMouseEnter={() => setHighlightedIndex(index)}
+            >
+              {getDisplayOption(option)}
+            </li>
+          ))}
         </ul>
       )}
     </div>
@@ -184,7 +201,8 @@ Typeahead.propTypes = {
   className: PropTypes.string.isRequired,
   name: PropTypes.string,
   placeholder: PropTypes.string.isRequired,
-  multiselect: PropTypes.bool
+  multiselect: PropTypes.bool,
+  pushAlert: PropTypes.func
 };
 
 Typeahead.displayName = 'Typeahead';

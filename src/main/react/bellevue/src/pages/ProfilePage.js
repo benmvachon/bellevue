@@ -24,7 +24,8 @@ function ProfilePage() {
   const { id } = useParams();
   const { userId } = useAuth();
   const navigate = useNavigate();
-  const { setClassName, setMapSlider, openMessages } = useOutletContext();
+  const { setClassName, setMapSlider, openMessages, pushAlert } =
+    useOutletContext();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -35,7 +36,23 @@ function ProfilePage() {
   useEffect(() => {
     setClassName('profile-page');
     setMapSlider(true);
-  });
+  }, [setClassName, setMapSlider]);
+
+  useEffect(() => {
+    if (error) {
+      pushAlert({
+        key: JSON.stringify(error),
+        type: 'error',
+        content: (
+          <div>
+            <h3>Error: {error.code}</h3>
+            <p>{error.message}</p>
+          </div>
+        )
+      });
+      setError(false);
+    }
+  }, [pushAlert, error]);
 
   useEffect(() => {
     onProfileUpdate(id, (message) => {
@@ -85,7 +102,6 @@ function ProfilePage() {
     navigate(`/map/neighborhood/${id}`);
   };
 
-  if (error) return JSON.stringify(error);
   if (loading) return <p>Loading...</p>;
 
   const buttons = [];

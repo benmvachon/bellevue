@@ -32,7 +32,7 @@ function ForumPage() {
   const { id = '1' } = useParams();
   const { userId } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { setClassName, setMapSlider } = useOutletContext();
+  const { setClassName, setMapSlider, pushAlert } = useOutletContext();
   const [forum, setForum] = useState(null);
   const [sortByPopular, setSortByPopular] = useState(
     searchParams.get('popular') === 'true'
@@ -53,7 +53,23 @@ function ForumPage() {
   useEffect(() => {
     setClassName('forum-page');
     setMapSlider(true);
-  });
+  }, [setClassName, setMapSlider]);
+
+  useEffect(() => {
+    if (error) {
+      pushAlert({
+        key: JSON.stringify(error),
+        type: 'error',
+        content: (
+          <div>
+            <h3>Error: {error.code}</h3>
+            <p>{error.message}</p>
+          </div>
+        )
+      });
+      setError(false);
+    }
+  }, [pushAlert, error]);
 
   useEffect(() => {
     if (id) {
@@ -167,8 +183,6 @@ function ForumPage() {
     setShowForumForm(false);
     getForum(forum.id, setForum, setError);
   };
-
-  if (error) return JSON.stringify(error);
 
   if (loading) return <p>Loading...</p>;
 

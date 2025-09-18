@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, useOutletContext } from 'react-router';
 import PropTypes from 'prop-types';
 import { addForum, updateForum } from '../api/api';
 import FriendTypeahead from './FriendTypeahead.js';
@@ -8,14 +8,33 @@ import Modal from './Modal.js';
 import Forum from '../api/Forum.js';
 import ImageButton from './ImageButton.js';
 
-const ForumForm = ({ forum, show = false, onClose }) => {
+const ForumForm = ({ forum, show = false, onClose, pushAlert }) => {
   const navigate = useNavigate();
+  const outletContext = useOutletContext();
   const [name, setName] = useState(forum?.name || '');
   const [description, setDescription] = useState(forum?.description || '');
   const [tags, setTags] = useState(forum?.tags || []);
   const [users, setUsers] = useState(forum?.users || []);
   const [disabled, setDisabled] = useState(false);
   const [error, setError] = useState(false);
+
+  useEffect(() => {
+    if (error) {
+      let func = pushAlert;
+      if (outletContext) func = outletContext.pushAlert;
+      func({
+        key: JSON.stringify(error),
+        type: 'error',
+        content: (
+          <div>
+            <h3>Error: {error.code}</h3>
+            <p>{error.message}</p>
+          </div>
+        )
+      });
+      setError(false);
+    }
+  }, [outletContext, pushAlert, error]);
 
   useEffect(() => {
     if (show && forum) {
@@ -97,8 +116,6 @@ const ForumForm = ({ forum, show = false, onClose }) => {
     }
   };
 
-  if (error) return <pre>{JSON.stringify(error)}</pre>;
-
   return (
     <Modal
       className="pixel-corners forum-form-container"
@@ -139,12 +156,14 @@ const ForumForm = ({ forum, show = false, onClose }) => {
           onSelect={onTagSelect}
           onRemove={onTagRemove}
           selectedTags={tags}
+          pushAlert={pushAlert}
         />
         <label htmlFor="friend-select">Neighbors</label>
         <FriendTypeahead
           onSelect={onFriendSelect}
           onRemove={onFriendRemove}
           selectedFriends={users}
+          pushAlert={pushAlert}
         />
         <div className="buttons">
           <button onClick={onCloseWrapper}>close</button>
@@ -160,7 +179,8 @@ const ForumForm = ({ forum, show = false, onClose }) => {
 ForumForm.propTypes = {
   forum: PropTypes.object.of(Forum),
   show: PropTypes.bool,
-  onClose: PropTypes.func.isRequired
+  onClose: PropTypes.func.isRequired,
+  pushAlert: PropTypes.func
 };
 
 ForumForm.displayName = 'ForumForm';

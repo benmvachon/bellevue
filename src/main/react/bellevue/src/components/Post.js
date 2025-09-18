@@ -1,7 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import { useNavigate } from 'react-router-dom';
-
 import { useAuth } from '../utils/AuthContext.js';
 import {
   getPost,
@@ -42,12 +41,29 @@ function Post({
 }) {
   const navigate = useNavigate();
   const { userId } = useAuth();
+  const { pushAlert } = useOutletContext();
   const [post, setPost] = useState(postProp);
   const [sortByPopular, setSortByPopular] = useState(sortByPopularParent);
   const [replies, setReplies] = useState([]);
   const [showReplies, setShowReplies] = useState(depth < 2);
   const [showConfirmationDialog, setShowConfirmationDialog] = useState(false);
   const [error, setError] = useState(false);
+
+  useEffect(() => {
+    if (error) {
+      pushAlert({
+        key: JSON.stringify(error),
+        type: 'error',
+        content: (
+          <div>
+            <h3>Error: {error.code}</h3>
+            <p>{error.message}</p>
+          </div>
+        )
+      });
+      setError(false);
+    }
+  }, [pushAlert, error]);
 
   useEffect(() => {
     if (id) {
@@ -224,7 +240,6 @@ function Post({
     [replies, post?.id, sortByPopular, sortParentList]
   );
 
-  if (error) return JSON.stringify(error);
   if (!post) return;
 
   let size = 'sm';

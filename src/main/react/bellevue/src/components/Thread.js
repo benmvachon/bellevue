@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { useAuth } from '../utils/AuthContext.js';
 import {
@@ -13,12 +14,31 @@ import {
 } from '../api/api.js';
 import Avatar from './Avatar.js';
 
-function Thread({ thread, onClick }) {
+function Thread({ thread, onClick, pushAlert }) {
+  const outletContext = useOutletContext();
   const { userId } = useAuth();
   const [stateThread, setThread] = useState(thread);
   const [friend, setFriend] = useState(null);
   const [received, setReceived] = useState(false);
   const [error, setError] = useState(false);
+
+  useEffect(() => {
+    if (error) {
+      let func = pushAlert;
+      if (outletContext) func = outletContext.pushAlert;
+      func({
+        key: JSON.stringify(error),
+        type: 'error',
+        content: (
+          <div>
+            <h3>Error: {error.code}</h3>
+            <p>{error.message}</p>
+          </div>
+        )
+      });
+      setError(false);
+    }
+  }, [outletContext, pushAlert, error]);
 
   useEffect(() => {
     if (friend) {
@@ -70,8 +90,6 @@ function Thread({ thread, onClick }) {
     onClick(stateThread);
   };
 
-  if (error) return JSON.stringify(error);
-
   return (
     <div className="thread">
       <button
@@ -90,6 +108,7 @@ function Thread({ thread, onClick }) {
           userId={friend?.id}
           userProp={friend}
           className="thread-avatar"
+          pushAlert={pushAlert}
         />
       )}
     </div>
@@ -98,7 +117,8 @@ function Thread({ thread, onClick }) {
 
 Thread.propTypes = {
   thread: PropTypes.object.isRequired,
-  onClick: PropTypes.func.isRequired
+  onClick: PropTypes.func.isRequired,
+  pushAlert: PropTypes.func
 };
 
 Thread.displayName = 'Thread';

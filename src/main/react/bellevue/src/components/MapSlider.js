@@ -6,7 +6,7 @@ import FriendsMap from '../components/FriendsMap.js';
 import SuggestedFriendsMap from '../components/SuggestedFriendsMap.js';
 import ImageButton from './ImageButton.js';
 
-function MapSlider({ setShowForumForm }) {
+function MapSlider({ setShowForumForm, pushAlert }) {
   const [open, setOpen] = useState(false);
   const [index, setIndex] = useState(0);
   const params = useParams();
@@ -46,9 +46,9 @@ function MapSlider({ setShowForumForm }) {
           >
             &lt;
           </button>
-          {index === 0 && <ForumsMap setShowForumForm={setShowForumForm} />}
-          {index === 1 && <FriendsMap />}
-          {index === 2 && <SuggestedFriendsMap />}
+          {index === 0 && <ForumsMap pushAlert={pushAlert} />}
+          {index === 1 && <FriendsMap pushAlert={pushAlert} />}
+          {index === 2 && <SuggestedFriendsMap pushAlert={pushAlert} />}
           <button
             className="forth"
             disabled={index >= 2}
@@ -68,7 +68,8 @@ function MapSlider({ setShowForumForm }) {
 MapSlider.displayName = 'MapSlider';
 
 MapSlider.propTypes = {
-  setShowForumForm: PropTypes.func.isRequired
+  setShowForumForm: PropTypes.func.isRequired,
+  pushAlert: PropTypes.func
 };
 
 export default MapSlider;

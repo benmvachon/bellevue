@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import {
   getForum,
@@ -8,10 +8,29 @@ import {
 } from '../api/api.js';
 import ImageButton from './ImageButton.js';
 
-function Forum({ id, forumProp }) {
+function Forum({ id, forumProp, pushAlert }) {
   const navigate = useNavigate();
+  const outletContext = useOutletContext();
   const [forum, setForum] = useState(forumProp);
   const [error, setError] = useState(false);
+
+  useEffect(() => {
+    if (error) {
+      let func = pushAlert;
+      if (outletContext) func = outletContext.pushAlert;
+      func({
+        key: JSON.stringify(error),
+        type: 'error',
+        content: (
+          <div>
+            <h3>Error: {error.code}</h3>
+            <p>{error.message}</p>
+          </div>
+        )
+      });
+      setError(false);
+    }
+  }, [outletContext, pushAlert, error]);
 
   useEffect(() => {
     if (id && id !== forumProp?.id) {
@@ -28,8 +47,8 @@ function Forum({ id, forumProp }) {
     navigate(`/town/${forum.id}`);
   };
 
-  if (error) return JSON.stringify(error);
   if (!forum) return;
+
   let icon = undefined;
   let name = 'townhall';
   if (forum?.user?.id) {
@@ -55,7 +74,8 @@ function Forum({ id, forumProp }) {
 
 Forum.propTypes = {
   id: PropTypes.number,
-  forumProp: PropTypes.object
+  forumProp: PropTypes.object,
+  pushAlert: PropTypes.func
 };
 
 Forum.displayName = 'Forum';

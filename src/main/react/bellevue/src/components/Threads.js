@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { useAuth } from '../utils/AuthContext.js';
 import {
@@ -17,13 +18,32 @@ import ScrollLoader from './ScrollLoader.js';
 import Modal from './Modal.js';
 import Avatar from './Avatar.js';
 
-function Threads({ show = false, onClose, openMessages }) {
+function Threads({ show = false, onClose, openMessages, pushAlert }) {
+  const outletContext = useOutletContext();
   const { userId } = useAuth();
   const [threads, setThreads] = useState(null);
   const [totalThreads, setTotalThreads] = useState(0);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+
+  useEffect(() => {
+    if (error) {
+      let func = pushAlert;
+      if (outletContext) func = outletContext.pushAlert;
+      func({
+        key: JSON.stringify(error),
+        type: 'error',
+        content: (
+          <div>
+            <h3>Error: {error.code}</h3>
+            <p>{error.message}</p>
+          </div>
+        )
+      });
+      setError(false);
+    }
+  }, [outletContext, pushAlert, error]);
 
   useEffect(() => {
     if (show) {
@@ -115,8 +135,6 @@ function Threads({ show = false, onClose, openMessages }) {
     return thread.receiver;
   };
 
-  if (error) return JSON.stringify(error);
-
   return (
     <Modal className="threads-container" show={show} onClose={onClose}>
       {loading ? (
@@ -176,7 +194,8 @@ function Threads({ show = false, onClose, openMessages }) {
 Threads.propTypes = {
   show: PropTypes.bool,
   onClose: PropTypes.func.isRequired,
-  openMessages: PropTypes.func.isRequired
+  openMessages: PropTypes.func.isRequired,
+  pushAlert: PropTypes.func
 };
 
 Threads.displayName = 'Threads';

@@ -13,11 +13,27 @@ function SignupPage() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const { setClassName } = useOutletContext();
+  const { setClassName, pushAlert } = useOutletContext();
 
   useEffect(() => {
     setClassName('signup-page');
-  });
+  }, [setClassName]);
+
+  useEffect(() => {
+    if (error) {
+      pushAlert({
+        key: JSON.stringify(error),
+        type: 'error',
+        content: (
+          <div>
+            <h3>Failed Signup Attempt: {error.code}</h3>
+            <p>{error.message}</p>
+          </div>
+        )
+      });
+      setError(false);
+    }
+  }, [pushAlert, error]);
 
   useEffect(() => {
     if (isAuthenticated) handleLogout();
@@ -39,8 +55,8 @@ function SignupPage() {
             setLoading(false);
             navigate('/');
           },
-          () => {
-            setError('Invalid username or password');
+          (err) => {
+            setError(err);
             setLoading(false);
           }
         );
@@ -104,7 +120,6 @@ function SignupPage() {
             autoComplete="off"
           />
         </div>
-        {error && <p style={{ color: 'red' }}>{error}</p>}
         <button type="submit" disabled={loading}>
           sign up
         </button>

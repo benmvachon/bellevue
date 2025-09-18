@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { useOutletContext } from 'react-router';
 import PropTypes from 'prop-types';
 import {
   getTotalPosts,
@@ -25,11 +26,28 @@ function PostsList({
   excludedForums = [],
   excludeForum
 }) {
+  const { pushAlert } = useOutletContext();
   const [posts, setPosts] = useState([]);
   const [totalPosts, setTotalPosts] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const pageSize = 3;
+
+  useEffect(() => {
+    if (error) {
+      pushAlert({
+        key: JSON.stringify(error),
+        type: 'error',
+        content: (
+          <div>
+            <h3>Error: {error.code}</h3>
+            <p>{error.message}</p>
+          </div>
+        )
+      });
+      setError(false);
+    }
+  }, [pushAlert, error]);
 
   useEffect(() => {
     if (forum.id) {
@@ -219,8 +237,6 @@ function PostsList({
     },
     [posts, sortByPopular, totalPosts]
   );
-
-  if (error) return JSON.stringify(error);
 
   return (
     <div className="posts">

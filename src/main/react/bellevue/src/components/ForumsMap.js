@@ -1,15 +1,35 @@
 import React, { useEffect, useState } from 'react';
+import { useOutletContext } from 'react-router';
 import PropTypes from 'prop-types';
 import { getForum, getForums, markPostsRead } from '../api/api.js';
 import Page from '../components/Page.js';
 import Forum from '../components/Forum.js';
 
-function ForumsMap({ setShowForumForm }) {
+function ForumsMap({ pushAlert }) {
+  const outletContext = useOutletContext();
   const [forums, setForums] = useState(undefined);
   const [filter, setFilter] = useState(false);
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+
+  useEffect(() => {
+    if (error) {
+      let func = pushAlert;
+      if (outletContext) func = outletContext.pushAlert;
+      func({
+        key: JSON.stringify(error),
+        type: 'error',
+        content: (
+          <div>
+            <h3>Error: {error.code}</h3>
+            <p>{error.message}</p>
+          </div>
+        )
+      });
+      setError(false);
+    }
+  }, [outletContext, pushAlert, error]);
 
   useEffect(() => {
     setLoading(true);
@@ -65,8 +85,6 @@ function ForumsMap({ setShowForumForm }) {
     );
   };
 
-  if (error) return JSON.stringify(error);
-
   return (
     <div className="forums">
       <div className="header pixel-corners">
@@ -90,7 +108,9 @@ function ForumsMap({ setShowForumForm }) {
         <Page
           page={forums}
           renderItem={(forum) =>
-            forum && <Forum id={forum.id} forumProp={forum} />
+            forum && (
+              <Forum id={forum.id} forumProp={forum} pushAlert={pushAlert} />
+            )
           }
           loadPage={loadForumPage}
           loading={loading}
@@ -101,7 +121,7 @@ function ForumsMap({ setShowForumForm }) {
 }
 
 ForumsMap.propTypes = {
-  setShowForumForm: PropTypes.func.isRequired
+  pushAlert: PropTypes.func
 };
 
 ForumsMap.displayName = 'ForumsMap';

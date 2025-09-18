@@ -1,15 +1,35 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
+import PropTypes from 'prop-types';
 import { getMyFriends } from '../api/api.js';
 import Page from '../components/Page.js';
 import ImageButton from './ImageButton.js';
 
-function FriendsMap() {
+function FriendsMap({ pushAlert }) {
   const navigate = useNavigate();
+  const outletContext = useOutletContext();
   const [myFriends, setMyFriends] = useState(undefined);
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+
+  useEffect(() => {
+    if (error) {
+      let func = pushAlert;
+      if (outletContext) func = outletContext.pushAlert;
+      func({
+        key: JSON.stringify(error),
+        type: 'error',
+        content: (
+          <div>
+            <h3>Error: {error.code}</h3>
+            <p>{error.message}</p>
+          </div>
+        )
+      });
+      setError(false);
+    }
+  }, [outletContext, pushAlert, error]);
 
   useEffect(() => {
     setLoading(true);
@@ -46,8 +66,6 @@ function FriendsMap() {
   const profileClick = (id) => {
     navigate('/home/' + id);
   };
-
-  if (error) return JSON.stringify(error);
 
   return (
     <div className="friends">
@@ -99,6 +117,10 @@ function FriendsMap() {
     </div>
   );
 }
+
+FriendsMap.propTypes = {
+  pushAlert: PropTypes.func
+};
 
 FriendsMap.displayName = 'FriendsMap';
 

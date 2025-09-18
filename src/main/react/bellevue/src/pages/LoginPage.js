@@ -4,17 +4,32 @@ import { useAuth } from '../utils/AuthContext';
 
 function LoginPage() {
   const navigate = useNavigate();
+  const { setClassName, pushAlert } = useOutletContext();
   const { handleLogin, handleLogout, isAuthenticated } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const { setClassName } = useOutletContext();
-
   useEffect(() => {
     setClassName('login-page');
-  });
+  }, [setClassName]);
+
+  useEffect(() => {
+    if (error) {
+      pushAlert({
+        key: JSON.stringify(error),
+        type: 'error',
+        content: (
+          <div>
+            <h3>Failed Login Attempt: {error.code}</h3>
+            <p>{error.message}</p>
+          </div>
+        )
+      });
+      setError(false);
+    }
+  }, [pushAlert, error]);
 
   useEffect(() => {
     if (isAuthenticated) handleLogout();
@@ -30,7 +45,7 @@ function LoginPage() {
         navigate('/');
       },
       (error) => {
-        setError(`Invalid username or password: ${error}`);
+        setError(error);
         setLoading(false);
       }
     );
@@ -64,7 +79,6 @@ function LoginPage() {
             autoComplete="off"
           />
         </div>
-        {error && <p style={{ color: 'red' }}>{error}</p>}
         <button type="submit" disabled={loading}>
           login
         </button>

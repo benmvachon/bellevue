@@ -1,10 +1,28 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { getForum } from '../api/api.js';
 
 function ExcludedForum({ id, includeForum }) {
+  const { pushAlert } = useOutletContext();
   const [forum, setForum] = useState(undefined);
   const [error, setError] = useState(false);
+
+  useEffect(() => {
+    if (error) {
+      pushAlert({
+        key: JSON.stringify(error),
+        type: 'error',
+        content: (
+          <div>
+            <h3>Error: {error.code}</h3>
+            <p>{error.message}</p>
+          </div>
+        )
+      });
+      setError(false);
+    }
+  }, [pushAlert, error]);
 
   useEffect(() => {
     if (id) getForum(id, setForum, setError);
@@ -15,7 +33,6 @@ function ExcludedForum({ id, includeForum }) {
     includeForum(id);
   };
 
-  if (error) return JSON.stringify(error);
   if (!forum) return;
 
   return (

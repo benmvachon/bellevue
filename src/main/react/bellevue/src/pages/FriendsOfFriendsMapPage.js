@@ -12,7 +12,7 @@ function FriendsOfFriendsMapPage() {
   useEffect(() => {
     setClassName('map-page');
     setMapSlider(false);
-  });
+  }, [setClassName, setMapSlider]);
 
   return (
     <div className="map-slider">

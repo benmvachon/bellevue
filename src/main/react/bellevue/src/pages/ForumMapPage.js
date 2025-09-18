@@ -12,7 +12,7 @@ function ForumMapPage({ setShowForumForm }) {
   useEffect(() => {
     setClassName('forum-map-page');
     setMapSlider(false);
-  });
+  }, [setClassName, setMapSlider]);
 
   return (
     <div className="map-slider">

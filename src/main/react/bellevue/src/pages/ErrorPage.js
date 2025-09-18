@@ -8,7 +8,7 @@ function ErrorPage() {
   useEffect(() => {
     setClassName('error-page');
     setMapSlider(true);
-  });
+  }, [setClassName, setMapSlider]);
 
   return (
     <div className="page-contents">

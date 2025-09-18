@@ -1,13 +1,31 @@
 import React, { useEffect, useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { addPost, addReply } from '../api/api';
 import ForumTypeahead from './ForumTypeahead.js';
 
 const PostForm = ({ forum, parent, enableForumSelection = false }) => {
+  const { pushAlert } = useOutletContext();
   const [newPost, setNewPost] = useState(null);
   const [selectedForum, setSelectedForum] = useState(forum);
   const [disabled, setDisabled] = useState(false);
   const [error, setError] = useState(false);
+
+  useEffect(() => {
+    if (error) {
+      pushAlert({
+        key: JSON.stringify(error),
+        type: 'error',
+        content: (
+          <div>
+            <h3>Error: {error.code}</h3>
+            <p>{error.message}</p>
+          </div>
+        )
+      });
+      setError(false);
+    }
+  }, [pushAlert, error]);
 
   useEffect(() => {
     if (!newPost || !selectedForum) setDisabled(true);
@@ -37,8 +55,6 @@ const PostForm = ({ forum, parent, enableForumSelection = false }) => {
       );
     else addPost(selectedForum.id, newPost, () => setNewPost(''), setError);
   };
-
-  if (error) return <pre>{JSON.stringify(error)}</pre>;
 
   return (
     <form onSubmit={submitPost}>
