@@ -199,6 +199,7 @@ function Messages({
         </button>
         <textarea
           name="new-message"
+          placeholder="new message..."
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}

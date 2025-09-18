@@ -37,7 +37,7 @@ div.modal-container {
       justify-content: flex-start;
       overflow-y: auto;
       margin-top: calc(16 * $pixel);
-      height: calc(256 * $pixel);
+      height: calc(222 * $pixel);
       width: calc(496 * $pixel);
 
       div.message-wrapper {
@@ -96,8 +96,8 @@ div.modal-container {
     }
 
     div.buttons {
-      margin-bottom: calc(32 * $pixel);
       width: 100%;
+      align-items: center;
 
       button {
         &.send {
@@ -109,6 +109,11 @@ div.modal-container {
           background: $white;
           color: $black;
         }
+      }
+
+      textarea {
+        height: calc(48 * $pixel);
+        width: calc( 256 * $pixel);
       }
     }
 

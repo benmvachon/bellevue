@@ -60,6 +60,7 @@ const PostForm = ({ forum, parent, enableForumSelection = false }) => {
     <form onSubmit={submitPost}>
       <textarea
         name="newPost"
+        placeholder={parent ? 'new reply...' : 'new flyer...'}
         value={newPost}
         onChange={(e) => setNewPost(e.target.value)}
         onKeyDown={handleKeyDown}
