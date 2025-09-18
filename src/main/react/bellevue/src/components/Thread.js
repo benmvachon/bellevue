@@ -95,7 +95,7 @@ function Thread({ thread, onClick, pushAlert }) {
       <button
         className="mark-read"
         onClick={markAsRead}
-        disabled={!received || stateThread.read}
+        disabled={!received || stateThread.read || friend?.id < 1}
       >
         mark read
       </button>
