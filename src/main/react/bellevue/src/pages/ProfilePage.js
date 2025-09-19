@@ -97,7 +97,8 @@ function ProfilePage() {
   };
 
   const openMap = () => {
-    navigate(`/map/neighborhood/${id}`);
+    if (userId === Number.parseInt(id)) navigate('/map/neighborhood');
+    else navigate(`/map/neighborhood/${id}`);
   };
 
   if (loading)
