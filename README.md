@@ -1,6 +1,6 @@
-# Welcome to Bellevue
+# Welcome to the neighborhood
 
-Bellevue is a recipe sharing platform inspired by games like Animal Crossing and Neopets but prioritizing the end user's over-all health and happiness by encouraging local friendship and community and offline experiences.
+This is a cozy-core social-network forum web application that's a mix between reddit, twitter, myspace, and neopets built for prioritizing the end user's over-all health and happiness by encouraging local friendship and community and offline experiences.
 
 ```
        ,
@@ -35,7 +35,7 @@ Bellevue is a recipe sharing platform inspired by games like Animal Crossing and
 
 ## Developer Requirements
 
-To run or contribute to the Bellevue platform, your development environment must include the following dependencies:
+To run or contribute to the platform, your development environment must include the following dependencies:
 
 - **JDK 23**
 - **Docker Compose 2.30**
@@ -44,13 +44,13 @@ To run or contribute to the Bellevue platform, your development environment must
 - **Node.js 23.2**
 - **NPM 10.9**
 
-Each of these tools is essential for running the Bellevue platform locally, managing dependencies, and building the application. Follow the steps below to get your local machine ready.
+Each of these tools is essential for running the platform locally, managing dependencies, and building the application. Follow the steps below to get your local machine ready.
 
 ---
 
 ### 1. JDK 23
 
-The Bellevue platform is built using Java 23, and you must install it to run and build the application. To install JDK 23:
+The platform is built using Java 23, and you must install it to run and build the application. To install JDK 23:
 
 #### On macOS:
 
@@ -124,7 +124,7 @@ Maven is used to manage project dependencies and build the application.
 
 ### 4. VSCode 1.94
 
-Visual Studio Code (VSCode) is the recommended IDE for working on the Bellevue platform.
+Visual Studio Code (VSCode) is the recommended IDE for working on the platform.
 
 #### Installation:
 
@@ -137,7 +137,7 @@ Visual Studio Code (VSCode) is the recommended IDE for working on the Bellevue p
 
 ### 5. Node.js 23.2
 
-Node.js is essential for managing JavaScript runtime and building the frontend of the Bellevue platform.
+Node.js is essential for managing JavaScript runtime and building the frontend of the platform.
 
 #### Installation:
 
@@ -169,7 +169,7 @@ NPM is the package manager for Node.js, used to install frontend dependencies.
 
 ## Running the Development Environment from the Terminal
 
-Once the dependencies are installed, follow the steps below to set up and run the Bellevue platform locally.
+Once the dependencies are installed, follow the steps below to set up and run the platform locally.
 
 1. **Clone the Repository**:
 
@@ -205,7 +205,7 @@ Once the dependencies are installed, follow the steps below to set up and run th
    ```
 
 5. **Access the Application**:
-   Open your browser and navigate to [http://localhost:8080](http://localhost:8080) to see the Bellevue platform running locally.
+   Open your browser and navigate to [https://localhost:8080](https://localhost:8080) to see the platform running locally.
 
 ---
 
