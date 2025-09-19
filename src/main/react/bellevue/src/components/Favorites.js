@@ -5,6 +5,7 @@ import { getFavorites } from '../api/api.js';
 import Page from './Page.js';
 import Modal from './Modal.js';
 import Favorite from './Favorite.js';
+import LoadingSpinner from './LoadingSpinner.js';
 
 function Favorites({ show = false, onClose, pushAlert }) {
   const outletContext = useOutletContext();
@@ -53,7 +54,9 @@ function Favorites({ show = false, onClose, pushAlert }) {
   return (
     <Modal className="favorites-container" show={show} onClose={onClose}>
       {loading ? (
-        <p>Loading...</p>
+        <div className="favorites">
+          <LoadingSpinner onClick={() => {}} />
+        </div>
       ) : (
         <div className="favorites">
           {favorites?.content?.length ? (

@@ -34,6 +34,10 @@ div.favorites-container {
         font-style: italic;
         margin: calc(2 * $pixel);
         text-align: left;
+
+        &.image-button {
+          background: none;
+        }
       }
     }
 

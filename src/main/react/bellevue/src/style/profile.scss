@@ -1,8 +1,6 @@
 @use 'variables' as *;
 
 div.profile-page {
-  background: $black;
-
   div.page-contents {
     display: flex;
     flex-direction: row;
@@ -13,6 +11,12 @@ div.profile-page {
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
+
+    div.loading {
+      height: 100%;
+      width: 100%;
+      align-items: center;
+    }
 
     form {
       display: flex;

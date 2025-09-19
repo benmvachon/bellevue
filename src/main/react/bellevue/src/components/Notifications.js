@@ -14,6 +14,7 @@ import {
 import Notification from './Notification.js';
 import ScrollLoader from './ScrollLoader.js';
 import Modal from './Modal.js';
+import LoadingSpinner from './LoadingSpinner.js';
 
 function Notifications({ show = false, onClose, openMessages, pushAlert }) {
   const outletContext = useOutletContext();
@@ -112,7 +113,7 @@ function Notifications({ show = false, onClose, openMessages, pushAlert }) {
     <Modal className="notifications-container" show={show} onClose={onClose}>
       {loading ? (
         <div className="notifications">
-          <p>Loading...</p>
+          <LoadingSpinner onClick={() => {}} />
         </div>
       ) : totalNotifications > 0 ? (
         <ScrollLoader

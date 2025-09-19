@@ -17,6 +17,7 @@ import {
 import Post from '../components/Post.js';
 import ScrollLoader from '../components/ScrollLoader.js';
 import PostForm from '../components/PostForm.js';
+import LoadingSpinner from './LoadingSpinner.js';
 
 function PostsList({
   forum,
@@ -247,7 +248,9 @@ function PostsList({
         </button>
       </div>
       {loading ? (
-        <p>Loading...</p>
+        <div className="top-level-posts">
+          <LoadingSpinner onClick={() => {}} />
+        </div>
       ) : (
         <ScrollLoader
           total={totalPosts}

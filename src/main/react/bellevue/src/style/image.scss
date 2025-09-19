@@ -3,6 +3,11 @@
 img {
   image-rendering: pixelated;
 
+  &.extra-small {
+    height: calc(32 * $pixel);
+    width: calc(32 * $pixel);
+  }
+
   &.small {
     height: calc(64 * $pixel);
     width: calc(64 * $pixel);

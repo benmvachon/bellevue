@@ -15,6 +15,7 @@ import ScrollLoader from './ScrollLoader.js';
 import Modal from './Modal.js';
 import Avatar from './Avatar.js';
 import Message from './Message.js';
+import LoadingSpinner from './LoadingSpinner.js';
 
 function Messages({
   show = false,
@@ -167,7 +168,7 @@ function Messages({
       </button>
       {loading ? (
         <div className="messages">
-          <p>Loading...</p>
+          <LoadingSpinner onClick={() => {}} />
         </div>
       ) : totalMessages > 0 ? (
         <ScrollLoader

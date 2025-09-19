@@ -133,6 +133,13 @@ div.map-slider {
         div.loader {
           width: 100%;
 
+          div.loading {
+            height: calc(384 * $pixel);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
+
           div.page-content {
             display: grid;
             justify-content: space-between;

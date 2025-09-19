@@ -26,6 +26,7 @@ import Forum from '../components/Forum.js';
 import FavoriteButton from '../components/FavoriteButton.js';
 import ConfirmationDialog from '../components/ConfirmationDialog.js';
 import ImageButton from '../components/ImageButton.js';
+import LoadingSpinner from '../components/LoadingSpinner.js';
 
 function ForumPage() {
   const navigate = useNavigate();
@@ -109,19 +110,15 @@ function ForumPage() {
 
   const markRead = () => {
     setError(false);
-    markForumRead(
-      forum.id,
-      () => getForum(forum.id, setForum, setError),
-      setError
-    );
+    markForumRead(id, () => getForum(id, setForum, setError), setError);
   };
 
   const toggleNotifications = () => {
     setError(false);
     setForumNotification(
-      forum.id,
+      id,
       !forum.notify,
-      () => getForum(forum.id, setForum, setError),
+      () => getForum(id, setForum, setError),
       setError
     );
   };
@@ -165,92 +162,94 @@ function ForumPage() {
 
   const removeAccess = () => {
     setError(false);
-    removeFromForum(forum.id, () => navigate('/'), setError);
+    removeFromForum(id, () => navigate('/'), setError);
     navigate('/');
   };
 
   const handleDelete = () => {
     setError(false);
-    deleteForum(forum.id, () => navigate('/'), setError);
+    deleteForum(id, () => navigate('/'), setError);
     navigate('/');
   };
 
   const closeForumEditor = () => {
     setError(false);
     setShowForumForm(false);
-    getForum(forum.id, setForum, setError);
+    getForum(id, setForum, setError);
   };
-
-  if (loading) return <p>Loading...</p>;
 
   return (
     <div className="page-contents">
       <div className="metadata">
-        <div className="building-and-buttons">
-          <Forum id={forum.id} forumProp={forum} />
-          <div className="forum-actions pixel-corners">
-            <p>{forum?.description}</p>
-            <div className="forum-buttons">
-              <div className="plain-forum-buttons">
-                {forum.unreadCount > 0 && (
-                  <button onClick={markRead}>mark read</button>
-                )}
-              </div>
-              <div className="image-forum-buttons">
-                <ImageButton name="newspaper" onClick={toggleNotifications}>
-                  <span>{forum.notify ? 'dont notify' : 'notify'}</span>
-                </ImageButton>
-                {id === '1' && (
-                  <ImageButton name="townhall" onClick={toggleFilterAll}>
-                    <span>
-                      {onlyTownHallPosts ? 'show all' : 'Town Hall only'}
-                    </span>
+        {loading ? (
+          <LoadingSpinner onClick={() => {}} />
+        ) : (
+          <div className="building-and-buttons">
+            <Forum id={id} forumProp={forum} />
+            <div className="forum-actions pixel-corners">
+              <p>{forum?.description}</p>
+              <div className="forum-buttons">
+                <div className="plain-forum-buttons">
+                  {forum.unreadCount > 0 && (
+                    <button onClick={markRead}>mark read</button>
+                  )}
+                </div>
+                <div className="image-forum-buttons">
+                  <ImageButton name="newspaper" onClick={toggleNotifications}>
+                    <span>{forum.notify ? 'dont notify' : 'notify'}</span>
                   </ImageButton>
-                )}
-                {forum?.custom && forum?.user?.id !== userId && (
-                  <ImageButton
-                    name="move-out"
+                  {id === '1' && (
+                    <ImageButton name="townhall" onClick={toggleFilterAll}>
+                      <span>
+                        {onlyTownHallPosts ? 'show all' : 'Town Hall only'}
+                      </span>
+                    </ImageButton>
+                  )}
+                  {forum?.custom && forum?.user?.id !== userId && (
+                    <ImageButton
+                      name="move-out"
+                      onClick={() => {
+                        setOnConfirm(() => {
+                          return removeAccess;
+                        });
+                        setShowConfirmationDialog(true);
+                      }}
+                    >
+                      <span>leave</span>
+                    </ImageButton>
+                  )}
+                  {forum?.user?.id === userId && (
+                    <ImageButton
+                      name="custom-building"
+                      onClick={() => setShowForumForm(true)}
+                    >
+                      <span>edit</span>
+                    </ImageButton>
+                  )}
+                  {forum?.user?.id === userId && (
+                    <ImageButton
+                      name="bulldozer"
+                      onClick={() => {
+                        setOnConfirm(() => {
+                          return handleDelete;
+                        });
+                        setShowConfirmationDialog(true);
+                      }}
+                    >
+                      <span>delete</span>
+                    </ImageButton>
+                  )}
+                  <FavoriteButton
+                    favorited={forum.favorite}
                     onClick={() => {
-                      setOnConfirm(() => {
-                        return removeAccess;
-                      });
-                      setShowConfirmationDialog(true);
+                      forum.favorite ? unfavorite() : favorite();
                     }}
-                  >
-                    <span>leave</span>
-                  </ImageButton>
-                )}
-                {forum?.user?.id === userId && (
-                  <ImageButton
-                    name="custom-building"
-                    onClick={() => setShowForumForm(true)}
-                  >
-                    <span>edit</span>
-                  </ImageButton>
-                )}
-                {forum?.user?.id === userId && (
-                  <ImageButton
-                    name="bulldozer"
-                    onClick={() => {
-                      setOnConfirm(() => {
-                        return handleDelete;
-                      });
-                      setShowConfirmationDialog(true);
-                    }}
-                  >
-                    <span>delete</span>
-                  </ImageButton>
-                )}
-                <FavoriteButton
-                  favorited={forum.favorite}
-                  onClick={() => {
-                    forum.favorite ? unfavorite() : favorite();
-                  }}
-                />
+                  />
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
         {id === '1' && !onlyTownHallPosts && (
           <ExcludedForums
             excludedForums={excludedForums}
@@ -260,16 +259,20 @@ function ForumPage() {
         )}
       </div>
       <div className="contents">
-        <PostsList
-          key={`posts-list-${forum.id}`}
-          id={`posts-list-${forum.id}`}
-          forum={forum}
-          sortByPopular={sortByPopular}
-          toggleSort={toggleSort}
-          feed={id === '1' && !onlyTownHallPosts}
-          excludedForums={excludedForums}
-          excludeForum={id === '1' ? excludeForum : undefined}
-        />
+        {loading ? (
+          <LoadingSpinner onClick={() => {}} />
+        ) : (
+          <PostsList
+            key={`posts-list-${id}`}
+            id={`posts-list-${id}`}
+            forum={forum}
+            sortByPopular={sortByPopular}
+            toggleSort={toggleSort}
+            feed={id === '1' && !onlyTownHallPosts}
+            excludedForums={excludedForums}
+            excludeForum={id === '1' ? excludeForum : undefined}
+          />
+        )}
       </div>
       <ForumForm
         forum={forum}

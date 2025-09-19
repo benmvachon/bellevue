@@ -17,7 +17,7 @@ div.page {
   
   div.page-contents {
     height: calc(576 * $pixel);
-    width: calc(576 * $pixel);
+    width: calc(576.01 * $pixel);
     overflow-y: auto;
     display: flex;
     flex-direction: column;

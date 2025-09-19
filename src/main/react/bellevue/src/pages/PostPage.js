@@ -4,6 +4,7 @@ import withAuth from '../utils/withAuth.js';
 import { getPost } from '../api/api.js';
 import Post from '../components/Post.js';
 import PostObject from '../api/Post.js';
+import LoadingSpinner from '../components/LoadingSpinner.js';
 
 function PostPage() {
   const { id } = useParams();
@@ -47,7 +48,16 @@ function PostPage() {
       );
   }, [navigate, id]);
 
-  if (loading) return <p>Loading...</p>;
+  if (loading)
+    return (
+      <div className="page-contents">
+        <div className="contents">
+          <div className="posts">
+            <LoadingSpinner onClick={() => {}} />
+          </div>
+        </div>
+      </div>
+    );
 
   const parentFuncs = [];
   let i = 0;

@@ -4,8 +4,11 @@ div.scroll-loader {
   overflow-y: auto;
   max-height: 100%;
 
-  button.load-more {
+  div.load-more {
     margin: calc(1 * $pixel);
     transform: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 }

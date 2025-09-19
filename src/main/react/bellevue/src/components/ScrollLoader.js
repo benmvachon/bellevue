@@ -1,12 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
+import LoadingSpinner from './LoadingSpinner';
 
 function ScrollLoader({
   children,
   loadMore,
   topLoad = false,
   total = 0,
-  className
+  className,
+  spinnerSize = 'small'
 }) {
   const [loadingMore, setLoadingMore] = useState(false);
   const loadMoreRef = useRef(null);
@@ -63,7 +65,7 @@ function ScrollLoader({
       {
         root: currentContainerRef,
         rootMargin: '0%',
-        threshold: 1.0
+        threshold: 0.1
       }
     );
 
@@ -84,33 +86,17 @@ function ScrollLoader({
 
   return (
     <div className={`scroll-loader ${className}`} ref={containerRef}>
-      {topLoad &&
-        total > (children ? children.length : 0) &&
-        (loadingMore ? (
-          <p>loading...</p>
-        ) : (
-          <button
-            className="load-more"
-            ref={loadMoreRef}
-            onClick={loadMoreWrapper}
-          >
-            loading...
-          </button>
-        ))}
+      {topLoad && total > (children ? children.length : 0) && (
+        <div className="load-more" ref={loadMoreRef}>
+          <LoadingSpinner onClick={loadMoreWrapper} size={spinnerSize} />
+        </div>
+      )}
       {children}
-      {!topLoad &&
-        total > (children ? children.length : 0) &&
-        (loadingMore ? (
-          <p>loading...</p>
-        ) : (
-          <button
-            className="load-more"
-            ref={loadMoreRef}
-            onClick={loadMoreWrapper}
-          >
-            loading...
-          </button>
-        ))}
+      {!topLoad && total > (children ? children.length : 0) && (
+        <div className="load-more" ref={loadMoreRef}>
+          <LoadingSpinner onClick={loadMoreWrapper} size={spinnerSize} />
+        </div>
+      )}
     </div>
   );
 }
@@ -120,7 +106,8 @@ ScrollLoader.propTypes = {
   loadMore: PropTypes.func.isRequired,
   topLoad: PropTypes.bool,
   total: PropTypes.number,
-  className: PropTypes.string
+  className: PropTypes.string,
+  spinnerSize: PropTypes.string
 };
 
 ScrollLoader.displayName = 'ScrollLoader';

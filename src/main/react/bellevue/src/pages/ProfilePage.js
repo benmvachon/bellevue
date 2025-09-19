@@ -19,6 +19,7 @@ import {
 import ImageButton from '../components/ImageButton.js';
 import FavoriteButton from '../components/FavoriteButton.js';
 import ConfirmationDialog from '../components/ConfirmationDialog.js';
+import LoadingSpinner from '../components/LoadingSpinner.js';
 
 function ProfilePage() {
   const { id } = useParams();
@@ -99,7 +100,12 @@ function ProfilePage() {
     navigate(`/map/neighborhood/${id}`);
   };
 
-  if (loading) return <p>Loading...</p>;
+  if (loading)
+    return (
+      <div className="page-contents">
+        <LoadingSpinner onClick={() => {}} />
+      </div>
+    );
 
   const buttons = [];
   switch (profile?.friendshipStatus) {

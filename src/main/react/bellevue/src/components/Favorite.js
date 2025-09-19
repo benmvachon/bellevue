@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { getForum, getPost, getProfile } from '../api/api.js';
+import LoadingSpinner from './LoadingSpinner.js';
 
 function Favorite({ favorite, pushAlert }) {
   const navigate = useNavigate();
@@ -90,7 +91,7 @@ function Favorite({ favorite, pushAlert }) {
   return (
     <div className="favorite">
       {loading ? (
-        <p>Loading...</p>
+        <LoadingSpinner onClick={() => {}} size="extra-small" />
       ) : (
         <button onClick={() => navigateToFavorite(favorite)}>
           {renderFavorite(favorite)}

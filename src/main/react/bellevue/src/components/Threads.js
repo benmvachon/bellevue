@@ -17,6 +17,7 @@ import Thread from './Thread.js';
 import ScrollLoader from './ScrollLoader.js';
 import Modal from './Modal.js';
 import Avatar from './Avatar.js';
+import LoadingSpinner from './LoadingSpinner.js';
 
 function Threads({ show = false, onClose, openMessages, pushAlert }) {
   const outletContext = useOutletContext();
@@ -139,7 +140,7 @@ function Threads({ show = false, onClose, openMessages, pushAlert }) {
     <Modal className="threads-container" show={show} onClose={onClose}>
       {loading ? (
         <div className="threads">
-          <p>Loading...</p>
+          <LoadingSpinner onClick={() => {}} />
         </div>
       ) : totalThreads > 0 ? (
         <ScrollLoader

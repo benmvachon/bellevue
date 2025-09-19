@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import LoadingSpinner from './LoadingSpinner';
 
 function Page({ page, renderItem, loadPage, loading = false }) {
   if (!page) return;
@@ -12,9 +13,11 @@ function Page({ page, renderItem, loadPage, loading = false }) {
   };
   return (
     <div className="loader">
-      <div className="page-content">
-        {loading ? 'Loading...' : page?.content?.map(renderItem)}
-      </div>
+      {loading ? (
+        <LoadingSpinner onClick={() => {}} />
+      ) : (
+        <div className="page-content">{page?.content?.map(renderItem)}</div>
+      )}
       <div className="pagination-buttons">
         <button onClick={prevPage} disabled={!hasPrevPage}>
           previous page ({page.number})

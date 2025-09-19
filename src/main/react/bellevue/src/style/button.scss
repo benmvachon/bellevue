@@ -74,6 +74,15 @@ button {
       transform: scale(1.01);
     }
 
+    &.extra-small {
+      height: calc(32 * $pixel);
+      width: calc(32 * $pixel);
+
+      span {
+        font-size: calc(5 * $pixel);
+      }
+    }
+
     &.small {
       height: calc(64 * $pixel);
       width: calc(64 * $pixel);
