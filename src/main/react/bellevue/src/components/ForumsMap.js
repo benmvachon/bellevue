@@ -105,16 +105,23 @@ function ForumsMap({ pushAlert }) {
         Enter buildings and engage in conversations with your neighbors
       </p>
       <div className="grid">
-        <Page
-          page={forums}
-          renderItem={(forum) =>
-            forum && (
-              <Forum id={forum.id} forumProp={forum} pushAlert={pushAlert} />
-            )
-          }
-          loadPage={loadForumPage}
-          loading={loading}
-        />
+        {loading || (forums && forums.content && forums.content.length > 0) ? (
+          <Page
+            page={forums}
+            renderItem={(forum) =>
+              forum && (
+                <Forum id={forum.id} forumProp={forum} pushAlert={pushAlert} />
+              )
+            }
+            loadPage={loadForumPage}
+            loading={loading}
+          />
+        ) : (
+          <div className="empty-result-set">
+            <h1>no results</h1>
+            <p>try adjusting your query or your filters</p>
+          </div>
+        )}
       </div>
     </div>
   );

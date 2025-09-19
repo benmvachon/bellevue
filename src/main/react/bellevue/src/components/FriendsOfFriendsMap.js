@@ -78,44 +78,54 @@ function FriendsOfFriendsMap({ id }) {
   return (
     <div className="friends friends-of-friends">
       <div className="header pixel-corners">
-        <h2>{friend?.name}&apos;s Neighborhood</h2>
+        <h3>{friend?.name}&apos;s Neighborhood</h3>
       </div>
       <p className="pixel-corners">
         Drop in on one of your neighbor&apos;s neighbors
       </p>
       <div className="grid">
-        <Page
-          page={friends}
-          renderItem={(friend) => (
-            <ImageButton
-              name="house"
-              size="medium"
-              face={false}
-              onClick={() => profileClick(friend.id)}
-            >
-              <span>{friend.name}</span>
-              <img
-                className={`image ${friend?.avatar} small`}
-                src={require(`../asset/${friend?.avatar}-small.png`)}
-                alt={friend?.avatar}
-              />
-              <img
-                className="image face small"
-                src={require('../asset/face-small.png')}
-                alt={'face'}
-              />
-              {friend?.equipment?.hat && (
+        {loading ||
+        (friends && friends.content && friends.content.length > 0) ? (
+          <Page
+            page={friends}
+            renderItem={(friend) => (
+              <ImageButton
+                name="house"
+                size="medium"
+                face={false}
+                onClick={() => profileClick(friend.id)}
+              >
+                <span>{friend.name}</span>
                 <img
-                  className={`image ${friend?.equipment?.hat} small`}
-                  src={require(`../asset/${friend?.equipment?.hat}-small.png`)}
-                  alt={friend?.equipment?.hat}
+                  className={`image ${friend?.avatar} small`}
+                  src={require(`../asset/${friend?.avatar}-small.png`)}
+                  alt={friend?.avatar}
                 />
-              )}
-            </ImageButton>
-          )}
-          loadPage={loadMyFriendPage}
-          loading={loading}
-        />
+                <img
+                  className="image face small"
+                  src={require('../asset/face-small.png')}
+                  alt={'face'}
+                />
+                {friend?.equipment?.hat && (
+                  <img
+                    className={`image ${friend?.equipment?.hat} small`}
+                    src={require(
+                      `../asset/${friend?.equipment?.hat}-small.png`
+                    )}
+                    alt={friend?.equipment?.hat}
+                  />
+                )}
+              </ImageButton>
+            )}
+            loadPage={loadMyFriendPage}
+            loading={loading}
+          />
+        ) : (
+          <div className="empty-result-set">
+            <h1>no results</h1>
+            <p>{friend?.name} has no neighbors</p>
+          </div>
+        )}
       </div>
     </div>
   );

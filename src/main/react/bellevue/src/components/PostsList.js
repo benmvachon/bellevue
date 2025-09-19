@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { useOutletContext } from 'react-router';
+import { useNavigate, useOutletContext } from 'react-router';
 import PropTypes from 'prop-types';
 import {
   getTotalPosts,
@@ -27,6 +27,7 @@ function PostsList({
   excludedForums = [],
   excludeForum
 }) {
+  const navigate = useNavigate();
   const { pushAlert } = useOutletContext();
   const [posts, setPosts] = useState([]);
   const [totalPosts, setTotalPosts] = useState(0);
@@ -251,7 +252,7 @@ function PostsList({
         <div className="top-level-posts">
           <LoadingSpinner onClick={() => {}} />
         </div>
-      ) : (
+      ) : totalPosts > 0 ? (
         <ScrollLoader
           total={totalPosts}
           loadMore={loadMore}
@@ -270,6 +271,15 @@ function PostsList({
             />
           ))}
         </ScrollLoader>
+      ) : (
+        <div className="empty-result-set">
+          <h1>no results</h1>
+          <p>post a new flyer to get the conversation started or</p>
+          <button onClick={() => navigate('/map/suburbs')}>
+            request some new neighbors
+          </button>
+          <p>to see what they have to say</p>
+        </div>
       )}
     </div>
   );

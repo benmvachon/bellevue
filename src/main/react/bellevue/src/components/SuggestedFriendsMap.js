@@ -115,21 +115,31 @@ function SuggestedFriendsMap({ pushAlert }) {
         Find potential neighbors and send them friend requests
       </p>
       <div className="grid">
-        <Page
-          page={suggestedFriends}
-          renderItem={(profile) => (
-            <ImageButton
-              name="house"
-              size="medium"
-              face={false}
-              onClick={() => profileClick(profile.id)}
-            >
-              <span>{profile.name}</span>
-            </ImageButton>
-          )}
-          loadPage={loadSuggestedFriendPage}
-          loading={loading}
-        />
+        {loading ||
+        (suggestedFriends &&
+          suggestedFriends.content &&
+          suggestedFriends.content.length > 0) ? (
+          <Page
+            page={suggestedFriends}
+            renderItem={(profile) => (
+              <ImageButton
+                name="house"
+                size="medium"
+                face={false}
+                onClick={() => profileClick(profile.id)}
+              >
+                <span>{profile.name}</span>
+              </ImageButton>
+            )}
+            loadPage={loadSuggestedFriendPage}
+            loading={loading}
+          />
+        ) : (
+          <div className="empty-result-set">
+            <h1>no results</h1>
+            <p>try adjusting your query or your filters</p>
+          </div>
+        )}
       </div>
     </div>
   );
