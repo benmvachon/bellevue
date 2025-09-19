@@ -1,0 +1,10 @@
+@use 'variables' as *;
+
+div.loading {
+  display: flex;
+  justify-content: center;
+
+  button.image-button.spinner {
+    background: none;
+  }
+}
