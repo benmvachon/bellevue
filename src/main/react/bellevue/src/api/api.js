@@ -41,7 +41,6 @@ api.interceptors.response.use(
   }
 );
 
-let reconnectTimeout = null;
 let isCreatingClient = false;
 
 export let connectedPromise = createDeferred();
@@ -56,19 +55,6 @@ function resetConnectedPromise() {
   connectedPromise = createDeferred();
 }
 
-function tryReconnect() {
-  if (reconnectTimeout) return;
-
-  reconnectTimeout = setTimeout(() => {
-    console.warn('[STOMP] Attempting to reconnect...');
-    client?.deactivate().then(() => {
-      reconnectTimeout = null;
-      resetConnectedPromise();
-      getClient(true); // Force reactivation
-    });
-  }, 3000);
-}
-
 export const waitForConnection = () => connectedPromise?.promise;
 
 let client = null;
@@ -79,44 +65,29 @@ export const getClient = async (force = false) => {
   }
 
   if (isCreatingClient) {
-    await waitForConnection(); // Wait for the current connection to complete
+    await waitForConnection();
     return client;
   }
 
   isCreatingClient = true;
 
   client = new Client({
-    webSocketFactory: () => new SockJS('/ws'), // Matches your WebSocketConfig
+    webSocketFactory: () => new SockJS('/ws'),
     connectHeaders: {
       login: 'guest',
       passcode: 'guest'
     },
+    heartbeatIncoming: 20000,
+    heartbeatOutgoing: 20000,
+    reconnectDelay: 3000,
     debug: (str) => console.debug(`[STOMP DEBUG] ${str}`),
-    reconnectDelay: 0, // We handle it ourselves
     onConnect: () => {
       console.log('[STOMP] Connected');
       isCreatingClient = false;
       connectedPromise.resolve();
-      // resubscribe
       subscriptions?.forEach(({ onMessage }, destination) => {
         subscribe(destination, onMessage);
       });
-    },
-    onDisconnect: () => {
-      console.log('[STOMP] Disconnected');
-      tryReconnect();
-    },
-    onWebSocketClose: () => {
-      console.warn('[STOMP] WebSocket closed');
-      tryReconnect();
-    },
-    onWebSocketError: (event) => {
-      console.error('[STOMP] WebSocket error', event);
-      tryReconnect();
-    },
-    onStompError: (frame) => {
-      console.error('[STOMP] Broker STOMP error', frame);
-      tryReconnect();
     }
   });
 
@@ -134,7 +105,6 @@ export const subscribe = async (destination, onMessage) => {
   const client = await getClient();
 
   const sub = client.subscribe(destination, (message) => {
-    console.warn('[STOMP] Received non-JSON message', message.body);
     onMessage(message.body);
   });
 
