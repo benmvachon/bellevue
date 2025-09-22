@@ -20,7 +20,7 @@ public interface UserProfileRepository extends JpaRepository<UserProfileEntity, 
     "SELECT u FROM UserProfileEntity u " +
     "WHERE (LOWER(u.name) LIKE LOWER(CONCAT(:prefix, '%')) " +
     "   OR LOWER(u.username) LIKE LOWER(CONCAT(:prefix, '%'))) " +
-    "AND u.id != 1"
+    "AND u.id != 1 AND u.id != :user"
   )
   @Transactional(readOnly = true)
   Page<UserProfileEntity> findByNameOrUsernameStartsWith(@Param("user") Long user, @Param("prefix") String prefix, Pageable pageable);
