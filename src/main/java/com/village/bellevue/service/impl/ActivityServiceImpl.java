@@ -50,6 +50,7 @@ public class ActivityServiceImpl implements ActivityService {
   public void markUsersIdle(Timestamp lastSeen) {
     List<Long> users = profileRepository.getUsersToMarkIdle(lastSeen);
     for (Long user : users) {
+      if (user == 1l) continue;
       profileRepository.setStatusIdle(user);
       publisher.publishEvent(new StatusEvent(user, "idle"));
     }
@@ -62,6 +63,7 @@ public class ActivityServiceImpl implements ActivityService {
   public void markUsersOffline(Timestamp lastSeen) {
     List<Long> users = profileRepository.getUsersToMarkOffline(lastSeen);
     for (Long user : users) {
+      if (user == 1l) continue;
       profileRepository.setStatusOffline(user);
       publisher.publishEvent(new StatusEvent(user, "offline"));
     }
@@ -72,6 +74,7 @@ public class ActivityServiceImpl implements ActivityService {
   @Modifying
   @Override
   public void markUserOffline(Long user) {
+    if (user == 1l) return;
     if (profileRepository.setStatusOffline(user) > 0) {
       publisher.publishEvent(new StatusEvent(user, "offline"));
     }

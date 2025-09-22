@@ -31,6 +31,7 @@ BEGIN
     -- Pick a random avatar ID and name
     SELECT id, name INTO v_avatar_id, p_avatar_name
     FROM avatar
+    WHERE id != 1
     ORDER BY RAND()
     LIMIT 1;
 
@@ -47,6 +48,9 @@ BEGIN
 
     INSERT INTO equipment (user, item, equipped)
     VALUES (p_user_id, v_hat_id, true);
+
+    CALL request_friend(p_user_id, 1);
+    CALL accept_friend(1, p_user_id);
 
     COMMIT;
 END;
@@ -1280,6 +1284,7 @@ BEGIN
     IF EXISTS (
         SELECT * FROM friend
         WHERE user = p_user AND friend = p_friend
+        AND user != 1 AND friend != 1
     ) THEN
         -- Remove ratings from the aggregate for both users
         CALL delete_friendship(p_user, p_friend);
@@ -1617,7 +1622,7 @@ BEGIN
         CALL delete_post(post_id);
     END LOOP;
     CLOSE reply_cursor;
-    DELETE FROM user WHERE id = p_user;
+    DELETE FROM user WHERE id = p_user AND id != 1;
 END;
 //
 DELIMITER ;

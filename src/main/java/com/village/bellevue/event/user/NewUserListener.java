@@ -38,6 +38,7 @@ public class NewUserListener {
     MessageEntity messageEntity = new MessageEntity();
     messageEntity.setMessage(message);
     messageEntity.setReceiver(userProfileRepository.findById(user).orElseThrow(() -> new AuthorizationException("No such user")));
+    messageEntity.setSender(userProfileRepository.findById(1l).orElseThrow(() -> new AuthorizationException("No system user")));
     messageEntity.setRead(false);
     messageEntity = messageRepository.save(messageEntity);
     if (messageEntity.getId() != null) {

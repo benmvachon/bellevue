@@ -30,6 +30,7 @@ public interface FriendRepository extends JpaRepository<FriendEntity, FriendId> 
     "AND (:query IS NULL " +
       "OR LOWER(f.friend.name) LIKE LOWER(CONCAT(:query, '%')) " +
       "OR LOWER(f.friend.username) LIKE LOWER(CONCAT(:query, '%'))) " +
+    "AND f.friend.id != 1 " +
     "ORDER BY f.score DESC"
   )
   @Transactional(readOnly = true)
@@ -40,7 +41,8 @@ public interface FriendRepository extends JpaRepository<FriendEntity, FriendId> 
     "WHERE f.user = :user AND f.status = 'ACCEPTED' " +
     "AND EXISTS ( " +
     "SELECT 1 FROM FriendEntity f2 " +
-    "WHERE f2.user = :friend AND f2.friend.id = f.friend.id AND f2.status = 'ACCEPTED') "
+    "WHERE f2.user = :friend AND f2.friend.id = f.friend.id AND f2.status = 'ACCEPTED' AND f2.friend.id != 1) " +
+    "AND f.friend.id != 1"
   )
   @Transactional(readOnly = true)
   List<Long> findMutualFriends(@Param("user") Long user, @Param("friend") Long friend);
@@ -51,6 +53,7 @@ public interface FriendRepository extends JpaRepository<FriendEntity, FriendId> 
     "AND (:query IS NULL " +
       "OR LOWER(f.friend.name) LIKE LOWER(CONCAT(:query, '%')) " +
       "OR LOWER(f.friend.username) LIKE LOWER(CONCAT(:query, '%'))) " +
+    "AND f.friend.id != 1 " +
     "ORDER BY f.score DESC"
   )
   @Transactional(readOnly = true)
@@ -68,6 +71,7 @@ public interface FriendRepository extends JpaRepository<FriendEntity, FriendId> 
           SELECT f.friend.id FROM FriendEntity f
           WHERE f.user = :user AND f.status = 'ACCEPTED'
       )
+    AND f2.friend.id != 1
     GROUP BY f2.friend.id
     ORDER BY SUM(f1.score + f2.score) DESC
     """

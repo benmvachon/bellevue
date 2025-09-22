@@ -70,7 +70,7 @@ function Notification({ notification, onClose, openMessages, pushAlert }) {
           openMessages(stateNotification.entity);
           break;
         case 'EQUIPMENT':
-          navigate(`/home/${stateNotification.notified}`);
+          navigate(`/home/${userId}`);
           break;
         case 'FORUM':
           navigate(`/town/${stateNotification.entity}`);

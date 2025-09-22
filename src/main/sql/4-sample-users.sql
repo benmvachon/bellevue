@@ -3,7 +3,6 @@ SET @p_output_avatar = ''; -- Initialize the variable
 SET @p_output_hat = ''; -- Initialize the variable
 
 -- add sample user data
-CALL add_user('Ben Vachon', 'bevis_armada', 'bevis_armada@blaurvis.com', '$2a$10$/7zTkIlyp6YY04MGU0/LMOX4UI5svjyNSJ.mkMbAfSg6wEVntGsZa', @p_output_id, @p_output_avatar, @p_output_hat);        -- id 1
 CALL add_user('Laura Zhang', 'biggie', 'biggie@blaurvis.com', '$2a$10$UneYqxe0x84eVAHDuA6MaO8/Sw6r1zZcgRFvQd.avJMZ1aTXOa42a', @p_output_id, @p_output_avatar, @p_output_hat);                   -- id 2
 CALL add_user('Alice Johnson', 'alice_j', 'alice_j@blaurvis.com', '$2a$10$SCJY/W1klZXC8swa2pl90uO9LptQb.w4p6dxIjzbLpScqJv0nSopy', @p_output_id, @p_output_avatar, @p_output_hat);               -- id 3
 CALL add_user('Michael Smith', 'mike_smith', 'mike_smith@blaurvis.com', '$2a$10$gAZzSVjf7xvsDrz1qE..u.Fa7YUhF5hKKk5IT7f2w7EvGKvlAupVi', @p_output_id, @p_output_avatar, @p_output_hat);         -- id 4
@@ -25,14 +24,6 @@ CALL add_user('Jackson Garcia', 'jack_garcia', 'jack_garcia@blaurvis.com', '$2a$
 CALL add_user('Amelia Martinez', 'amelia_mart', 'amelia_mart@blaurvis.com', '$2a$10$1KXuVJX8XJCFn4szWQhCTe8/TVADvxIoXgl63.S3td6Crmmms6hc6', @p_output_id, @p_output_avatar, @p_output_hat);     -- id 20
 
 -- add sample user relationships
-CALL request_friend(2, 1);
-CALL accept_friend(1, 2);
-CALL request_friend(3, 1);
-CALL accept_friend(1, 3);
-CALL request_friend(5, 1);
-CALL accept_friend(1, 5);
-CALL request_friend(6, 1);
-CALL accept_friend(1, 6);
 CALL request_friend(4, 2);
 CALL accept_friend(2, 4);
 CALL request_friend(5, 2);
@@ -53,8 +44,6 @@ CALL request_friend(9, 5);
 CALL accept_friend(5, 9);
 CALL request_friend(10, 6);
 CALL accept_friend(6, 10);
-CALL request_friend(1, 7);
-CALL accept_friend(7, 1);
 CALL request_friend(2, 8);
 CALL accept_friend(8, 2);
 CALL request_friend(3, 9);
@@ -99,12 +88,9 @@ CALL request_friend(20, 19);
 CALL accept_friend(19, 20);
 CALL request_friend(14, 19);
 CALL accept_friend(19, 14);
-CALL request_friend(1, 20);
-CALL accept_friend(20, 1);
 CALL request_friend(6, 20);
 CALL accept_friend(20, 6);
 
-CALL request_friend(1, 4);
 CALL request_friend(2, 8);
 CALL request_friend(3, 9);
 CALL request_friend(5, 10);

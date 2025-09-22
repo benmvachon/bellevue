@@ -118,14 +118,14 @@ public class NotificationListener {
   public void handleEquipmentEvent(EquipmentEvent event) {
     Long user = event.getUser();
     Long item = event.getEquipment().getItem().getId();
-    notifyFriend(user, user, NotificationType.EQUIPMENT, item);
+    notifyFriend(1l, user, NotificationType.EQUIPMENT, item);
   }
 
   @Async
   @EventListener
   public void handleNewUserEvent(NewUserEvent event) {
     Long user = event.getUser();
-    notifyFriend(user, user, NotificationType.SYSTEM, user);
+    notifyFriend(1l, user, NotificationType.SYSTEM, user);
   }
 
   @Async

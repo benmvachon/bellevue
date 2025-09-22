@@ -35,6 +35,10 @@ function ProfilePage() {
   const debounceTimeout = useRef(null);
 
   useEffect(() => {
+    if (id < 2) navigate(`/home/${userId}`);
+  }, [id, userId, navigate]);
+
+  useEffect(() => {
     setClassName('profile-page');
     setMapSlider(true);
   }, [setClassName, setMapSlider]);

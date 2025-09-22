@@ -162,7 +162,7 @@ function Messages({
     <Modal className="messages-container" show={show} onClose={onClose}>
       <button
         className="name pixel-corners"
-        onClick={() => friend?.id > 0 && navigate(`/home/${friend?.id}`)}
+        onClick={() => friend?.id > 1 && navigate(`/home/${friend?.id}`)}
       >
         {friend?.name || 'SYSTEM'}
       </button>
@@ -200,15 +200,15 @@ function Messages({
         </button>
         <textarea
           name="new-message"
-          placeholder={friendId === 0 ? 'no replies' : 'new message...'}
+          placeholder={friendId <= 1 ? 'no replies' : 'new message...'}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
-          disabled={friendId === 0}
+          disabled={friendId <= 1}
         />
         <button
           className="send"
-          disabled={friendId === 0}
+          disabled={friendId <= 1}
           onClick={send}
           type="submit"
         >

@@ -103,6 +103,18 @@ div.modal-container {
         &.send {
           background: $green;
           color: $white;
+
+          &:disabled {
+            background: $manila;
+            color: $overlay-medium;
+            border: calc(2 * $pixel) solid $overlay-medium;
+            box-shadow: none;
+            cursor: not-allowed;
+        
+            &:hover {
+              animation: none;
+            }
+          }
         }
 
         &.back {

@@ -16,22 +16,22 @@ import com.village.bellevue.entity.ProfileEntity.LocationType;
 public interface ProfileRepository extends JpaRepository<ProfileEntity, Long> {
 
   @Modifying
-  @Query("UPDATE ProfileEntity p SET p.status = 'ACTIVE' WHERE p.user = :user AND p.status != 'ACTIVE'")
+  @Query("UPDATE ProfileEntity p SET p.status = 'ACTIVE' WHERE p.user = :user AND p.status != 'ACTIVE' AND p.user != 1")
   @Transactional
   int setStatusOnline(Long user);
 
   @Modifying
-  @Query("UPDATE ProfileEntity p SET p.status = 'OFFLINE', p.location = null, p.locationType = null WHERE p.user = :user AND p.status != 'OFFLINE'")
+  @Query("UPDATE ProfileEntity p SET p.status = 'OFFLINE', p.location = null, p.locationType = null WHERE p.user = :user AND p.status != 'OFFLINE' AND p.user != 1")
   @Transactional
   int setStatusOffline(Long user);
 
   @Modifying
-  @Query("UPDATE ProfileEntity p SET p.status = 'IDLE' WHERE p.user = :user AND p.status != 'IDLE'")
+  @Query("UPDATE ProfileEntity p SET p.status = 'IDLE' WHERE p.user = :user AND p.status != 'IDLE' AND p.user != 1")
   @Transactional
   int setStatusIdle(Long user);
 
   @Modifying
-  @Query("UPDATE ProfileEntity p SET p.lastSeen = :lastSeen WHERE p.user = :user")
+  @Query("UPDATE ProfileEntity p SET p.lastSeen = :lastSeen WHERE p.user = :user AND p.user != 1")
   @Transactional
   int setLastSeen(Long user, Timestamp lastSeen);
 
@@ -39,16 +39,16 @@ public interface ProfileRepository extends JpaRepository<ProfileEntity, Long> {
   @Transactional(readOnly = true)
   Timestamp getLastSeen(Long user);
 
-  @Query("SELECT p.user FROM ProfileEntity p WHERE p.lastSeen < :lastSeen AND p.status = 'ACTIVE'")
+  @Query("SELECT p.user FROM ProfileEntity p WHERE p.lastSeen < :lastSeen AND p.status = 'ACTIVE' AND p.user != 1")
   @Transactional(readOnly = true)
   List<Long> getUsersToMarkIdle(Timestamp lastSeen);
 
-  @Query("SELECT p.user FROM ProfileEntity p WHERE p.lastSeen < :lastSeen AND p.status != 'OFFLINE'")
+  @Query("SELECT p.user FROM ProfileEntity p WHERE p.lastSeen < :lastSeen AND p.status != 'OFFLINE' AND p.user != 1")
   @Transactional(readOnly = true)
   List<Long> getUsersToMarkOffline(Timestamp lastSeen);
 
   @Modifying
-  @Query("UPDATE ProfileEntity p SET p.location = :location, p.locationType = :locationType WHERE p.user = :user")
+  @Query("UPDATE ProfileEntity p SET p.location = :location, p.locationType = :locationType WHERE p.user = :user AND p.user != 1")
   @Transactional
   int setLocation(Long user, Long location, LocationType locationType);
 

@@ -48,6 +48,7 @@ public class MessageServiceImpl implements MessageService {
   @Transactional(timeout = 30)
   public void message(Long friend, String message) throws AuthorizationException {
     Long user = getAuthenticatedUserId();
+    if (friend == 1l) return;
     logger.info("Message from: " + user + " to: " + friend + " received from client");
     MessageEntity messageEntity = new MessageEntity();
     messageEntity.setMessage(message);

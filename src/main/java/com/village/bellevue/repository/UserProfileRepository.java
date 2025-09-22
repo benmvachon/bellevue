@@ -19,7 +19,8 @@ public interface UserProfileRepository extends JpaRepository<UserProfileEntity, 
   @Query(
     "SELECT u FROM UserProfileEntity u " +
     "WHERE (LOWER(u.name) LIKE LOWER(CONCAT(:prefix, '%')) " +
-    "   OR LOWER(u.username) LIKE LOWER(CONCAT(:prefix, '%'))) "
+    "   OR LOWER(u.username) LIKE LOWER(CONCAT(:prefix, '%'))) " +
+    "AND u.id != 1"
   )
   @Transactional(readOnly = true)
   Page<UserProfileEntity> findByNameOrUsernameStartsWith(@Param("user") Long user, @Param("prefix") String prefix, Pageable pageable);
@@ -30,6 +31,7 @@ public interface UserProfileRepository extends JpaRepository<UserProfileEntity, 
     "WHERE u.location = :location " +
     "AND u.locationType = :location_type " +
     "AND f.user = :user " +
+    "AND u.id != 1 " +
     "ORDER BY u.lastSeen DESC"
   )
   @Transactional(readOnly = true)
@@ -42,6 +44,7 @@ public interface UserProfileRepository extends JpaRepository<UserProfileEntity, 
     "AND u.locationType = :location_type " +
     "AND f.user = :user " +
     "AND f.status = 'ACCEPTED' " +
+    "AND u.id != 1 " +
     "ORDER BY u.lastSeen DESC"
   )
   @Transactional(readOnly = true)
@@ -54,6 +57,7 @@ public interface UserProfileRepository extends JpaRepository<UserProfileEntity, 
     "AND u.locationType = :location_type " +
     "AND f.user = :user " +
     "AND f.status != 'ACCEPTED' " +
+    "AND u.id != 1 " +
     "ORDER BY u.lastSeen DESC"
   )
   @Transactional(readOnly = true)

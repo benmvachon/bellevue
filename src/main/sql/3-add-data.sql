@@ -1,9 +1,12 @@
-INSERT INTO avatar (name) VALUES ('cat'), ('dinosaur'), ('walrus'), ('bee');
+INSERT INTO avatar (name) VALUES ('blorvis'), ('cat'), ('dinosaur'), ('walrus'), ('bee');
 INSERT INTO item (name, slot, starter, unlockable) VALUES
 ('red-hat', 'hat', true, false),
 ('blue-hat', 'hat', true, false),
 ('yellow-hat', 'hat', true, false),
 ('green-hat', 'hat', true, false);
+
+INSERT INTO user (name, email, username, password) VALUES ('Blorvis', 'no-reply@blorvis.com', 'blorvis', '$2a$10$iL/WJHSKe8axjAf04PRI2uErH7deWGEIGHqQR39h5INpncypMgOnq');
+INSERT INTO profile (user, avatar) VALUES (1, 1);
 
 INSERT INTO forum (name, description) VALUES
 ('Town Hall', 'Where neighbors gather to chat about anything and everything.'),

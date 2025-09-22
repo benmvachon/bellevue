@@ -49,13 +49,13 @@ function Avatar({
 
   const clickWrapper = () => {
     if (onClick) onClick();
-    else user?.id > 0 && navigate(`/home/${user?.id}`);
+    else user?.id > 1 && navigate(`/home/${user?.id}`);
   };
 
   if (error) return JSON.stringify(error);
 
   return (
-    <div className={`avatar ${className}${userId < 1 ? ' system' : ''}`}>
+    <div className={`avatar ${className}${userId < 2 ? ' system' : ''}`}>
       <ImageButton
         name={user?.avatar}
         hat={user?.equipment?.hat}
