@@ -56,7 +56,10 @@ public class SecurityConfig extends GlobalAuthenticationConfigurerAdapter {
               "/signup",
               "/resources/**",
               "/static/**",
-              "/favicon.ico")
+              "/manifest.json",
+              "/favicon.ico",
+              "/fonts.css",
+              "/font1.ttf")
           .permitAll()
           .anyRequest()
           .authenticated()

@@ -205,7 +205,7 @@ Once the dependencies are installed, follow the steps below to set up and run th
    ```
 
 5. **Access the Application**:
-   Open your browser and navigate to [https://localhost:8080](https://localhost:8080) to see the platform running locally.
+   Open your browser and navigate to [https://localhost:8443](https://localhost:8443) to see the platform running locally.
 
 ---
 

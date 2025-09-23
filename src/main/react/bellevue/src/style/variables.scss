@@ -79,3 +79,11 @@ $mobile-header-font: calc(28 * $pixel);
     box-shadow: calc(1 * $pixel) calc(1 * $pixel) calc(1 * $pixel) $blue;
   }
 }
+
+@keyframes ring {
+  0% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(5deg); }
+  50% { transform: rotate(0deg) scale(1.05); }
+  75% { transform: rotate(-5deg); }
+  100% { transform: rotate(0deg) scale(1); }
+}

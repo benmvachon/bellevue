@@ -94,7 +94,11 @@ function Header({
           {notificationCount}
         </span>
       </ImageButton>
-      <ImageButton name="phone" onClick={openThreads}>
+      <ImageButton
+        name="phone"
+        onClick={openThreads}
+        className={unreadThreadCount > 0 ? 'ring' : ''}
+      >
         <span className={`count${unreadThreadCount > 0 ? ' red' : ''}`}>
           {unreadThreadCount}
         </span>

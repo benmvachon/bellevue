@@ -24,12 +24,6 @@
 @import './loading';
 @import './empty-result-set';
 
-@font-face {
-  font-family: 'pixel';
-  src:
-    url('../asset/font1.ttf') format('opentype');
-}
-
 * {
   image-rendering: pixelated;
   color: $black;

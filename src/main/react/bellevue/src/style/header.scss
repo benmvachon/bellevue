@@ -21,6 +21,10 @@ div.header {
     }
   }
 
+  button.image-button.phone.ring {
+    animation: ring 300ms linear infinite;
+  }
+
   &.no-auth {
     button {
       span {

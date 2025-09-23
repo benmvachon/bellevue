@@ -11,12 +11,16 @@ function ImageButton({
   top = 0,
   left = 0,
   flip = false,
+  className,
   onClick,
   children
 }) {
   const style = { top, left };
   return (
-    <Button className={`image-button button ${name} ${size}`} onClick={onClick}>
+    <Button
+      className={`image-button button ${name} ${size} ${className}`}
+      onClick={onClick}
+    >
       {children}
       {name && (
         <img
@@ -63,6 +67,7 @@ ImageButton.propTypes = {
   top: PropTypes.number,
   left: PropTypes.number,
   flip: PropTypes.bool,
+  className: PropTypes.string,
   onClick: PropTypes.func,
   children: PropTypes.any
 };
