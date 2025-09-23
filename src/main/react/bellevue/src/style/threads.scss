@@ -11,14 +11,19 @@ div.threads-container {
   background-size: contain;
   background-repeat: no-repeat;
 
+  input.thread-search {
+    margin-top: calc(32 * $pixel);
+    width: calc(320 * $pixel);
+  }
+
   div.threads {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
     overflow-y: auto;
-    margin-top: calc(32 * $pixel);
-    height: calc(224 * $pixel);
+    margin-top: calc(8 * $pixel);
+    height: calc(200 * $pixel);
     width: calc(320 * $pixel);
 
     div.thread {
@@ -51,6 +56,18 @@ div.threads-container {
 
         span.received-indication {
           float: left;
+          width: calc(16 * $pixel);
+          color: $white;
+          font-size: $small-font;
+          margin-right: calc(2 * $pixel);
+
+          &.received {
+            background: $green;
+          }
+
+          &.sent {
+            background: $red;
+          }
         }
       }
     }

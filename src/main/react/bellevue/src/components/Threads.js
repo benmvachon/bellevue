@@ -6,6 +6,7 @@ import {
   getProfile,
   getThreadCount,
   getThreads,
+  getMyFriends,
   onThread,
   markThreadsRead,
   unsubscribeThread,
@@ -24,7 +25,9 @@ function Threads({ show = false, onClose, openMessages, pushAlert }) {
   const { userId } = useAuth();
   const [threads, setThreads] = useState(null);
   const [totalThreads, setTotalThreads] = useState(0);
+  const [friends, setFriends] = useState(undefined);
   const [profile, setProfile] = useState(null);
+  const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -72,6 +75,25 @@ function Threads({ show = false, onClose, openMessages, pushAlert }) {
       return () => unsubscribeThread();
     }
   }, [show, threads, userId]);
+
+  useEffect(() => {
+    if (query && query.length) {
+      setLoading(true);
+      getMyFriends(
+        (friends) => {
+          setFriends(friends);
+          setLoading(false);
+        },
+        (error) => {
+          setError(error);
+          setLoading(false);
+        },
+        query
+      );
+    } else {
+      setFriends(undefined);
+    }
+  }, [query]);
 
   useEffect(() => {
     if (show) {
@@ -138,10 +160,40 @@ function Threads({ show = false, onClose, openMessages, pushAlert }) {
 
   return (
     <Modal className="threads-container" show={show} onClose={onClose}>
+      <input
+        type="text"
+        placeholder="Search neighbors..."
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        className="thread-search"
+        id="thread-search"
+        name="thread-search"
+      />
       {loading ? (
         <div className="threads">
           <LoadingSpinner onClick={() => {}} />
         </div>
+      ) : query && query.length ? (
+        friends?.content?.length > 0 ? (
+          <div className="threads">
+            {friends.content.map((friend) => (
+              <Thread
+                key={`friend-${friend.id}`}
+                thread={{
+                  message: 'new message',
+                  sender: { id: userId },
+                  receiver: friend,
+                  read: true
+                }}
+                onClick={threadClick}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="threads">
+            <p>No neighbors matching query</p>
+          </div>
+        )
       ) : totalThreads > 0 ? (
         <ScrollLoader
           total={totalThreads}

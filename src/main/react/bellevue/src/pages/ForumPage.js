@@ -14,6 +14,7 @@ import {
   unfavoriteForum,
   setForumNotification,
   markForumRead,
+  markPostsRead,
   onForumUnreadUpdate,
   unsubscribeForumUnread,
   removeFromForum
@@ -110,7 +111,9 @@ function ForumPage() {
 
   const markRead = () => {
     setError(false);
-    markForumRead(id, () => getForum(id, setForum, setError), setError);
+    if ('' + id === '1' && !onlyTownHallPosts)
+      markPostsRead(() => getForum(id, setForum, setError), setError);
+    else markForumRead(id, () => getForum(id, setForum, setError), setError);
   };
 
   const toggleNotifications = () => {

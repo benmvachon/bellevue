@@ -48,7 +48,7 @@ function Thread({ thread, onClick, pushAlert }) {
   }, [friend]);
 
   useEffect(() => {
-    if (friend && stateThread) {
+    if (friend && stateThread && stateThread.id) {
       onMessageRead(stateThread.id, () =>
         getMessage(stateThread.id, setThread, setError)
       );
@@ -100,7 +100,11 @@ function Thread({ thread, onClick, pushAlert }) {
         mark read
       </button>
       <button className="message" onClick={threadClick}>
-        <span className="received-indication">{received ? '<' : '>'}</span>
+        {received ? (
+          <span className="received-indication received">&larr;</span>
+        ) : (
+          <span className="received-indication sent">&rarr;</span>
+        )}
         {stateThread.message}
       </button>
       {friend && (
