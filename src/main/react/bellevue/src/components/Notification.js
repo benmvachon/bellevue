@@ -9,6 +9,7 @@ import {
   unsubscribeNotificationRead
 } from '../api/api.js';
 import Avatar from './Avatar.js';
+import Button from './Button.js';
 
 function Notification({ notification, onClose, openMessages, pushAlert }) {
   const navigate = useNavigate();
@@ -124,16 +125,16 @@ function Notification({ notification, onClose, openMessages, pushAlert }) {
         userProp={stateNotification.notifier}
         pushAlert={outletContext ? outletContext.pushAlert : pushAlert}
       />
-      <button className="notification-button" onClick={notificationClick}>
+      <Button className="notification-button" onClick={notificationClick}>
         {getNotificationText()}
-      </button>
-      <button
+      </Button>
+      <Button
         className="notification-button"
         onClick={markAsRead}
         disabled={stateNotification.read}
       >
         mark read
-      </button>
+      </Button>
     </div>
   );
 }

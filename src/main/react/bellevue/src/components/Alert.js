@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
+import Button from './Button';
 
 function Alert({ remove, className, type, content }) {
   const timeout = useRef(null);
@@ -26,9 +27,9 @@ function Alert({ remove, className, type, content }) {
       onClick={debounceClick}
       onTouchStart={debounceClick}
     >
-      <button className="close" onClick={remove}>
+      <Button className="close" onClick={remove}>
         x
-      </button>
+      </Button>
       {content}
     </div>
   );

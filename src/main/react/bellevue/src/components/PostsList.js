@@ -18,6 +18,7 @@ import Post from '../components/Post.js';
 import ScrollLoader from '../components/ScrollLoader.js';
 import PostForm from '../components/PostForm.js';
 import LoadingSpinner from './LoadingSpinner.js';
+import Button from './Button.js';
 
 function PostsList({
   forum,
@@ -244,9 +245,9 @@ function PostsList({
     <div className="posts">
       <div className="posts-header">
         <PostForm forum={forum} enableForumSelection={feed} />
-        <button className="sort-button" onClick={toggleSort}>
+        <Button className="sort-button" onClick={toggleSort}>
           &darr; {sortByPopular ? 'most recent' : 'most popular'} &darr;
-        </button>
+        </Button>
       </div>
       {loading ? (
         <div className="top-level-posts">
@@ -275,9 +276,9 @@ function PostsList({
         <div className="empty-result-set">
           <h1>no results</h1>
           <p>post a new flyer to get the conversation started or</p>
-          <button onClick={() => navigate('/map/suburbs')}>
+          <Button onClick={() => navigate('/map/suburbs')}>
             request some new neighbors
-          </button>
+          </Button>
           <p>to see what they have to say</p>
         </div>
       )}

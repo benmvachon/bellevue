@@ -7,6 +7,7 @@ import TagTypeahead from './TagTypeahead.js';
 import Modal from './Modal.js';
 import Forum from '../api/Forum.js';
 import ImageButton from './ImageButton.js';
+import Button from './Button.js';
 
 const ForumForm = ({ forum, show = false, onClose, pushAlert }) => {
   const navigate = useNavigate();
@@ -166,10 +167,10 @@ const ForumForm = ({ forum, show = false, onClose, pushAlert }) => {
           pushAlert={pushAlert}
         />
         <div className="buttons">
-          <button onClick={onCloseWrapper}>close</button>
-          <button disabled={disabled} type="submit">
+          <Button onClick={onCloseWrapper}>close</Button>
+          <Button disabled={disabled} type="submit">
             {forum ? 'save' : 'create'}
-          </button>
+          </Button>
         </div>
       </form>
     </Modal>

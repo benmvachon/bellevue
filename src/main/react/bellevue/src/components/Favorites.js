@@ -6,6 +6,7 @@ import Page from './Page.js';
 import Modal from './Modal.js';
 import Favorite from './Favorite.js';
 import LoadingSpinner from './LoadingSpinner.js';
+import Button from './Button.js';
 
 function Favorites({ show = false, onClose, pushAlert }) {
   const outletContext = useOutletContext();
@@ -78,7 +79,7 @@ function Favorites({ show = false, onClose, pushAlert }) {
         </div>
       )}
       <div className="buttons">
-        <button onClick={onClose}>close</button>
+        <Button onClick={onClose}>close</Button>
       </div>
     </Modal>
   );

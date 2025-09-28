@@ -26,6 +26,7 @@ import { formatTimeAgo } from '../utils/DateFormatter.js';
 import { formatContent } from '../utils/ContentFormatter.js';
 import FavoriteButton from './FavoriteButton.js';
 import ConfirmationDialog from './ConfirmationDialog.js';
+import Button from './Button.js';
 
 function Post({
   id,
@@ -252,25 +253,25 @@ function Post({
       <div className="post-actions">
         <p>{formatTimeAgo(post.created)}</p>
         {post.user.id === userId && (
-          <button
+          <Button
             className="delete"
             onClick={() => setShowConfirmationDialog(true)}
           >
             delete
-          </button>
+          </Button>
         )}
         {showForum && (
-          <button onClick={() => navigate(`/town/${post?.forum.id}`)}>
+          <Button onClick={() => navigate(`/town/${post?.forum.id}`)}>
             go to {post.forum.name}
-          </button>
+          </Button>
         )}
         {excludeForum && post.forum.id !== 1 && (
-          <button
+          <Button
             className="filter"
             onClick={() => excludeForum(post.forum.id)}
           >
             filter flyers from {post.forum.name}
-          </button>
+          </Button>
         )}
         <Rating
           rating={post?.rating}
@@ -282,7 +283,7 @@ function Post({
       </div>
       <div className="post-contents">
         <Avatar userProp={post?.user} userId={post?.user?.id} />
-        <button
+        <Button
           onClick={() => !selected && navigate(`/flyer/${post?.id}`)}
           className={`post-button pixel-corners ${size}`}
           dangerouslySetInnerHTML={{ __html: formatContent(post?.content) }}
@@ -297,15 +298,15 @@ function Post({
       <PostForm forum={post.forum} parent={post} />
       {post.children > 0 && (
         <div className="post-children-container">
-          <button onClick={() => setShowReplies(!showReplies)}>
+          <Button onClick={() => setShowReplies(!showReplies)}>
             {showReplies
               ? `hide (${post.children}) replies`
               : `show (${post.children}) replies`}
-          </button>
+          </Button>
           {showReplies && (
-            <button className="sort-button" onClick={toggleSort}>
+            <Button className="sort-button" onClick={toggleSort}>
               &darr; {sortByPopular ? 'most recent' : 'most popular'} &darr;
-            </button>
+            </Button>
           )}
           {showReplies && getSelectedChild && getSelectedChild(depth)}
           {showReplies && (

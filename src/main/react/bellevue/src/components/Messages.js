@@ -16,6 +16,7 @@ import Modal from './Modal.js';
 import Avatar from './Avatar.js';
 import Message from './Message.js';
 import LoadingSpinner from './LoadingSpinner.js';
+import Button from './Button.js';
 
 function Messages({
   show = false,
@@ -160,12 +161,12 @@ function Messages({
 
   return (
     <Modal className="messages-container" show={show} onClose={onClose}>
-      <button
+      <Button
         className="name pixel-corners"
         onClick={() => friend?.id > 1 && navigate(`/home/${friend?.id}`)}
       >
         {friend?.name || 'SYSTEM'}
-      </button>
+      </Button>
       {loading ? (
         <div className="messages">
           <LoadingSpinner onClick={() => {}} />
@@ -195,9 +196,9 @@ function Messages({
         </div>
       )}
       <div className="buttons">
-        <button className="back" onClick={back}>
+        <Button className="back" onClick={back}>
           back
-        </button>
+        </Button>
         <textarea
           name="new-message"
           placeholder={friendId <= 1 ? 'no replies' : 'new message...'}
@@ -206,14 +207,14 @@ function Messages({
           onKeyDown={handleKeyDown}
           disabled={friendId <= 1}
         />
-        <button
+        <Button
           className="send"
           disabled={friendId <= 1}
           onClick={send}
           type="submit"
         >
           send
-        </button>
+        </Button>
       </div>
       {profile && (
         <Avatar

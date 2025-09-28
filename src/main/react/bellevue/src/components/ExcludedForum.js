@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { getForum } from '../api/api.js';
+import Button from './Button.js';
 
 function ExcludedForum({ id, includeForum }) {
   const { pushAlert } = useOutletContext();
@@ -37,7 +38,7 @@ function ExcludedForum({ id, includeForum }) {
 
   return (
     <div>
-      <button onClick={forumClick}>{forum.name}</button>
+      <Button onClick={forumClick}>{forum.name}</Button>
     </div>
   );
 }

@@ -28,6 +28,7 @@ import FavoriteButton from '../components/FavoriteButton.js';
 import ConfirmationDialog from '../components/ConfirmationDialog.js';
 import ImageButton from '../components/ImageButton.js';
 import LoadingSpinner from '../components/LoadingSpinner.js';
+import Button from '../components/Button.js';
 
 function ForumPage() {
   const navigate = useNavigate();
@@ -194,7 +195,7 @@ function ForumPage() {
               <div className="forum-buttons">
                 <div className="plain-forum-buttons">
                   {forum.unreadCount > 0 && (
-                    <button onClick={markRead}>mark read</button>
+                    <Button onClick={markRead}>mark read</Button>
                   )}
                 </div>
                 <div className="image-forum-buttons">

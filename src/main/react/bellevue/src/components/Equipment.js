@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import { getEquipment, equipItem, unequipItem } from '../api/api.js';
 import Page from './Page.js';
 import Modal from './Modal.js';
+import Button from './Button.js';
 
 function Equipment({ show = false, onClose, refreshProfile }) {
   const { pushAlert } = useOutletContext();
@@ -65,7 +66,7 @@ function Equipment({ show = false, onClose, refreshProfile }) {
   return (
     <Modal className="equipment-container" show={show} onClose={onClose}>
       <div className="top-buttons">
-        <button onClick={() => setSlot('all')}>show all</button>
+        <Button onClick={() => setSlot('all')}>show all</Button>
       </div>
       <div className="equipment">
         <Page
@@ -73,11 +74,11 @@ function Equipment({ show = false, onClose, refreshProfile }) {
           renderItem={(item) => (
             <div className="item" key={`item-${item.id}`}>
               {item.name}
-              <button onClick={() => setSlot(item.slot)}>{item.slot}</button>
+              <Button onClick={() => setSlot(item.slot)}>{item.slot}</Button>
               {item.equipped ? (
-                <button onClick={() => unequip(item.id)}>unequip</button>
+                <Button onClick={() => unequip(item.id)}>unequip</Button>
               ) : (
-                <button onClick={() => equip(item.id)}>equip</button>
+                <Button onClick={() => equip(item.id)}>equip</Button>
               )}
             </div>
           )}
@@ -85,7 +86,7 @@ function Equipment({ show = false, onClose, refreshProfile }) {
         />
       </div>
       <div className="buttons">
-        <button onClick={onClose}>close</button>
+        <Button onClick={onClose}>close</Button>
       </div>
     </Modal>
   );

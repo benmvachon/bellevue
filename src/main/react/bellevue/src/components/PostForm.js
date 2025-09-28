@@ -3,6 +3,7 @@ import { useOutletContext } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { addPost, addReply } from '../api/api';
 import ForumTypeahead from './ForumTypeahead.js';
+import Button from './Button.js';
 
 const PostForm = ({ forum, parent, enableForumSelection = false }) => {
   const { pushAlert } = useOutletContext();
@@ -71,9 +72,9 @@ const PostForm = ({ forum, parent, enableForumSelection = false }) => {
           selectedForum={selectedForum}
         />
       )}
-      <button disabled={disabled} type="submit">
+      <Button disabled={disabled} type="submit">
         {parent ? 'reply to flyer' : 'post new flyer'}
-      </button>
+      </Button>
     </form>
   );
 };

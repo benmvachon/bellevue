@@ -1,7 +1,15 @@
 import React, { useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 
-function Button({ onClick, className, type, disabled, title, children }) {
+function Button({
+  onClick,
+  className,
+  type,
+  disabled,
+  title,
+  dangerouslySetInnerHTML,
+  children
+}) {
   const [wait, setWait] = useState(false);
   const clickTimeout = useRef(null);
 
@@ -28,10 +36,12 @@ function Button({ onClick, className, type, disabled, title, children }) {
     <button
       className={`${className}`}
       type={type}
-      onClick={debounceClick}
-      onTouchStart={debounceClick}
+      onClick={onClick ? debounceClick : undefined}
+      onTouchStart={onClick ? () => {} : undefined}
+      onTouchEnd={onClick ? debounceClick : undefined}
       disabled={disabled}
       title={title}
+      dangerouslySetInnerHTML={dangerouslySetInnerHTML}
     >
       {children}
     </button>
@@ -44,6 +54,7 @@ Button.propTypes = {
   className: PropTypes.string,
   disabled: PropTypes.bool,
   title: PropTypes.string,
+  dangerouslySetInnerHTML: PropTypes.any,
   children: PropTypes.any
 };
 

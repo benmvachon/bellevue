@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import PropTypes from 'prop-types';
+import Button from './Button';
 
 function Modal({ show = false, onClose, children, className }) {
   const containerRef = useRef();
@@ -26,9 +27,9 @@ function Modal({ show = false, onClose, children, className }) {
   return (
     <div className="modal-container">
       <div ref={containerRef} className={`modal ${className}`}>
-        <button className="modal-close" onClick={onClose}>
+        <Button className="modal-close" onClick={onClose}>
           x
-        </button>
+        </Button>
         {children}
       </div>
     </div>

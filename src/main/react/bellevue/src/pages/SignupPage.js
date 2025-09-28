@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { useAuth } from '../utils/AuthContext';
 import { signup } from '../api/api.js';
+import Button from '../components/Button.js';
 
 function SignupPage() {
   const navigate = useNavigate();
@@ -120,9 +121,9 @@ function SignupPage() {
             autoComplete="off"
           />
         </div>
-        <button type="submit" disabled={loading}>
+        <Button type="submit" disabled={loading}>
           sign up
-        </button>
+        </Button>
       </form>
     </div>
   );

@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { getTags } from '../api/api';
 import Typeahead from './Typeahead';
+import Button from './Button';
 
 const TagTypeahead = ({ onSelect, onRemove, selectedTags }) => {
   const getOptions = (query, callback, error) => {
@@ -28,9 +29,9 @@ const TagTypeahead = ({ onSelect, onRemove, selectedTags }) => {
         tags?.map(
           (tag) =>
             tag && (
-              <button key={`tag-${tag}`} onClick={() => onRemove(tag)}>
+              <Button key={`tag-${tag}`} onClick={() => onRemove(tag)}>
                 {tag}
-              </button>
+              </Button>
             )
         )
       }

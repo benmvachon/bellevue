@@ -6,6 +6,7 @@ import {
   onEntrance,
   unsubscribeLocation
 } from '../api/api.js';
+import Button from './Button.js';
 
 function Attendees() {
   const navigate = useNavigate();
@@ -44,12 +45,12 @@ function Attendees() {
     <div className="attendees">
       <h3>Attendees</h3>
       {attendees?.content?.map((attendee) => (
-        <button
+        <Button
           key={`attendee-${attendee.id}`}
           onClick={() => navigate(`/home/${attendee.id}`)}
         >
           {attendee.name}
-        </button>
+        </Button>
       ))}
     </div>
   );

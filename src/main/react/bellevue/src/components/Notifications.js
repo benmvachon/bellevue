@@ -15,6 +15,7 @@ import Notification from './Notification.js';
 import ScrollLoader from './ScrollLoader.js';
 import Modal from './Modal.js';
 import LoadingSpinner from './LoadingSpinner.js';
+import Button from './Button.js';
 
 function Notifications({ show = false, onClose, openMessages, pushAlert }) {
   const outletContext = useOutletContext();
@@ -138,8 +139,8 @@ function Notifications({ show = false, onClose, openMessages, pushAlert }) {
         </div>
       )}
       <div className="buttons">
-        <button onClick={onClose}>close</button>
-        <button onClick={markAllAsRead}>mark all read</button>
+        <Button onClick={onClose}>close</Button>
+        <Button onClick={markAllAsRead}>mark all read</Button>
       </div>
     </Modal>
   );

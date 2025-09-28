@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import withAuth from '../utils/withAuth.js';
 import ForumsMap from '../components/ForumsMap.js';
 import ImageButton from '../components/ImageButton.js';
+import Button from '../components/Button.js';
 
 function ForumMapPage({ setShowForumForm }) {
   const navigate = useNavigate();
@@ -29,13 +30,13 @@ function ForumMapPage({ setShowForumForm }) {
             <span className="custom-button-label">New Building</span>
           </ImageButton>
         </div>
-        <button className="back" disabled onClick={() => {}}>
+        <Button className="back" disabled onClick={() => {}}>
           &lt;
-        </button>
+        </Button>
         <ForumsMap />
-        <button className="forth" onClick={() => navigate('/map/neighborhood')}>
+        <Button className="forth" onClick={() => navigate('/map/neighborhood')}>
           &gt;
-        </button>
+        </Button>
         <div className="hide-map-slider">
           <ImageButton name="map-close" onClick={() => navigate('/')} />
         </div>

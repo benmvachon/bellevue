@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import LoadingSpinner from './LoadingSpinner';
+import Button from './Button';
 
 function Page({ page, renderItem, loadPage, loading = false }) {
   if (!page) return;
@@ -19,12 +20,12 @@ function Page({ page, renderItem, loadPage, loading = false }) {
         <div className="page-content">{page?.content?.map(renderItem)}</div>
       )}
       <div className="pagination-buttons">
-        <button onClick={prevPage} disabled={!hasPrevPage}>
+        <Button onClick={prevPage} disabled={!hasPrevPage}>
           previous page ({page.number})
-        </button>
-        <button onClick={nextPage} disabled={!hasNextPage}>
+        </Button>
+        <Button onClick={nextPage} disabled={!hasNextPage}>
           next page ({page.number + 2})
-        </button>
+        </Button>
       </div>
     </div>
   );

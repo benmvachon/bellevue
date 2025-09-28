@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Modal from './Modal.js';
+import Button from './Button.js';
 
 function ConfirmationDialog({
   show = false,
@@ -18,12 +19,12 @@ function ConfirmationDialog({
     >
       <p>{description}</p>
       <div className="buttons">
-        <button className="confirm" onClick={onConfirm}>
+        <Button className="confirm" onClick={onConfirm}>
           {confirmText}
-        </button>
-        <button className="cancel" onClick={onCancel}>
+        </Button>
+        <Button className="cancel" onClick={onCancel}>
           {cancelText}
-        </button>
+        </Button>
       </div>
     </Modal>
   );

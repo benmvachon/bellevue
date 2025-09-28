@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { useAuth } from '../utils/AuthContext';
+import Button from '../components/Button';
 
 function LoginPage() {
   const navigate = useNavigate();
@@ -79,9 +80,9 @@ function LoginPage() {
             autoComplete="off"
           />
         </div>
-        <button type="submit" disabled={loading}>
+        <Button type="submit" disabled={loading}>
           login
-        </button>
+        </Button>
       </form>
     </div>
   );

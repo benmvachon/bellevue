@@ -3,6 +3,7 @@ import { useNavigate, useOutletContext } from 'react-router-dom';
 import withAuth from '../utils/withAuth.js';
 import SuggestedFriendsMap from '../components/SuggestedFriendsMap.js';
 import ImageButton from '../components/ImageButton.js';
+import Button from '../components/Button.js';
 
 function SuggestedFriendsMapPage() {
   const navigate = useNavigate();
@@ -16,13 +17,13 @@ function SuggestedFriendsMapPage() {
   return (
     <div className="map-slider">
       <div className="content">
-        <button className="forth" onClick={() => navigate('/map/neighborhood')}>
+        <Button className="forth" onClick={() => navigate('/map/neighborhood')}>
           &lt;
-        </button>
+        </Button>
         <SuggestedFriendsMap />
-        <button className="forth" disabled onClick={() => {}}>
+        <Button className="forth" disabled onClick={() => {}}>
           &gt;
-        </button>
+        </Button>
         <div className="hide-map-slider">
           <ImageButton name="map-close" onClick={() => navigate('/')} />
         </div>

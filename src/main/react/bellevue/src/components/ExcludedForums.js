@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import ExcludedForum from './ExcludedForum.js';
+import Button from './Button.js';
 
 function ExcludedForums({ excludedForums, includeForum, clearFilter }) {
   return (
@@ -14,12 +15,12 @@ function ExcludedForums({ excludedForums, includeForum, clearFilter }) {
               includeForum={includeForum}
             />
           ))}
-        <button
+        <Button
           onClick={clearFilter}
           disabled={!(excludedForums && excludedForums.length)}
         >
           show all
-        </button>
+        </Button>
       </div>
     </div>
   );

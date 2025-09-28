@@ -13,6 +13,7 @@ import {
   unsubscribeThreadCount
 } from '../api/api.js';
 import Avatar from './Avatar.js';
+import Button from './Button.js';
 
 function Thread({ thread, onClick, pushAlert }) {
   const outletContext = useOutletContext();
@@ -92,21 +93,21 @@ function Thread({ thread, onClick, pushAlert }) {
 
   return (
     <div className="thread">
-      <button
+      <Button
         className="mark-read"
         onClick={markAsRead}
         disabled={!received || stateThread.read || friend?.id < 1}
       >
         mark read
-      </button>
-      <button className="message" onClick={threadClick}>
+      </Button>
+      <Button className="message" onClick={threadClick}>
         {received ? (
           <span className="received-indication received">&larr;</span>
         ) : (
           <span className="received-indication sent">&rarr;</span>
         )}
         {stateThread.message}
-      </button>
+      </Button>
       {friend && (
         <Avatar
           userId={friend?.id}

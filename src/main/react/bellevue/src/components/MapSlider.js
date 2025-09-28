@@ -5,6 +5,7 @@ import ForumsMap from '../components/ForumsMap.js';
 import FriendsMap from '../components/FriendsMap.js';
 import SuggestedFriendsMap from '../components/SuggestedFriendsMap.js';
 import ImageButton from './ImageButton.js';
+import Button from './Button.js';
 
 function MapSlider({ setShowForumForm, pushAlert }) {
   const [open, setOpen] = useState(false);
@@ -39,23 +40,23 @@ function MapSlider({ setShowForumForm, pushAlert }) {
               </ImageButton>
             </div>
           )}
-          <button
+          <Button
             className="back"
             disabled={index <= 0}
             onClick={() => updateIndex(index - 1)}
           >
             &lt;
-          </button>
+          </Button>
           {index === 0 && <ForumsMap pushAlert={pushAlert} />}
           {index === 1 && <FriendsMap pushAlert={pushAlert} />}
           {index === 2 && <SuggestedFriendsMap pushAlert={pushAlert} />}
-          <button
+          <Button
             className="forth"
             disabled={index >= 2}
             onClick={() => updateIndex(index + 1)}
           >
             &gt;
-          </button>
+          </Button>
           <div className="hide-map-slider">
             <ImageButton name="map-close" onClick={() => setOpen(false)} />
           </div>

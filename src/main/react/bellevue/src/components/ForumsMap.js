@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import { getForum, getForums, markPostsRead } from '../api/api.js';
 import Page from '../components/Page.js';
 import Forum from '../components/Forum.js';
+import Button from './Button.js';
 
 function ForumsMap({ pushAlert }) {
   const outletContext = useOutletContext();
@@ -89,9 +90,9 @@ function ForumsMap({ pushAlert }) {
     <div className="forums">
       <div className="header pixel-corners">
         <h2>Town</h2>
-        <button onClick={() => setFilter(!filter)}>
+        <Button onClick={() => setFilter(!filter)}>
           {filter ? 'show all' : 'show unread'}
-        </button>
+        </Button>
         <input
           type="text"
           placeholder="Search town..."
@@ -99,7 +100,7 @@ function ForumsMap({ pushAlert }) {
           onChange={(e) => setQuery(e.target.value)}
           className="forum-select-input"
         />
-        <button onClick={markPostsRead}>mark all read</button>
+        <Button onClick={markPostsRead}>mark all read</Button>
       </div>
       <p className="pixel-corners">
         Enter buildings and engage in conversations with your neighbors

@@ -19,6 +19,7 @@ import ScrollLoader from './ScrollLoader.js';
 import Modal from './Modal.js';
 import Avatar from './Avatar.js';
 import LoadingSpinner from './LoadingSpinner.js';
+import Button from './Button.js';
 
 function Threads({ show = false, onClose, openMessages, pushAlert }) {
   const outletContext = useOutletContext();
@@ -214,10 +215,10 @@ function Threads({ show = false, onClose, openMessages, pushAlert }) {
         </div>
       )}
       <div className="buttons">
-        <button onClick={onClose}>close</button>
-        <button onClick={() => markThreadsRead(undefined, setError)}>
+        <Button onClick={onClose}>close</Button>
+        <Button onClick={() => markThreadsRead(undefined, setError)}>
           mark all read
-        </button>
+        </Button>
       </div>
       {profile && (
         <Avatar
