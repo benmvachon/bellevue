@@ -22,7 +22,7 @@ function Alert({ remove, className, type, content }) {
   };
 
   return (
-    <div
+    <Button
       className={`alert pixel-corners ${type} ${className}`}
       onClick={debounceClick}
       onTouchStart={debounceClick}
@@ -31,7 +31,7 @@ function Alert({ remove, className, type, content }) {
         x
       </Button>
       {content}
-    </div>
+    </Button>
   );
 }
 

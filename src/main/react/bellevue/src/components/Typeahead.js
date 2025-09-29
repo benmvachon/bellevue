@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import PropTypes from 'prop-types';
+import Button from './Button';
 
 const Typeahead = ({
   onSelect,
@@ -173,17 +174,17 @@ const Typeahead = ({
       {showDropdown && options.length > 0 && (
         <ul className="typeahead-dropdown" ref={dropdownRef}>
           {options?.map((option, index) => (
-            <li
-              key={option.id}
-              ref={(el) => (itemRefs.current[index] = el)}
-              onClick={() => handleSelect(option)}
-              className={`typeahead-item${
-                index === highlightedIndex ? ' selected' : ''
-              }`}
-              onMouseDown={(e) => e.preventDefault()}
-              onMouseEnter={() => setHighlightedIndex(index)}
-            >
-              {getDisplayOption(option)}
+            <li key={option.id} onMouseEnter={() => setHighlightedIndex(index)}>
+              <Button
+                ref={(el) => (itemRefs.current[index] = el)}
+                onClick={() => handleSelect(option)}
+                className={`typeahead-item${
+                  index === highlightedIndex ? ' selected' : ''
+                }`}
+                onMouseDown={(e) => e.preventDefault()}
+              >
+                {getDisplayOption(option)}
+              </Button>
             </li>
           ))}
         </ul>

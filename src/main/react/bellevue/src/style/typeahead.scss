@@ -43,39 +43,47 @@ div.typeahead-container {
     display: flex;
     flex-direction: column;
 
-    li.typeahead-item {
-      padding: calc(2 * $pixel);
-      cursor: pointer;
-      background-color: $white;
-      border-bottom: calc(2 * $pixel) solid $black;
-      display: flex;
-
-      p {
+    li {
+      button.typeahead-item {
+        padding: calc(2 * $pixel);
+        cursor: pointer;
+        background-color: $white;
+        border: none;
+        border-bottom: calc(2 * $pixel) solid $black;
         display: flex;
-        justify-content: space-between;
-        margin: calc(2 * $pixel) 0;
+        outline: none;
+        height: fit-content;
         width: 100%;
+        animation: none;
+        transform: none;
 
-        span.name {
-          font-size: calc(12 * $pixel);
-          font-weight: 500;
+        p {
+          display: flex;
+          justify-content: space-between;
+          margin: calc(2 * $pixel) 0;
+          width: 100%;
 
-          @media (width < 100dvh) {
-            font-size: $mobile-small-font;
+          span.name {
+            font-size: calc(12 * $pixel);
+            font-weight: 500;
+
+            @media (width < 100dvh) {
+              font-size: $mobile-small-font;
+            }
+          }
+
+          span.description {
+            font-size: $label-font;
+
+            @media (width < 100dvh) {
+              font-size: $mobile-label-font;
+            }
           }
         }
 
-        span.description {
-          font-size: $label-font;
-
-          @media (width < 100dvh) {
-            font-size: $mobile-label-font;
-          }
+        &.selected {
+          background-color: $yellow;
         }
-      }
-
-      &.selected {
-        background-color: $yellow;
       }
     }
   }

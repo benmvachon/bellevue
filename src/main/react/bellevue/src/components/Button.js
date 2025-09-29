@@ -37,8 +37,9 @@ function Button({
       className={`${className}`}
       type={type}
       onClick={onClick ? debounceClick : undefined}
-      onTouchStart={onClick ? () => {} : undefined}
-      onTouchEnd={onClick ? debounceClick : undefined}
+      onTouchStart={onClick ? (e) => e.preventDefault() : undefined}
+      onMouseDown={onClick ? (e) => e.preventDefault() : undefined}
+      onTouchEnd={onClick ? (e) => e.preventDefault() : undefined}
       disabled={disabled}
       title={title}
       dangerouslySetInnerHTML={dangerouslySetInnerHTML}

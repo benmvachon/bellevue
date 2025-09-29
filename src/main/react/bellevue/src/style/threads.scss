@@ -38,7 +38,6 @@ div.threads-container {
       button.message, button.mark-read {
         font-size: $extra-small-font;
         background: $white;
-        width: calc(160 * $pixel);
 
         @media (width < 100dvh) {
           font-size: $mobile-extra-small-font;
@@ -53,6 +52,7 @@ div.threads-container {
         text-overflow: ellipsis;
         overflow: hidden;
         white-space: nowrap;
+        min-width: calc(160 * $pixel);
 
         span.received-indication {
           float: left;

@@ -14,7 +14,7 @@ div.alerts {
   max-height: calc(100% - (32 * $pixel));
   overflow: scroll;
 
-  div.alert {
+  button.alert {
     width: 50%;
     background: $manila;
     z-index: 10000;
@@ -71,18 +71,40 @@ div.alerts {
           background: none;
         }
 
+        &.message, &.mark-read {
+          font-size: $extra-small-font;
+          background: $white;
+
+          @media (width < 100dvh) {
+            font-size: $mobile-extra-small-font;
+          }
+        }
+
+        &.mark-read {
+          width: calc(65 * $pixel);
+        }
+
         &.message {
           text-overflow: ellipsis;
           overflow: hidden;
           white-space: nowrap;
           max-width: calc(176 * $pixel);
+          min-width: calc(160 * $pixel);
 
-          @media (width < 100dvh) {
-            max-width: calc(240 * $pixel);
-          }
-  
           span.received-indication {
             float: left;
+            width: calc(16 * $pixel);
+            color: $white;
+            font-size: $small-font;
+            margin-right: calc(2 * $pixel);
+  
+            &.received {
+              background: $green;
+            }
+  
+            &.sent {
+              background: $red;
+            }
           }
         }
       }
