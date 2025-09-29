@@ -72,7 +72,7 @@ const PostForm = ({ forum, parent, enableForumSelection = false }) => {
           selectedForum={selectedForum}
         />
       )}
-      <Button disabled={disabled} type="submit">
+      <Button className="post-button" disabled={disabled} type="submit">
         {parent ? 'reply to flyer' : 'post new flyer'}
       </Button>
     </form>

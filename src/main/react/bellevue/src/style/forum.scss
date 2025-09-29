@@ -188,7 +188,7 @@ div.page {
             }
           }
 
-          button {
+          button.sort-button, button.post-button {
             height: calc(16 * $pixel);
           }
         }

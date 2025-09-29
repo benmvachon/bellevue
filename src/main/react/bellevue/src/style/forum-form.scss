@@ -55,6 +55,12 @@ div.forum-form-container {
         }
       }
 
+      &.tag-select {
+        div.selected-options {
+          height: calc(18 * $pixel);
+        }
+      }
+
       ul.typeahead-dropdown {
         max-height: calc(74 * $pixel);
       }

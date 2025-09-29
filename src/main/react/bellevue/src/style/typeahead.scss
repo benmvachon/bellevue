@@ -10,7 +10,7 @@ div.typeahead-container {
     gap: calc(2 * $pixel);
     overflow-x: auto;
     overflow-y: hidden;
-    height: calc(16 * $pixel);
+    height: fit-content;
 
     button {
       background: $green;
@@ -62,10 +62,12 @@ div.typeahead-container {
           justify-content: space-between;
           margin: calc(2 * $pixel) 0;
           width: 100%;
+          height: fit-content;
 
           span.name {
             font-size: calc(12 * $pixel);
             font-weight: 500;
+            text-align: left;
 
             @media (width < 100dvh) {
               font-size: $mobile-small-font;
@@ -74,6 +76,7 @@ div.typeahead-container {
 
           span.description {
             font-size: $label-font;
+            text-align: right;
 
             @media (width < 100dvh) {
               font-size: $mobile-label-font;
